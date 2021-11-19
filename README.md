@@ -9,6 +9,7 @@
     - [步骤](#步骤)
     - [最佳实践](#最佳实践)
     - [环境变量](#环境变量)
+    - [部署](#部署)
     - [关于mysql](#关于mysql)
     - [说明](#说明)
 
@@ -77,6 +78,25 @@
 1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
 
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**
+
+### 部署
+
+```
+[Unit]
+Description=Sphinx Plugin
+After=network.target
+
+[Service]
+ExecStart=/opt/sphinx-plugin/sphinx-plugin run
+ExecStop=/bin/kill -s QUIT $MAINPID
+Restart=always
+RestartSec=30
+TimeoutSec=infinity
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+```
 
 ### 关于mysql
 * 创建app后，从app.Mysql()获取本地mysql client

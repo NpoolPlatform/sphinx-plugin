@@ -3,11 +3,7 @@ Description=Sphinx Plugin
 After=network.target
 
 [Service]
-User=sp
-Group=sp
-Type=simple
-PIDFile=/run/sphinx-plugin.pid
-ExecStart=/usr/local/bin/sphinx-plugin
+ExecStart=/opt/sphinx-plugin/sphinx-plugin run
 ExecStop=/bin/kill -s QUIT $MAINPID
 Restart=always
 RestartSec=30
