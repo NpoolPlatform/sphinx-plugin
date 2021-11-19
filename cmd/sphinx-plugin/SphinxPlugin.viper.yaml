@@ -1,0 +1,9 @@
+---
+config:
+  hostname: "sphinx-plugin.npool.top"
+  http_port: 50170
+  grpc_port: 50171
+  prometheus_port: 50172
+  appid: "89089012783789789719823798127398"
+  logdir: "./"
+  apolloAccessKey: "0147fb70b815403790e8634b899fac07"

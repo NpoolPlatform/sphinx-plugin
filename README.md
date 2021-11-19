@@ -1,14 +1,16 @@
 # Npool go service app template
 
-[![Test](https://github.com/NpoolPlatform/go-service-app-template/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/NpoolPlatform/go-service-app-template/actions/workflows/main.yml)
+[![Test](https://github.com/NpoolPlatform/sphinx-plugin/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/NpoolPlatform/sphinx-plugin/actions/workflows/main.yml)
 
 [目录](#目录)
-- [功能](#功能)
-- [命令](#命令)
-- [步骤](#步骤)
-- [最佳实践](#最佳实践)
-- [关于mysql](#关于mysql)
-- [GRPC](#grpc)
+- [Npool go service app template](#npool-go-service-app-template)
+    - [功能](#功能)
+    - [命令](#命令)
+    - [步骤](#步骤)
+    - [最佳实践](#最佳实践)
+    - [环境变量](#环境变量)
+    - [关于mysql](#关于mysql)
+    - [说明](#说明)
 
 -----------
 ### 功能
@@ -40,30 +42,29 @@
 * make verify-build ```编译目标```
 * make test ```单元测试```
 * make generate-docker-images ```生成docker镜像```
-* make service-sample ```单独编译服务```
-* make service-sample-image ```单独生成服务镜像```
+* make sphinx-plugin ```单独编译服务```
+* make sphinx-plugin-image ```单独生成服务镜像```
 * make deploy-to-k8s-cluster ```部署到k8s集群```
 
 ### 步骤
-* 在github上将模板仓库https://github.com/NpoolPlatform/go-service-app-template.git import为https://github.com/NpoolPlatform/my-service-name.git
+* 在github上将模板仓库https://github.com/NpoolPlatform/sphinx-plugin.git import为https://github.com/NpoolPlatform/my-service-name.git
 * git clone https://github.com/NpoolPlatform/my-service-name.git
 * cd my-service-name
-* mv cmd/service-sample cmd/my-service
+* mv cmd/sphinx-plugin cmd/my-service
 * 修改cmd/my-service/main.go中的serviceName为My Service
-* mv cmd/my-service/ServiceSample.viper.yaml cmd/my-service/MyService.viper.yaml
+* mv cmd/my-service/sphinxplugin.viper.yaml cmd/my-service/MyService.viper.yaml
 * 将cmd/my-service/MyService.viper.yaml中的内容修改为当前服务对应内容
 * 修改Dockerfile和k8s部署文档为当前服务对应内容
   * grep -rb "service sample" ./*
   * grep -rb "service-example" ./*
   * grep -rb "go-service-app-template" ./*
-  * grep -rb "service\.sample" ./*
-  * grep -rb "service\*sample" ./*
+  * grep -rb "service.sample" ./*
+  * grep -rb "service*sample" ./*
   * grep -rb "ServiceSample" ./*
   * grep -rb "ServiceExample" ./*
   * grep -rb "service_sample" ./*
   * grep -rb "service_example" ./*
   * grep -rb "sample-service" ./*
-  * 修改cmd/my-service/k8s中的三个yaml文件，包含端口，服务名字
 
 ### 最佳实践
 * 每个服务只提供单一可执行文件，有利于docker镜像打包与k8s部署管理
@@ -71,9 +72,16 @@
 * 集群内服务间direct call调用通过服务发现获取目标地址进行调用
 * 集群内服务间event call调用通过rabbitmq解耦
 
+### 环境变量
+
+1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
+
+2. **ENV_COIN_TOKEN** 钱包服务的 **token**
+
 ### 关于mysql
 * 创建app后，从app.Mysql()获取本地mysql client
 * [文档参考](https://entgo.io/docs/sql-integration)
 
-### GRPC
-* [GRPC 环境搭建和简单学习](./grpc.md)
+### 说明
+
+不支持 **Windows**
