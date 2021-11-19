@@ -7,11 +7,10 @@ import (
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/api"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/task"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/spf13/viper"
 	cli "github.com/urfave/cli/v2"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
@@ -28,15 +27,15 @@ var (
 			return logger.Sync()
 		},
 		Action: func(c *cli.Context) error {
-			go task.RegisterCoin()
+			// go task.RegisterCoin()
 			return rpcRegister()
 		},
 	}
 )
 
 func rpcRegister() error {
-	gport := viper.GetString("grpc_port")
-	prometheusPort := viper.GetString("prometheus_port")
+	gport := config.GetInt(config.KeyGRPCPort)
+	prometheusPort := config.GetInt(config.KeyPrometheusPort)
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%v", gport))
 	if err != nil {

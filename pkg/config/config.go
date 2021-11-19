@@ -7,6 +7,15 @@ import (
 	"golang.org/x/xerrors"
 )
 
+const (
+	KeyLogDir         = "logdir"
+	KeyAppID          = "appid"
+	KeyHTTPPort       = "http_port"
+	KeyGRPCPort       = "grpc_port"
+	KeyPrometheusPort = "prometheus_port"
+	rootConfig        = "config"
+)
+
 func Init(configPath, appName string) error {
 	viper.SetConfigName(fmt.Sprintf("%s.viper", appName))
 	viper.SetConfigType("yaml")
@@ -29,7 +38,18 @@ func Init(configPath, appName string) error {
 		return xerrors.Errorf("fail to init config: %v", err)
 	}
 
-	fmt.Printf("appid: %v\n", viper.GetString("appid"))
-	fmt.Printf("logdir: %v\n", viper.GetString("logdir"))
+	appID := viper.GetStringMap(rootConfig)["appid"].(string)   //nolint
+	logDir := viper.GetStringMap(rootConfig)["logdir"].(string) //nolint
+
+	fmt.Printf("appid: %v\n", appID)
+	fmt.Printf("logdir: %v\n", logDir)
 	return nil
+}
+
+func GetString(key string) string {
+	return viper.GetStringMap(rootConfig)[key].(string)
+}
+
+func GetInt(key string) int {
+	return viper.GetStringMap(rootConfig)[key].(int)
 }

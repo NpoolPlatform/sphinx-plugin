@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/version"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	banner "github.com/common-nighthawk/go-figure"
-	"github.com/spf13/viper"
 	cli "github.com/urfave/cli/v2"
 	"golang.org/x/xerrors"
 )
@@ -42,16 +42,15 @@ func main() {
 		Commands:    commands,
 	}
 
-	err = config.Init("./", serviceName)
+	err = config.Init("./", strings.ReplaceAll(serviceName, " ", ""))
 	if err != nil {
 		panic(xerrors.Errorf("Fail to create configuration: %v", err))
 	}
 
-	err = logger.Init(logger.DebugLevel, fmt.Sprintf("%v/%v.log", viper.GetString("logdir"), serviceName))
+	err = logger.Init(logger.DebugLevel, fmt.Sprintf("%v/%v.log", config.GetString(config.KeyLogDir), strings.ReplaceAll(serviceName, " ", "")))
 	if err != nil {
 		panic(xerrors.Errorf("Fail to init logger: %v", err))
 	}
-	logger.Sugar().Infof("success to create rabbitmq server")
 
 	err = app.Run(os.Args)
 	if err != nil {
