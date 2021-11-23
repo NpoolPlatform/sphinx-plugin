@@ -48,12 +48,14 @@ func newProxyClinet() {
 	if err != nil {
 		logger.Sugar().Errorf("call GetGRPCConn error: %v", err)
 		delay <- struct{}{}
+		return
 	}
 	pClient := signproxy.NewSignProxyClient(conn)
 	proxyClient, err = pClient.ProxyPlugin(context.Background())
 	if err != nil {
 		logger.Sugar().Errorf("call Transaction error: %v", err)
 		delay <- struct{}{}
+		return
 	}
 	startDeal <- struct{}{}
 }
