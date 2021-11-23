@@ -2,44 +2,39 @@ package task
 
 import (
 	"context"
-	"time"
+	"os"
 
-	grpc2 "github.com/NpoolPlatform/go-service-framework/pkg/grpc"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/signproxy"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	pconst "github.com/NpoolPlatform/sphinx-proxy/pkg/message/const"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/conn"
 )
 
 func RegisterCoin() {
-	tick := time.NewTicker(10 * time.Second)
-	defer tick.Stop()
-	for range tick.C {
-		if err := func() error {
-			conn, err := grpc2.GetGRPCConn(pconst.ServiceName, grpc2.GRPCTAG)
-			if err != nil {
-				logger.Sugar().Errorf("call GetGRPCConn error: %v", err)
-				return err
-			}
+	_conn, err := conn.GetGRPCConn(config.GetString(config.KeySphinxProxyAddr))
+	if err != nil {
+		logger.Sugar().Errorf("call GetGRPCConn error: %v", err)
+		os.Exit(1)
+	}
 
-			proxyClient := signproxy.NewSignProxyClient(conn)
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
+	client := signproxy.NewSignProxyClient(_conn)
+	r, err := client.ProxyPlugin(context.Background())
+	if err != nil {
+		logger.Sugar().Errorf("call ProxyPlugin error: %v", err)
+		os.Exit(1)
+	}
 
-			_, err = proxyClient.RegisterCoin(ctx, &signproxy.RegisterCoinRequest{
-				CoinType: sphinxplugin.CoinType_CoinTypeFIL,
-			})
-			if err != nil {
-				logger.Sugar().Errorf(
-					"call RegisterCoin CoinType: %v error: %v",
-					sphinxplugin.CoinType_CoinTypeFIL,
-					err,
-				)
-				return err
-			}
-			return nil
-		}(); err == nil {
-			break
+	for {
+		err := r.Send(&signproxy.ProxyPluginResponse{
+			TransactionType: signproxy.TransactionType_RegisterCoin,
+			CoinType:        sphinxplugin.CoinType_CoinTypeFIL,
+		})
+		if err != nil {
+			logger.Sugar().Errorf("receiver info error: %v", err)
+			continue
 		}
+		r.CloseSend() // nolint
+		break
 	}
 }

@@ -4,16 +4,13 @@ go 1.16
 
 require (
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20211117074545-bc1340849b08
-	github.com/NpoolPlatform/message v0.0.0-20211118083406-0de35a6ec50a
+	github.com/NpoolPlatform/message v0.0.0-20211123023125-9fe2cf15e22a
 	github.com/NpoolPlatform/sphinx-proxy v0.0.0-20211118092918-0b71fdcb4e2f
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/filecoin-project/go-address v0.0.6
 	github.com/filecoin-project/go-jsonrpc v0.1.5
 	github.com/filecoin-project/go-state-types v0.1.1
 	github.com/filecoin-project/lotus v1.13.0
-	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/prometheus/client_golang v1.11.0
 	github.com/spf13/viper v1.9.0
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect

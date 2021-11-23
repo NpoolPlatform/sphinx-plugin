@@ -1,12 +1,8 @@
 package fil
 
 import (
-	"errors"
-
 	"github.com/filecoin-project/go-state-types/crypto"
 )
-
-var ErrSignTypeInvalid = errors.New("sign type invalid")
 
 func SignType(signType string) (crypto.SigType, error) {
 	switch signType {

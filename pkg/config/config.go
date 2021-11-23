@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	KeyLogDir         = "logdir"
-	KeyAppID          = "appid"
-	KeyHTTPPort       = "http_port"
-	KeyGRPCPort       = "grpc_port"
-	KeyPrometheusPort = "prometheus_port"
-	rootConfig        = "config"
+	KeyLogDir          = "logdir"
+	KeyAppID           = "appid"
+	KeyHTTPPort        = "http_port"
+	KeyGRPCPort        = "grpc_port"
+	KeyPrometheusPort  = "prometheus_port"
+	KeySphinxProxyAddr = "sphinx_proxy_addr"
+	rootConfig         = "config"
 )
 
 func Init(configPath, appName string) error {
