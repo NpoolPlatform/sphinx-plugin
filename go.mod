@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20211117074545-bc1340849b08
-	github.com/NpoolPlatform/message v0.0.0-20211123023125-9fe2cf15e22a
+	github.com/NpoolPlatform/message v0.0.0-20211123064021-293d02c62a52
 	github.com/NpoolPlatform/sphinx-proxy v0.0.0-20211118092918-0b71fdcb4e2f
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/filecoin-project/go-address v0.0.6

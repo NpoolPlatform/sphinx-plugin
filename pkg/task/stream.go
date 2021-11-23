@@ -77,6 +77,7 @@ func plugin(rep *signproxy.ProxyPluginRequest, resp *signproxy.ProxyPluginRespon
 			return err
 		}
 		resp.Nonce = nonce
+		resp.Message = rep.GetMessage()
 	case signproxy.TransactionType_Broadcast:
 		cid, err := fil.MpoolPush(rep.GetMessage(), rep.GetSignature())
 		if err != nil {
