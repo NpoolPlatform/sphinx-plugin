@@ -22,40 +22,35 @@ var (
 	ErrSignTypeInvalid      = errors.New("sign type invalid")
 )
 
-func WalletBalance(wallet string) (balance uint64, err error) {
+func WalletBalance(wallet string) (balance types.BigInt, err error) {
 	if wallet == "" {
-		return 0, ErrAddressInvalid
+		return types.EmptyInt, ErrAddressInvalid
 	}
 
 	from, err := address.NewFromString(wallet)
 	if err != nil {
-		return 0, err
+		return types.EmptyInt, err
 	}
 
 	authToken, ok := env.LookupEnv(env.ENVCOINTOKEN)
 	if !ok {
-		return 0, ErrENVCoinTokenNotFound
+		return types.EmptyInt, ErrENVCoinTokenNotFound
 	}
 	headers := http.Header{"Authorization": []string{"Bearer " + authToken}}
 
 	addr, ok := env.LookupEnv(env.ENVCOINAPI)
 	if !ok {
-		return 0, ErrENVCoinAPINotFound
+		return types.EmptyInt, ErrENVCoinAPINotFound
 	}
 
 	var api lotusapi.FullNodeStruct
 	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", []interface{}{&api.Internal, &api.CommonStruct.Internal}, headers)
 	if err != nil {
-		return 0, err
+		return types.EmptyInt, err
 	}
 	defer closer()
 
-	_balance, err := api.WalletBalance(context.Background(), from)
-	if err != nil {
-		return 0, err
-	}
-
-	return _balance.Uint64(), nil
+	return api.WalletBalance(context.Background(), from)
 }
 
 func MpoolGetNonce(wallet string) (nonce uint64, err error) {

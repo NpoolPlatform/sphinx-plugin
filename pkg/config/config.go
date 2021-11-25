@@ -39,8 +39,8 @@ func Init(configPath, appName string) error {
 		return xerrors.Errorf("fail to init config: %v", err)
 	}
 
-	appID := viper.GetStringMap(rootConfig)["appid"].(string)   //nolint
-	logDir := viper.GetStringMap(rootConfig)["logdir"].(string) //nolint
+	appID := viper.GetStringMap(rootConfig)[KeyAppID].(string)   //nolint
+	logDir := viper.GetStringMap(rootConfig)[KeyLogDir].(string) //nolint
 
 	fmt.Printf("appid: %v\n", appID)
 	fmt.Printf("logdir: %v\n", logDir)

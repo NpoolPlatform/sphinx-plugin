@@ -14,7 +14,6 @@ var runCmd = &cli.Command{
 		return logger.Sync()
 	},
 	Action: func(c *cli.Context) error {
-		go task.RegisterCoin()
 		task.Plugin()
 		return nil
 	},
