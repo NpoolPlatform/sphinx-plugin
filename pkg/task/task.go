@@ -3,7 +3,7 @@ package task
 import (
 	"context"
 	"io"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
@@ -20,44 +20,41 @@ import (
 )
 
 var (
-	delayDuration = time.Second * 10
-	delay         = make(chan struct{})
-	newConn       = make(chan struct{})
-	sendChannel   = make(chan *signproxy.ProxyPluginResponse)
-	startDeal     = make(chan struct{})
-	err           error
-	conn          *grpc.ClientConn
-	proxyClient   signproxy.SignProxy_ProxyPluginClient
+	err                  error
+	delayDuration        = time.Second * 2
+	registerCoinDuration = time.Second * 5
+
+	// use atomic 1: conn not valid, should renew one
+	closeNumFlag int32
+	closeConn    = make(chan struct{})
+	delay        = make(chan struct{})
+	newConn      = make(chan struct{})
+	startDeal    = make(chan struct{})
+	sendChannel  = make(chan *signproxy.ProxyPluginResponse)
+	conn         *grpc.ClientConn
+	proxyClient  signproxy.SignProxy_ProxyPluginClient
 )
 
 func Plugin() {
-	wg := &sync.WaitGroup{}
-	wg.Add(2)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
-		newProxyClinet()
-	}(wg)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
-		for {
-			select {
-			case <-time.After(1 * time.Minute):
-				sendChannel <- &signproxy.ProxyPluginResponse{
-					CoinType:        sphinxplugin.CoinType_CoinTypeFIL,
-					TransactionType: signproxy.TransactionType_RegisterCoin,
-				}
-			case <-delay:
-				time.Sleep(delayDuration)
-				go func() { newConn <- struct{}{} }()
-			case <-newConn:
-				go newProxyClinet()
-			case <-startDeal:
-				go send()
-				go recv()
+	go newProxyClinet()
+	for {
+		select {
+		case <-time.After(registerCoinDuration):
+			sendChannel <- &signproxy.ProxyPluginResponse{
+				CoinType:        sphinxplugin.CoinType_CoinTypeFIL,
+				TransactionType: signproxy.TransactionType_RegisterCoin,
 			}
+		case <-delay:
+			time.Sleep(delayDuration)
+			go func() { newConn <- struct{}{} }()
+		case <-newConn:
+			go newProxyClinet()
+		case <-startDeal:
+			go watch()
+			go send()
+			go recv()
 		}
-	}(wg)
-	wg.Wait()
+	}
 }
 
 func newProxyClinet() {
@@ -79,8 +76,16 @@ func newProxyClinet() {
 	startDeal <- struct{}{}
 }
 
-func recv() {
+func watch() {
 	for {
+		<-closeConn
+		atomic.SwapInt32(&closeNumFlag, 1)
+		break
+	}
+}
+
+func recv() {
+	for atomic.LoadInt32(&closeNumFlag) > 0 {
 		// this will block
 		rep, err := proxyClient.Recv()
 		if err != nil {
@@ -123,7 +128,7 @@ func recv() {
 }
 
 func send() {
-	for {
+	for atomic.LoadInt32(&closeNumFlag) > 0 {
 		resp := <-sendChannel
 		if err := proxyClient.Send(resp); err != nil {
 			logger.Sugar().Errorf("send info error: %v", err)

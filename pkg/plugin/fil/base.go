@@ -7,7 +7,7 @@ import (
 func SignType(signType string) (crypto.SigType, error) {
 	switch signType {
 	case "secp256k1":
-		return crypto.SigTypeBLS, nil
+		return crypto.SigTypeSecp256k1, nil
 	case "bls":
 		return crypto.SigTypeBLS, nil
 	default:
