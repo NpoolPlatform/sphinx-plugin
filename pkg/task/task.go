@@ -40,10 +40,12 @@ func Plugin() {
 	for {
 		select {
 		case <-time.After(registerCoinDuration):
-			sendChannel <- &signproxy.ProxyPluginResponse{
-				CoinType:        sphinxplugin.CoinType_CoinTypeFIL,
-				TransactionType: signproxy.TransactionType_RegisterCoin,
-			}
+			go func() {
+				sendChannel <- &signproxy.ProxyPluginResponse{
+					CoinType:        sphinxplugin.CoinType_CoinTypeFIL,
+					TransactionType: signproxy.TransactionType_RegisterCoin,
+				}
+			}()
 		case <-delay:
 			time.Sleep(delayDuration)
 			go func() { newConn <- struct{}{} }()
