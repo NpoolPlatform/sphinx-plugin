@@ -81,15 +81,15 @@ func newProxyClinet() {
 func watch() {
 	for {
 		<-closeConn
-		atomic.SwapInt32(&closeNumFlag, 1)
+		atomic.StoreInt32(&closeNumFlag, 1)
 		break
 	}
 }
 
 func recv() {
-	for atomic.LoadInt32(&closeNumFlag) > 0 {
+	for atomic.LoadInt32(&closeNumFlag) == 0 {
 		// this will block
-		rep, err := proxyClient.Recv()
+		req, err := proxyClient.Recv()
 		if err != nil {
 			logger.Sugar().Errorf("receiver info error: %v", err)
 			if checkCode(err) {
@@ -100,24 +100,25 @@ func recv() {
 		}
 
 		logger.Sugar().Infof(
-			"sphinx plugin recv info TransactionType: %v CoinType: %v",
-			rep.GetTransactionType(),
-			rep.GetCoinType(),
+			"sphinx plugin recv info TransactionIDInsite: %v TransactionType: %v CoinType: %v",
+			req.GetTransactionIDInsite(),
+			req.GetTransactionType(),
+			req.GetCoinType(),
 		)
 
 		resp := &signproxy.ProxyPluginResponse{
-			TransactionType:     rep.GetTransactionType(),
-			CoinType:            rep.GetCoinType(),
-			TransactionIDInsite: rep.GetTransactionIDInsite(),
+			TransactionType:     req.GetTransactionType(),
+			CoinType:            req.GetCoinType(),
+			TransactionIDInsite: req.GetTransactionIDInsite(),
 			Message:             &sphinxplugin.UnsignedMessage{},
 		}
 
-		if err := check.CoinType(rep.GetCoinType()); err != nil {
-			logger.Sugar().Errorf("check CoinType: %v invalid", rep.GetCoinType())
+		if err := check.CoinType(req.GetCoinType()); err != nil {
+			logger.Sugar().Errorf("check CoinType: %v invalid", req.GetCoinType())
 			goto sd
 		}
 
-		if err := plugin(rep, resp); err != nil {
+		if err := plugin(req, resp); err != nil {
 			logger.Sugar().Errorf("plugin deal error: %v", err)
 			goto sd
 		}
@@ -130,7 +131,7 @@ func recv() {
 }
 
 func send() {
-	for atomic.LoadInt32(&closeNumFlag) > 0 {
+	for atomic.LoadInt32(&closeNumFlag) == 0 {
 		resp := <-sendChannel
 		if err := proxyClient.Send(resp); err != nil {
 			logger.Sugar().Errorf("send info error: %v", err)
@@ -143,10 +144,10 @@ func send() {
 	}
 }
 
-func plugin(rep *signproxy.ProxyPluginRequest, resp *signproxy.ProxyPluginResponse) error {
-	switch rep.GetTransactionType() {
+func plugin(req *signproxy.ProxyPluginRequest, resp *signproxy.ProxyPluginResponse) error {
+	switch req.GetTransactionType() {
 	case signproxy.TransactionType_Balance:
-		balance, err := fil.WalletBalance(rep.GetAddress())
+		balance, err := fil.WalletBalance(req.GetAddress())
 		if err != nil {
 			return err
 		}
@@ -156,14 +157,14 @@ func plugin(rep *signproxy.ProxyPluginRequest, resp *signproxy.ProxyPluginRespon
 		}
 		resp.Balance = f
 	case signproxy.TransactionType_PreSign:
-		nonce, err := fil.MpoolGetNonce(rep.GetAddress())
+		nonce, err := fil.MpoolGetNonce(req.GetAddress())
 		if err != nil {
 			return err
 		}
 		resp.Nonce = nonce
-		resp.Message = rep.GetMessage()
+		resp.Message = req.GetMessage()
 	case signproxy.TransactionType_Broadcast:
-		cid, err := fil.MpoolPush(rep.GetMessage(), rep.GetSignature())
+		cid, err := fil.MpoolPush(req.GetMessage(), req.GetSignature())
 		if err != nil {
 			return err
 		}
