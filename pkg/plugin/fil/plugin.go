@@ -44,7 +44,7 @@ func WalletBalance(wallet string) (balance types.BigInt, err error) {
 	}
 
 	var api lotusapi.FullNodeStruct
-	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", []interface{}{&api.Internal, &api.CommonStruct.Internal}, headers)
+	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&api), headers)
 	if err != nil {
 		return types.EmptyInt, err
 	}
@@ -75,7 +75,7 @@ func MpoolGetNonce(wallet string) (nonce uint64, err error) {
 	}
 
 	var api lotusapi.FullNodeStruct
-	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", []interface{}{&api.Internal, &api.CommonStruct.Internal}, headers)
+	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&api), headers)
 	if err != nil {
 		return 0, err
 	}
@@ -133,7 +133,7 @@ func MpoolPush(inMsg *sphinxplugin.UnsignedMessage, inSign *sphinxplugin.Signatu
 	}
 
 	var api lotusapi.FullNodeStruct
-	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", []interface{}{&api.Internal, &api.CommonStruct.Internal}, headers)
+	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&api), headers)
 	if err != nil {
 		return "", err
 	}

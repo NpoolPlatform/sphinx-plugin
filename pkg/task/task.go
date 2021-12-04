@@ -80,13 +80,16 @@ func newProxyClinet() {
 
 func watch() {
 	for {
+		logger.Sugar().Info("start watch plugin client")
 		<-closeConn
 		atomic.StoreInt32(&closeNumFlag, 1)
+		logger.Sugar().Info("start watch plugin client exit")
 		break
 	}
 }
 
 func recv() {
+	logger.Sugar().Info("plugin client start recv")
 	for atomic.LoadInt32(&closeNumFlag) == 0 {
 		// this will block
 		req, err := proxyClient.Recv()
@@ -128,9 +131,11 @@ func recv() {
 			sendChannel <- resp
 		}
 	}
+	logger.Sugar().Info("plugin client start recv exit")
 }
 
 func send() {
+	logger.Sugar().Info("plugin client start send")
 	for atomic.LoadInt32(&closeNumFlag) == 0 {
 		resp := <-sendChannel
 		if err := proxyClient.Send(resp); err != nil {
@@ -142,6 +147,7 @@ func send() {
 			}
 		}
 	}
+	logger.Sugar().Info("plugin client start send exit")
 }
 
 func plugin(req *signproxy.ProxyPluginRequest, resp *signproxy.ProxyPluginResponse) error {
