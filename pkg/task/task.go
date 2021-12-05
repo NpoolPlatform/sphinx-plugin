@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
-	"github.com/NpoolPlatform/message/npool/signproxy"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
@@ -30,9 +30,9 @@ var (
 	delay        = make(chan struct{})
 	newConn      = make(chan struct{})
 	startDeal    = make(chan struct{})
-	sendChannel  = make(chan *signproxy.ProxyPluginResponse)
+	sendChannel  = make(chan *sphinxproxy.ProxyPluginResponse)
 	conn         *grpc.ClientConn
-	proxyClient  signproxy.SignProxy_ProxyPluginClient
+	proxyClient  sphinxproxy.SphinxProxy_ProxyPluginClient
 )
 
 func Plugin() {
@@ -41,9 +41,9 @@ func Plugin() {
 		select {
 		case <-time.After(registerCoinDuration):
 			go func() {
-				sendChannel <- &signproxy.ProxyPluginResponse{
+				sendChannel <- &sphinxproxy.ProxyPluginResponse{
 					CoinType:        sphinxplugin.CoinType_CoinTypeFIL,
-					TransactionType: signproxy.TransactionType_RegisterCoin,
+					TransactionType: sphinxproxy.TransactionType_RegisterCoin,
 				}
 			}()
 		case <-delay:
@@ -67,7 +67,7 @@ func newProxyClinet() {
 		delay <- struct{}{}
 		return
 	}
-	pClient := signproxy.NewSignProxyClient(conn)
+	pClient := sphinxproxy.NewSphinxProxyClient(conn)
 	proxyClient, err = pClient.ProxyPlugin(context.Background())
 	if err != nil {
 		logger.Sugar().Errorf("call Transaction error: %v", err)
@@ -103,17 +103,17 @@ func recv() {
 		}
 
 		logger.Sugar().Infof(
-			"sphinx plugin recv info TransactionIDInsite: %v TransactionType: %v CoinType: %v",
-			req.GetTransactionIDInsite(),
+			"sphinx plugin recv info TransactionID: %v TransactionType: %v CoinType: %v",
+			req.GetTransactionID(),
 			req.GetTransactionType(),
 			req.GetCoinType(),
 		)
 
-		resp := &signproxy.ProxyPluginResponse{
-			TransactionType:     req.GetTransactionType(),
-			CoinType:            req.GetCoinType(),
-			TransactionIDInsite: req.GetTransactionIDInsite(),
-			Message:             &sphinxplugin.UnsignedMessage{},
+		resp := &sphinxproxy.ProxyPluginResponse{
+			TransactionType: req.GetTransactionType(),
+			CoinType:        req.GetCoinType(),
+			TransactionID:   req.GetTransactionID(),
+			Message:         &sphinxplugin.UnsignedMessage{},
 		}
 
 		if err := check.CoinType(req.GetCoinType()); err != nil {
@@ -150,9 +150,9 @@ func send() {
 	logger.Sugar().Info("plugin client start send exit")
 }
 
-func plugin(req *signproxy.ProxyPluginRequest, resp *signproxy.ProxyPluginResponse) error {
+func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
 	switch req.GetTransactionType() {
-	case signproxy.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		balance, err := fil.WalletBalance(req.GetAddress())
 		if err != nil {
 			return err
@@ -162,14 +162,14 @@ func plugin(req *signproxy.ProxyPluginRequest, resp *signproxy.ProxyPluginRespon
 			logger.Sugar().Warnf("wallet balance transfer warning balance: %v", balance.String())
 		}
 		resp.Balance = f
-	case signproxy.TransactionType_PreSign:
+	case sphinxproxy.TransactionType_PreSign:
 		nonce, err := fil.MpoolGetNonce(req.GetAddress())
 		if err != nil {
 			return err
 		}
 		resp.Nonce = nonce
 		resp.Message = req.GetMessage()
-	case signproxy.TransactionType_Broadcast:
+	case sphinxproxy.TransactionType_Broadcast:
 		cid, err := fil.MpoolPush(req.GetMessage(), req.GetSignature())
 		if err != nil {
 			return err
