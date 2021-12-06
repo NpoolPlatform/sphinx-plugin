@@ -13,7 +13,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
 	"github.com/NpoolPlatform/sphinx-proxy/pkg/check"
-	"github.com/NpoolPlatform/sphinx-proxy/pkg/unit"
+	"github.com/shopspring/decimal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -157,9 +157,13 @@ func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginRe
 		if err != nil {
 			return err
 		}
-		f, exist := unit.AttoFIL2FIL(balance.String())
-		if exist {
-			logger.Sugar().Warnf("wallet balance transfer warning balance: %v", balance.String())
+		bl, err := decimal.NewFromString(balance.String())
+		if err != nil {
+			return err
+		}
+		f, exist := bl.Float64()
+		if !exist {
+			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 		}
 		resp.Balance = f
 	case sphinxproxy.TransactionType_PreSign:
