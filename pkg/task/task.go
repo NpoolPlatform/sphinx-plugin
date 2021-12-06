@@ -166,6 +166,7 @@ func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginRe
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 		}
 		resp.Balance = f
+		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
 		nonce, err := fil.MpoolGetNonce(req.GetAddress())
 		if err != nil {
