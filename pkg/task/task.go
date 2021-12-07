@@ -40,6 +40,7 @@ func Plugin() {
 	for {
 		select {
 		case <-time.After(registerCoinDuration):
+			logger.Sugar().Info("register new coin")
 			go func() {
 				sendChannel <- &sphinxproxy.ProxyPluginResponse{
 					CoinType:        sphinxplugin.CoinType_CoinTypeFIL,
@@ -138,7 +139,8 @@ func send() {
 	logger.Sugar().Info("plugin client start send")
 	for atomic.LoadInt32(&closeNumFlag) == 0 {
 		resp := <-sendChannel
-		if err := proxyClient.Send(resp); err != nil {
+		err := proxyClient.Send(resp)
+		if err != nil {
 			logger.Sugar().Errorf("send info error: %v", err)
 			if checkCode(err) {
 				proxyClient.CloseSend() // nolint

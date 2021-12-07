@@ -3,15 +3,11 @@ package fil
 import (
 	"context"
 	"errors"
-	"net/http"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/crypto"
-	lotusapi "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 )
 
@@ -32,19 +28,7 @@ func WalletBalance(wallet string) (balance types.BigInt, err error) {
 		return types.EmptyInt, err
 	}
 
-	authToken, ok := env.LookupEnv(env.ENVCOINTOKEN)
-	if !ok {
-		return types.EmptyInt, ErrENVCoinTokenNotFound
-	}
-	headers := http.Header{"Authorization": []string{"Bearer " + authToken}}
-
-	addr, ok := env.LookupEnv(env.ENVCOINAPI)
-	if !ok {
-		return types.EmptyInt, ErrENVCoinAPINotFound
-	}
-
-	var api lotusapi.FullNodeStruct
-	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&api), headers)
+	api, closer, err := client()
 	if err != nil {
 		return types.EmptyInt, err
 	}
@@ -63,19 +47,7 @@ func MpoolGetNonce(wallet string) (nonce uint64, err error) {
 		return 0, err
 	}
 
-	authToken, ok := env.LookupEnv(env.ENVCOINTOKEN)
-	if !ok {
-		return 0, ErrENVCoinTokenNotFound
-	}
-	headers := http.Header{"Authorization": []string{"Bearer " + authToken}}
-
-	addr, ok := env.LookupEnv(env.ENVCOINAPI)
-	if !ok {
-		return 0, ErrENVCoinAPINotFound
-	}
-
-	var api lotusapi.FullNodeStruct
-	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&api), headers)
+	api, closer, err := client()
 	if err != nil {
 		return 0, err
 	}
@@ -121,19 +93,7 @@ func MpoolPush(inMsg *sphinxplugin.UnsignedMessage, inSign *sphinxplugin.Signatu
 		},
 	}
 
-	authToken, ok := env.LookupEnv(env.ENVCOINTOKEN)
-	if !ok {
-		return "", ErrENVCoinTokenNotFound
-	}
-	headers := http.Header{"Authorization": []string{"Bearer " + authToken}}
-
-	addr, ok := env.LookupEnv(env.ENVCOINAPI)
-	if !ok {
-		return "", ErrENVCoinAPINotFound
-	}
-
-	var api lotusapi.FullNodeStruct
-	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&api), headers)
+	api, closer, err := client()
 	if err != nil {
 		return "", err
 	}
