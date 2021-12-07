@@ -5,10 +5,13 @@ import (
 	"errors"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/crypto"
+	lotusapi "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/ipfs/go-cid"
 )
 
 var (
@@ -16,9 +19,11 @@ var (
 	ErrENVCoinTokenNotFound = errors.New("env ENV_COIN_TOKEN not found")
 	ErrENVCoinAPINotFound   = errors.New("env ENV_COIN_API not found")
 	ErrSignTypeInvalid      = errors.New("sign type invalid")
+	ErrFindMsgNotFound      = errors.New("failed to find message")
+	ErrCIDInvalid           = errors.New("cid invalid")
 )
 
-func WalletBalance(wallet string) (balance types.BigInt, err error) {
+func WalletBalance(ctx context.Context, wallet string) (balance types.BigInt, err error) {
 	if wallet == "" {
 		return types.EmptyInt, ErrAddressInvalid
 	}
@@ -34,10 +39,10 @@ func WalletBalance(wallet string) (balance types.BigInt, err error) {
 	}
 	defer closer()
 
-	return api.WalletBalance(context.Background(), from)
+	return api.WalletBalance(ctx, from)
 }
 
-func MpoolGetNonce(wallet string) (nonce uint64, err error) {
+func MpoolGetNonce(ctx context.Context, wallet string) (nonce uint64, err error) {
 	if wallet == "" {
 		return 0, ErrAddressInvalid
 	}
@@ -53,7 +58,7 @@ func MpoolGetNonce(wallet string) (nonce uint64, err error) {
 	}
 	defer closer()
 
-	_nonce, err := api.MpoolGetNonce(context.Background(), from)
+	_nonce, err := api.MpoolGetNonce(ctx, from)
 	if err != nil {
 		return 0, err
 	}
@@ -61,7 +66,7 @@ func MpoolGetNonce(wallet string) (nonce uint64, err error) {
 	return _nonce, nil
 }
 
-func MpoolPush(inMsg *sphinxplugin.UnsignedMessage, inSign *sphinxplugin.Signature) (chainID string, err error) {
+func MpoolPush(ctx context.Context, inMsg *sphinxplugin.UnsignedMessage, inSign *sphinxplugin.Signature) (chainID string, err error) {
 	to, err := address.NewFromString(inMsg.GetTo())
 	if err != nil {
 		return "", ErrAddressInvalid
@@ -99,10 +104,32 @@ func MpoolPush(inMsg *sphinxplugin.UnsignedMessage, inSign *sphinxplugin.Signatu
 	}
 	defer closer()
 
-	cid, err := api.MpoolPush(context.Background(), signMsg)
+	_cid, err := api.MpoolPush(ctx, signMsg)
 	if err != nil {
 		return "", err
 	}
 
-	return cid.String(), nil
+	return _cid.String(), nil
+}
+
+func StateSearchMsg(ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*lotusapi.MsgLookup, error) {
+	api, closer, err := client()
+	if err != nil {
+		return nil, err
+	}
+	defer closer()
+
+	_cid, err := cid.Decode(in.GetCID())
+	if err != nil {
+		return nil, ErrCIDInvalid
+	}
+	chainMsg, err := api.StateSearchMsg(ctx, types.EmptyTSK, _cid, lotusapi.LookbackNoLimit, true)
+	if err != nil {
+		return nil, err
+	}
+	if chainMsg == nil {
+		return nil, ErrFindMsgNotFound
+	}
+
+	return chainMsg, nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
+	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
 	"github.com/NpoolPlatform/sphinx-proxy/pkg/check"
 	"github.com/shopspring/decimal"
@@ -153,9 +154,11 @@ func send() {
 }
 
 func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
 	switch req.GetTransactionType() {
 	case sphinxproxy.TransactionType_Balance:
-		balance, err := fil.WalletBalance(req.GetAddress())
+		balance, err := fil.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
 		}
@@ -170,18 +173,29 @@ func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginRe
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
-		nonce, err := fil.MpoolGetNonce(req.GetAddress())
+		nonce, err := fil.MpoolGetNonce(ctx, req.GetAddress())
 		if err != nil {
 			return err
 		}
 		resp.Nonce = nonce
 		resp.Message = req.GetMessage()
 	case sphinxproxy.TransactionType_Broadcast:
-		cid, err := fil.MpoolPush(req.GetMessage(), req.GetSignature())
+		cid, err := fil.MpoolPush(ctx, req.GetMessage(), req.GetSignature())
 		if err != nil {
 			return err
 		}
 		resp.CID = cid
+	case sphinxproxy.TransactionType_SyncMsgState:
+		// TODO 1 find replace cid 2 restry
+		msgInfo, err := fil.StateSearchMsg(ctx, req)
+		if err != nil {
+			if msgInfo != nil {
+				// return error code
+				resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
+			}
+			return err
+		}
+		resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
 	}
 	return nil
 }
