@@ -123,7 +123,7 @@ func StateSearchMsg(ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*l
 	if err != nil {
 		return nil, ErrCIDInvalid
 	}
-	chainMsg, err := api.StateSearchMsg(ctx, types.EmptyTSK, _cid, lotusapi.LookbackNoLimit, true)
+	chainMsg, err := api.StateSearchMsg(ctx, _cid)
 	if err != nil {
 		return nil, err
 	}
