@@ -12,6 +12,7 @@ import (
 	lotusapi "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
+	"github.com/shopspring/decimal"
 )
 
 var (
@@ -81,13 +82,17 @@ func MpoolPush(ctx context.Context, inMsg *sphinxplugin.UnsignedMessage, inSign 
 	if err != nil {
 		return "", ErrSignTypeInvalid
 	}
+	val, err := types.ParseFIL(decimal.NewFromFloat(inMsg.GetValue()).String())
+	if err != nil {
+		return "", err
+	}
 	signMsg := &types.SignedMessage{
 		Message: types.Message{
 			To:         to,
 			From:       from,
 			Method:     abi.MethodNum(inMsg.GetMethod()),
 			Nonce:      inMsg.GetNonce(),
-			Value:      abi.NewTokenAmount(int64(inMsg.GetValue())),
+			Value:      abi.TokenAmount(val),
 			GasLimit:   inMsg.GetGasLimit(),
 			GasFeeCap:  abi.NewTokenAmount(int64(inMsg.GetGasFeeCap())),
 			GasPremium: abi.NewTokenAmount(int64(inMsg.GetGasPremium())),
