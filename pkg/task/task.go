@@ -186,6 +186,8 @@ func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginRe
 		}
 		resp.CID = cid
 	case sphinxproxy.TransactionType_SyncMsgState:
+		ctx, cancel := context.WithTimeout(context.Background(), sconst.WaitMsgOutTimeout)
+		defer cancel()
 		// TODO 1 find replace cid 2 restry
 		msgInfo, err := fil.StateSearchMsg(ctx, req)
 		if err != nil {

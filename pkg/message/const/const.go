@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	ServiceName = "sphinx-plugin.npool.top"
-	GrpcTimeout = time.Second * 10
+	ServiceName       = "sphinx-plugin.npool.top"
+	GrpcTimeout       = time.Second * 10
+	WaitMsgOutTimeout = time.Second * 40
 )
 
 func FormatServiceName() string {

@@ -3,6 +3,7 @@ package fil
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -128,6 +129,24 @@ func StateSearchMsg(ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*l
 	if err != nil {
 		return nil, ErrCIDInvalid
 	}
+
+check:
+	for {
+		select {
+		// 40 seconds
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(1 * time.Second):
+			mp, err := api.MpoolPending(ctx, types.EmptyTSK)
+			if err != nil {
+				return nil, err
+			}
+			if !includeCID(_cid, mp) {
+				break check
+			}
+		}
+	}
+
 	chainMsg, err := api.StateSearchMsg(ctx, _cid)
 	if err != nil {
 		return nil, err
@@ -137,4 +156,13 @@ func StateSearchMsg(ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*l
 	}
 
 	return chainMsg, nil
+}
+
+func includeCID(_cid cid.Cid, sms []*types.SignedMessage) bool {
+	for _, mCid := range sms {
+		if mCid.Cid() == _cid {
+			return true
+		}
+	}
+	return false
 }
