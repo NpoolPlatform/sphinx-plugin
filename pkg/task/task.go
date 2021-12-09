@@ -189,6 +189,7 @@ func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginRe
 		// TODO 1 find replace cid 2 restry
 		msgInfo, err := fil.StateSearchMsg(ctx, req)
 		if err != nil {
+			logger.Sugar().Warnf("sync message: %v", msgInfo)
 			if msgInfo != nil {
 				// return error code
 				resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
