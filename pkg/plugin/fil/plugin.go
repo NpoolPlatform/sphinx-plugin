@@ -7,10 +7,12 @@ import (
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
+	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/crypto"
 	lotusapi "github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/api/v0api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/shopspring/decimal"
@@ -118,7 +120,7 @@ func MpoolPush(ctx context.Context, inMsg *sphinxplugin.UnsignedMessage, inSign 
 	return _cid.String(), nil
 }
 
-func StateSearchMsg(ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*lotusapi.MsgLookup, error) {
+func StateSearchMsg(_ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*lotusapi.MsgLookup, error) {
 	api, closer, err := client()
 	if err != nil {
 		return nil, err
@@ -130,32 +132,53 @@ func StateSearchMsg(ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*l
 		return nil, ErrCIDInvalid
 	}
 
-check:
+	if err := waitMessageOut(api, _cid); err != nil {
+		return nil, err
+	}
+	return waitMessageOnChain(api, _cid)
+}
+
+// wait message on out
+func waitMessageOut(api v0api.FullNode, _cid cid.Cid) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.WaitMsgOutTimeout)
+	defer cancel()
 	for {
 		select {
-		// 40 seconds
+		// 40 seconds timeout possible gas too low
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return ctx.Err()
 		case <-time.After(1 * time.Second):
 			mp, err := api.MpoolPending(ctx, types.EmptyTSK)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			if !includeCID(_cid, mp) {
-				break check
+				return nil
 			}
 		}
 	}
+}
 
-	chainMsg, err := api.StateSearchMsg(ctx, _cid)
-	if err != nil {
-		return nil, err
-	}
-	if chainMsg == nil {
-		return nil, ErrFindMsgNotFound
-	}
+// wait message on chain
+func waitMessageOnChain(api v0api.FullNode, _cid cid.Cid) (*lotusapi.MsgLookup, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.WaitMsgOutTimeout)
+	defer cancel()
 
-	return chainMsg, nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(1 * time.Second):
+			// TODO double-spend
+			chainMsg, err := api.StateSearchMsg(ctx, _cid)
+			if err != nil {
+				return chainMsg, err
+			}
+			if chainMsg != nil {
+				return chainMsg, nil
+			}
+		}
+	}
 }
 
 func includeCID(_cid cid.Cid, sms []*types.SignedMessage) bool {
