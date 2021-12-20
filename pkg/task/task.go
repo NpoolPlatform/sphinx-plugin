@@ -63,6 +63,9 @@ func Plugin() {
 
 func newProxyClinet() {
 	logger.Sugar().Info("start new plugin client")
+	if conn != nil {
+		conn.Close()
+	}
 	conn, err = client.GetGRPCConn(config.GetString(config.KeySphinxProxyAddr))
 	if err != nil {
 		logger.Sugar().Errorf("call GetGRPCConn error: %v", err)
