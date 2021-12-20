@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	chanBuff             = 100
+	chanBuff             = 1000
 	delayDuration        = time.Second * 2
 	registerCoinDuration = time.Second * 5
 	newConn              chan struct{}
