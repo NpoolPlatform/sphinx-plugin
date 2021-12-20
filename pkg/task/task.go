@@ -21,17 +21,15 @@ import (
 
 var (
 	chanBuff             = 1000
+	newConn              = make(chan struct{})
 	delayDuration        = time.Second * 2
 	registerCoinDuration = time.Second * 5
-	newConn              chan struct{}
 )
 
 type pluginClient struct {
 	// use atomic 1: conn not valid, should renew one
 	closeBadConn chan struct{}
 	done         chan struct{}
-	delay        chan struct{}
-	startDeal    chan struct{}
 	sendChannel  chan *sphinxproxy.ProxyPluginResponse
 	conn         *grpc.ClientConn
 	proxyClient  sphinxproxy.SphinxProxy_ProxyPluginClient
@@ -39,12 +37,7 @@ type pluginClient struct {
 
 func Plugin() {
 	deamon := make(chan struct{})
-	go func() {
-		for {
-			<-newConn
-			delayNewClient()
-		}
-	}()
+	go delayNewClient()
 	go func() {
 		newClient()
 	}()
@@ -52,16 +45,19 @@ func Plugin() {
 }
 
 func delayNewClient() {
-	time.Sleep(delayDuration)
-	newClient()
+	for {
+		logger.Sugar().Info("start try to create new plugin client")
+		<-newConn
+		time.Sleep(delayDuration)
+		logger.Sugar().Info("start try to create new plugin client end")
+		go newClient()
+	}
 }
 
 func newClient() {
 	proxyClient := &pluginClient{
 		closeBadConn: make(chan struct{}),
 		done:         make(chan struct{}),
-		delay:        make(chan struct{}),
-		startDeal:    make(chan struct{}),
 		sendChannel:  make(chan *sphinxproxy.ProxyPluginResponse, chanBuff),
 	}
 
@@ -73,13 +69,14 @@ func newClient() {
 
 	proxyClient.conn, proxyClient.proxyClient = conn, pc
 
-	go proxyClient.send()
-	go proxyClient.recv()
 	go proxyClient.watch()
 	go proxyClient.register()
+	go proxyClient.send()
+	go proxyClient.recv()
 }
 
 func (c *pluginClient) closeProxyClient() {
+	logger.Sugar().Info("close plugin conn and client")
 	if c != nil {
 		close(c.done)
 		if c.conn != nil {
@@ -110,6 +107,9 @@ func (c *pluginClient) watch() {
 	<-c.closeBadConn
 	c.closeProxyClient()
 	logger.Sugar().Info("start watch plugin client exit")
+
+	logger.Sugar().Info("start try new plugin client")
+	newConn <- struct{}{}
 }
 
 func (c *pluginClient) register() {
