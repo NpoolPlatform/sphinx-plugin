@@ -44,6 +44,7 @@ func Plugin() {
 			case <-delay:
 				go func() {
 					time.Sleep(delayDuration)
+					done = make(chan struct{})
 					newConn <- struct{}{}
 				}()
 			case <-newConn:
