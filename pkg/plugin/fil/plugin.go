@@ -2,11 +2,11 @@ package fil
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
@@ -18,18 +18,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var (
-	ErrAddressInvalid       = errors.New("address invalid")
-	ErrENVCoinTokenNotFound = errors.New("env ENV_COIN_TOKEN not found")
-	ErrENVCoinAPINotFound   = errors.New("env ENV_COIN_API not found")
-	ErrSignTypeInvalid      = errors.New("sign type invalid")
-	ErrFindMsgNotFound      = errors.New("failed to find message")
-	ErrCIDInvalid           = errors.New("cid invalid")
-)
-
 func WalletBalance(ctx context.Context, wallet string) (balance types.BigInt, err error) {
 	if wallet == "" {
-		return types.EmptyInt, ErrAddressInvalid
+		return types.EmptyInt, env.ErrAddressInvalid
 	}
 
 	from, err := address.NewFromString(wallet)
@@ -48,7 +39,7 @@ func WalletBalance(ctx context.Context, wallet string) (balance types.BigInt, er
 
 func MpoolGetNonce(ctx context.Context, wallet string) (nonce uint64, err error) {
 	if wallet == "" {
-		return 0, ErrAddressInvalid
+		return 0, env.ErrAddressInvalid
 	}
 
 	from, err := address.NewFromString(wallet)
@@ -73,17 +64,17 @@ func MpoolGetNonce(ctx context.Context, wallet string) (nonce uint64, err error)
 func MpoolPush(ctx context.Context, inMsg *sphinxplugin.UnsignedMessage, inSign *sphinxplugin.Signature) (chainID string, err error) {
 	to, err := address.NewFromString(inMsg.GetTo())
 	if err != nil {
-		return "", ErrAddressInvalid
+		return "", env.ErrAddressInvalid
 	}
 
 	from, err := address.NewFromString(inMsg.GetFrom())
 	if err != nil {
-		return "", ErrAddressInvalid
+		return "", env.ErrAddressInvalid
 	}
 
 	signType, err := SignType(inSign.GetSignType())
 	if err != nil {
-		return "", ErrSignTypeInvalid
+		return "", env.ErrSignTypeInvalid
 	}
 	val, err := types.ParseFIL(decimal.NewFromFloat(inMsg.GetValue()).String())
 	if err != nil {
@@ -129,7 +120,7 @@ func StateSearchMsg(_ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*
 
 	_cid, err := cid.Decode(in.GetCID())
 	if err != nil {
-		return nil, ErrCIDInvalid
+		return nil, env.ErrCIDInvalid
 	}
 
 	if err := waitMessageOut(api, _cid); err != nil {

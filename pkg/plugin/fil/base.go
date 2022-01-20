@@ -1,6 +1,7 @@
 package fil
 
 import (
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/filecoin-project/go-state-types/crypto"
 )
 
@@ -11,6 +12,6 @@ func SignType(signType string) (crypto.SigType, error) {
 	case "bls":
 		return crypto.SigTypeBLS, nil
 	default:
-		return crypto.SigTypeUnknown, ErrSignTypeInvalid
+		return crypto.SigTypeUnknown, env.ErrSignTypeInvalid
 	}
 }

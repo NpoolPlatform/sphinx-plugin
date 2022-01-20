@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -11,8 +12,12 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/btc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
 	"github.com/NpoolPlatform/sphinx-proxy/pkg/check"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/wire"
 	"github.com/shopspring/decimal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -27,7 +32,6 @@ var (
 )
 
 type pluginClient struct {
-	// use atomic 1: conn not valid, should renew one
 	closeBadConn chan struct{}
 	done         chan struct{}
 	sendChannel  chan *sphinxproxy.ProxyPluginResponse
@@ -165,20 +169,31 @@ func (c *pluginClient) recv() {
 				c.sendChannel <- resp
 			}
 
-			go func(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
-				if err := plugin(req, resp); err != nil {
-					logger.Sugar().Errorf("plugin deal error: %v", err)
-				}
-				logger.Sugar().Infof(
-					"sphinx plugin recv info TransactionID: %v TransactionType: %v CoinType: %v done",
-					req.GetTransactionID(),
-					req.GetTransactionType(),
-					req.GetCoinType(),
-				)
-				c.sendChannel <- resp
-			}(req, resp)
+			go handle(c, req, resp)
 		}
 	}
+}
+
+func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
+	switch req.GetCoinType() {
+	case sphinxplugin.CoinType_CoinTypeFIL:
+		if err := pluginFIL(req, resp); err != nil {
+			logger.Sugar().Errorf("plugin deal error: %v", err)
+		}
+	case sphinxplugin.CoinType_CoinTypeBTC:
+		if err := pluginBTC(req, resp); err != nil {
+			logger.Sugar().Errorf("plugin deal error: %v", err)
+		}
+	}
+
+	logger.Sugar().Infof(
+		"sphinx plugin recv info TransactionID: %v TransactionType: %v CoinType: %v done",
+		req.GetTransactionID(),
+		req.GetTransactionType(),
+		req.GetCoinType(),
+	)
+
+	c.sendChannel <- resp
 }
 
 func (c *pluginClient) send() {
@@ -206,7 +221,7 @@ func (c *pluginClient) send() {
 	}
 }
 
-func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
 	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
 	defer cancel()
 	switch req.GetTransactionType() {
@@ -239,7 +254,7 @@ func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginRe
 		}
 		resp.CID = cid
 	case sphinxproxy.TransactionType_SyncMsgState:
-		// TODO 1 find replace cid 2 restry
+		// TODO 1: find replace cid 2: restry
 		msgInfo, err := fil.StateSearchMsg(ctx, req)
 		if err != nil {
 			if msgInfo != nil {
@@ -249,6 +264,78 @@ func plugin(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginRe
 			return err
 		}
 		resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
+	}
+	return nil
+}
+
+func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		balance, err := btc.WalletBalance(req.GetAddress(), plugin.DefaultBalanceMinConfirms)
+		if err != nil {
+			return err
+		}
+		resp.Balance = balance.ToBTC()
+		resp.BalanceStr = balance.String()
+	case sphinxproxy.TransactionType_PreSign:
+		// get utxo
+		unspents, err := btc.ListUnspent(req.GetAddress(), plugin.DefaultUnSpentMinConfirms)
+		if err != nil {
+			return err
+		}
+		for _, unspent := range unspents {
+			resp.Unspent = append(resp.Unspent, &sphinxplugin.Unspent{
+				TxID:          unspent.TxID,
+				Vout:          unspent.Vout,
+				Address:       unspent.Address,
+				Account:       unspent.Account,
+				ScriptPubKey:  unspent.ScriptPubKey,
+				RedeemScript:  unspent.RedeemScript,
+				Amount:        unspent.Amount,
+				Confirmations: unspent.Confirmations,
+				Spendable:     unspent.Spendable,
+			})
+		}
+	case sphinxproxy.TransactionType_Broadcast:
+		msgTx := req.GetMsgTx()
+		txIn := make([]*wire.TxIn, 0)
+		txOut := make([]*wire.TxOut, 0)
+
+		for _, _txIn := range msgTx.GetTxIn() {
+			fmt.Println(_txIn)
+			cHaxh, err := chainhash.NewHash(_txIn.GetPreviousOutPoint().GetHash())
+			if err != nil {
+				return err
+			}
+			txIn = append(txIn, &wire.TxIn{
+				PreviousOutPoint: wire.OutPoint{
+					Hash:  *cHaxh,
+					Index: _txIn.GetPreviousOutPoint().GetIndex(),
+				},
+				SignatureScript: _txIn.GetSignatureScript(),
+				Witness:         _txIn.GetWitness(),
+				Sequence:        _txIn.GetSequence(),
+			})
+		}
+		for _, _txOut := range msgTx.GetTxOut() {
+			fmt.Println(_txOut)
+			txOut = append(txOut, &wire.TxOut{
+				Value:    _txOut.GetValue(),
+				PkScript: _txOut.GetPkScript(),
+			})
+		}
+
+		txHash, err := btc.SendRawTransaction(&wire.MsgTx{
+			Version:  req.GetMsgTx().GetVersion(),
+			TxIn:     txIn,
+			TxOut:    txOut,
+			LockTime: msgTx.GetLockTime(),
+		})
+		if err != nil {
+			return err
+		}
+		resp.CID = txHash.String()
+	case sphinxproxy.TransactionType_SyncMsgState:
 	}
 	return nil
 }

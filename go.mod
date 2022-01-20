@@ -4,8 +4,10 @@ go 1.16
 
 require (
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20211207121121-adb2402676f0
-	github.com/NpoolPlatform/message v0.0.0-20211208020751-4a6fed0981cb
+	github.com/NpoolPlatform/message v0.0.0-20220120023640-340b5e47cb79
 	github.com/NpoolPlatform/sphinx-proxy v0.0.0-20211206090116-c23ca0d81bb6
+	github.com/btcsuite/btcd v0.22.0-beta
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/filecoin-project/go-address v0.0.6
 	github.com/filecoin-project/go-jsonrpc v0.1.5
@@ -17,7 +19,7 @@ require (
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
-	google.golang.org/grpc v1.42.0
+	google.golang.org/grpc v1.43.0
 )
 
 replace google.golang.org/grpc => github.com/grpc/grpc-go v1.41.0

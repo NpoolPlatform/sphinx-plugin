@@ -13,13 +13,13 @@ import (
 func client() (v0api.FullNode, jsonrpc.ClientCloser, error) {
 	authToken, ok := env.LookupEnv(env.ENVCOINTOKEN)
 	if !ok {
-		return nil, nil, ErrENVCoinTokenNotFound
+		return nil, nil, env.ErrENVCoinTokenNotFound
 	}
 	headers := http.Header{"Authorization": []string{"Bearer " + authToken}}
 
 	addr, ok := env.LookupEnv(env.ENVCOINAPI)
 	if !ok {
-		return nil, nil, ErrENVCoinAPINotFound
+		return nil, nil, env.ErrENVCoinAPINotFound
 	}
 
 	var api v0api.FullNodeStruct
