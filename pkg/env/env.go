@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	// DEV PROD
-	ENVCOINTEST = "ENT_COIN_TEST"
+	// main or test
+	ENVCOINNETWORK = "ENV_COIN_NETWORK"
 
 	// FIL BTC ETH
-	ENVCOINTYPE = "ENT_COIN_TYPE"
+	ENVCOINTYPE = "ENV_COIN_TYPE"
 
 	// fil btc ip:port
 	ENVCOINAPI = "ENV_COIN_API"
@@ -24,6 +24,9 @@ const (
 )
 
 var (
+	ErrEVNCoinType    = errors.New("env ENV_COIN_TYPE not found")
+	ErrEVNCoinNetwork = errors.New("env ENV_COIN_NETWORK not found")
+
 	ErrENVCoinAPINotFound = errors.New("env ENV_COIN_API not found")
 
 	// btc
@@ -40,4 +43,19 @@ var (
 
 func LookupEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
+}
+
+func CoinInfo() (coinType, networkType string, err error) {
+	var ok bool
+	coinType, ok = LookupEnv(ENVCOINTYPE)
+	if !ok {
+		err = ErrEVNCoinType
+		return
+	}
+	networkType, ok = LookupEnv(ENVCOINNETWORK)
+	if !ok {
+		err = ErrEVNCoinNetwork
+		return
+	}
+	return
 }

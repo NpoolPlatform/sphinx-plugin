@@ -1,6 +1,8 @@
 package constant
 
-import "strings"
+import (
+	"strings"
+)
 
 const (
 	ServiceName = "sphinx-plugin.npool.top"

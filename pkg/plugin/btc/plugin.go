@@ -18,7 +18,7 @@ func WalletBalance(accountAddr string, minConfirms int) (btcutil.Amount, error) 
 	defer cli.Shutdown()
 
 	if minConfirms <= 0 {
-		minConfirms = plugin.DefaultBalanceMinConfirms
+		minConfirms = plugin.DefaultMinConfirms
 	}
 
 	address, err := btcutil.DecodeAddress(accountAddr, &chaincfg.MainNetParams)
@@ -37,7 +37,7 @@ func ListUnspent(address string, minConf int) ([]btcjson.ListUnspentResult, erro
 	defer cli.Shutdown()
 
 	if minConf <= 0 {
-		minConf = plugin.DefaultUnSpentMinConfirms
+		minConf = plugin.DefaultMinConfirms
 	}
 
 	unspents, err := cli.ListUnspentMin(minConf)

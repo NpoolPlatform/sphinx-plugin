@@ -11,6 +11,7 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/btc"
@@ -123,10 +124,17 @@ func (c *pluginClient) register() {
 			logger.Sugar().Info("register new coin exit")
 			return
 		case <-time.After(registerCoinDuration):
-			logger.Sugar().Info("register new coin")
+			coinType, coinNetwork, err := env.CoinInfo()
+			if err != nil {
+				logger.Sugar().Errorf("register new coin error: %v", err)
+				continue
+			}
+			logger.Sugar().Infof("register new coin: %v for %s network")
 			c.sendChannel <- &sphinxproxy.ProxyPluginResponse{
-				CoinType:        sphinxplugin.CoinType_CoinTypeFIL,
+				CoinType:        plugin.CoinStr2CoinType(coinType),
 				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
+				ENV:             coinNetwork,
+				Unit:            plugin.CoinUnit[plugin.CoinStr2CoinType(coinType)],
 			}
 		}
 	}
@@ -271,7 +279,7 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
 	switch req.GetTransactionType() {
 	case sphinxproxy.TransactionType_Balance:
-		balance, err := btc.WalletBalance(req.GetAddress(), plugin.DefaultBalanceMinConfirms)
+		balance, err := btc.WalletBalance(req.GetAddress(), plugin.DefaultMinConfirms)
 		if err != nil {
 			return err
 		}
@@ -279,7 +287,7 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
 		// get utxo
-		unspents, err := btc.ListUnspent(req.GetAddress(), plugin.DefaultUnSpentMinConfirms)
+		unspents, err := btc.ListUnspent(req.GetAddress(), plugin.DefaultMinConfirms)
 		if err != nil {
 			return err
 		}

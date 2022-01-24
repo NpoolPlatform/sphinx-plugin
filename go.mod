@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20211207121121-adb2402676f0
-	github.com/NpoolPlatform/message v0.0.0-20220120023640-340b5e47cb79
+	github.com/NpoolPlatform/message v0.0.0-20220124160133-e7ab2ab7beaf
 	github.com/NpoolPlatform/sphinx-proxy v0.0.0-20211206090116-c23ca0d81bb6
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
