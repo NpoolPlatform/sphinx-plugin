@@ -3,4 +3,3 @@ commonLabels:
 
 resources:
 - 01-sphinx-plugin.yaml
-- 02-ingress.yaml
