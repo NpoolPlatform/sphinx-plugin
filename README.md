@@ -46,6 +46,8 @@ Description=Sphinx Plugin
 After=network.target
 
 [Service]
+Environment="ENV_COIN_API=$wallet-ip:1234"
+Environment="ENV_COIN_TOKEN=$wallet-api"
 ExecStart=/opt/sphinx-plugin/sphinx-plugin run
 ExecStop=/bin/kill -s QUIT $MAINPID
 Restart=always
