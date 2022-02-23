@@ -3,9 +3,9 @@ module github.com/NpoolPlatform/sphinx-plugin
 go 1.16
 
 require (
-	github.com/NpoolPlatform/go-service-framework v0.0.0-20211207121121-adb2402676f0
-	github.com/NpoolPlatform/message v0.0.0-20220222064409-2de2c7fb88ea
-	github.com/NpoolPlatform/sphinx-proxy v0.0.0-20211206090116-c23ca0d81bb6
+	github.com/NpoolPlatform/go-service-framework v0.0.0-20220120091626-4e8035637592
+	github.com/NpoolPlatform/message v0.0.0-20220223054211-429bba1e9dce
+	github.com/NpoolPlatform/sphinx-proxy v0.0.0-20220218063638-1be062417b66
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
@@ -15,7 +15,7 @@ require (
 	github.com/filecoin-project/lotus v1.13.1
 	github.com/ipfs/go-cid v0.1.0
 	github.com/shopspring/decimal v1.3.1
-	github.com/spf13/viper v1.9.0
+	github.com/spf13/viper v1.10.0
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	google.golang.org/grpc v1.44.0
