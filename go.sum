@@ -97,12 +97,11 @@ github.com/NpoolPlatform/go-service-framework v0.0.0-20220120091626-4e8035637592
 github.com/NpoolPlatform/message v0.0.0-20211205171224-cc5aef287e1a/go.mod h1:1sfQHL02lIkzK1ObQRbNi0UAkSZWcBw/rsK5hn9Perg=
 github.com/NpoolPlatform/message v0.0.0-20220120075427-38182760a780/go.mod h1:tnsf7zHQ5Mv2uG0ezOwCfm/bxluiRW10DeuIl4SjG4Y=
 github.com/NpoolPlatform/message v0.0.0-20220121040326-31d316062cdc/go.mod h1:tnsf7zHQ5Mv2uG0ezOwCfm/bxluiRW10DeuIl4SjG4Y=
-github.com/NpoolPlatform/message v0.0.0-20220207160408-a790395bc42a/go.mod h1:3Wmbn7w0S4h2t/qDr/WYepO3VBKlRAxDGdxsPA9bqQ0=
 github.com/NpoolPlatform/message v0.0.0-20220223054211-429bba1e9dce h1:JBz1UVfMT20vTklso7pHyDIQy0N4KiYoaJlqS8JwJNc=
 github.com/NpoolPlatform/message v0.0.0-20220223054211-429bba1e9dce/go.mod h1:r9cCQsBi8z8pljMAHa6sK6o2iXIG9tRpZ9idBxVpc44=
 github.com/NpoolPlatform/sphinx-coininfo v0.0.0-20211206035652-888de6e20996/go.mod h1:w203lHGAaRvZqEMLxJI8wBxAoVvE3RHMU3jtwN/AdgE=
-github.com/NpoolPlatform/sphinx-proxy v0.0.0-20220218063638-1be062417b66 h1:c30BamX5TUx+CEnM7apuyqToDIpWs0NXY34NUTJb2EA=
-github.com/NpoolPlatform/sphinx-proxy v0.0.0-20220218063638-1be062417b66/go.mod h1:3QOztquNOb+/E9uGRjcwbbL8NEmjE1y2pjJ+fSjktvc=
+github.com/NpoolPlatform/sphinx-proxy v0.0.0-20220223060134-75bb8322419d h1:aFxhl4cm0BtKS02rIsjx4fE3rmP6yapWZzBlzo2wtR0=
+github.com/NpoolPlatform/sphinx-proxy v0.0.0-20220223060134-75bb8322419d/go.mod h1:iF/b4nWwlV6mIa5yLzH6/Iu2LHRCaJCBYwJ6cBHKPWw=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
@@ -2110,7 +2109,6 @@ golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97/go.mod h1:GvvjBRRGRdwPK5y
 golang.org/x/crypto v0.0.0-20210813211128-0a44fdfbc16e/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
 golang.org/x/crypto v0.0.0-20210817164053-32db794688a5/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
 golang.org/x/crypto v0.0.0-20210915214749-c084706c2272/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
-golang.org/x/crypto v0.0.0-20220128200615-198e4374d7ed/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/crypto v0.0.0-20220208233918-bba287dce954 h1:BkypuErRT9A9I/iljuaG3/zdMjd/J6m8tKKJQtGfSdA=
 golang.org/x/crypto v0.0.0-20220208233918-bba287dce954/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/exp v0.0.0-20180321215751-8460e604b9de/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
@@ -2617,7 +2615,6 @@ google.golang.org/genproto v0.0.0-20211203200212-54befc351ae9/go.mod h1:5CzLGKJ6
 google.golang.org/genproto v0.0.0-20211206160659-862468c7d6e0/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20220114231437-d2e6a121cae0/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
-google.golang.org/genproto v0.0.0-20220126215142-9970aeb2e350/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20220208230804-65c12eb4c068 h1:pwzFiZfBTH/GjBWz1BcDwMBaHBo8mZvpLa7eBKJpFAk=
 google.golang.org/genproto v0.0.0-20220208230804-65c12eb4c068/go.mod h1:kGP+zUP2Ddo0ayMi4YuN7C3WZyJvGLZRh8Z5wnAqvEI=
 google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0/go.mod h1:6Kw0yEErY5E/yWrBtf03jp27GLLJujG4z/JK95pnjjw=
