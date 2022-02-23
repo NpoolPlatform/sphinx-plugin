@@ -12,16 +12,22 @@ const (
 )
 
 var CoinUnit = map[sphinxplugin.CoinType]string{
-	sphinxplugin.CoinType_CoinTypeFIL: "FIL",
-	sphinxplugin.CoinType_CoinTypeBTC: "BTC",
+	sphinxplugin.CoinType_CoinTypefilecoin: "FIL",
+	sphinxplugin.CoinType_CoinTypebtc:      "BTC",
+	sphinxplugin.CoinType_CoinTypeeth:      "ETH",
 }
 
+// TODO match case elegant deal
 func CoinStr2CoinType(coinStr string) sphinxplugin.CoinType {
 	switch strings.ToLower(coinStr) {
 	case "fil":
-		return sphinxplugin.CoinType_CoinTypeFIL
+		return sphinxplugin.CoinType_CoinTypefilecoin
 	case "btc":
-		return sphinxplugin.CoinType_CoinTypeBTC
+		return sphinxplugin.CoinType_CoinTypebtc
+	case "eth":
+		return sphinxplugin.CoinType_CoinTypeeth
+	case "spacemesh":
+		return sphinxplugin.CoinType_CoinTypespacemesh
 	default:
 	}
 

@@ -7,9 +7,9 @@ import (
 
 const (
 	// main or test
-	ENVCOINNETWORK = "ENV_COIN_NETWORK"
+	ENVCOINNET = "ENV_COIN_NET"
 
-	// FIL BTC ETH
+	// FIL BTC ETH SpaceMesh
 	ENVCOINTYPE = "ENV_COIN_TYPE"
 
 	// fil btc ip:port
@@ -24,8 +24,8 @@ const (
 )
 
 var (
-	ErrEVNCoinType    = errors.New("env ENV_COIN_TYPE not found")
-	ErrEVNCoinNetwork = errors.New("env ENV_COIN_NETWORK not found")
+	ErrEVNCoinType = errors.New("env ENV_COIN_TYPE not found")
+	ErrEVNCoinNet  = errors.New("env ENV_COIN_NET not found")
 
 	ErrENVCoinAPINotFound = errors.New("env ENV_COIN_API not found")
 
@@ -52,9 +52,9 @@ func CoinInfo() (coinType, networkType string, err error) {
 		err = ErrEVNCoinType
 		return
 	}
-	networkType, ok = LookupEnv(ENVCOINNETWORK)
+	networkType, ok = LookupEnv(ENVCOINNET)
 	if !ok {
-		err = ErrEVNCoinNetwork
+		err = ErrEVNCoinNet
 		return
 	}
 	return

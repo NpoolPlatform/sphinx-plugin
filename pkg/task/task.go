@@ -2,7 +2,6 @@ package task
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"time"
 
@@ -129,7 +128,7 @@ func (c *pluginClient) register() {
 				logger.Sugar().Errorf("register new coin error: %v", err)
 				continue
 			}
-			logger.Sugar().Infof("register new coin: %v for %s network")
+			logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
 			c.sendChannel <- &sphinxproxy.ProxyPluginResponse{
 				CoinType:        plugin.CoinStr2CoinType(coinType),
 				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
@@ -182,16 +181,20 @@ func (c *pluginClient) recv() {
 	}
 }
 
+// register coin handle
+var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error{
+	sphinxplugin.CoinType_CoinTypefilecoin: pluginFIL,
+	sphinxplugin.CoinType_CoinTypebtc:      pluginBTC,
+}
+
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
-	switch req.GetCoinType() {
-	case sphinxplugin.CoinType_CoinTypeFIL:
-		if err := pluginFIL(req, resp); err != nil {
-			logger.Sugar().Errorf("plugin deal error: %v", err)
-		}
-	case sphinxplugin.CoinType_CoinTypeBTC:
-		if err := pluginBTC(req, resp); err != nil {
-			logger.Sugar().Errorf("plugin deal error: %v", err)
-		}
+	hf, ok := handleMap[req.GetCoinType()]
+	if !ok {
+		logger.Sugar().Errorf("not register handle for %v", req.GetCoinType())
+	}
+
+	if err := hf(req, resp); err != nil {
+		logger.Sugar().Errorf("plugin deal error: %v", err)
 	}
 
 	logger.Sugar().Infof(
@@ -310,7 +313,6 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		txOut := make([]*wire.TxOut, 0)
 
 		for _, _txIn := range msgTx.GetTxIn() {
-			fmt.Println(_txIn)
 			cHaxh, err := chainhash.NewHash(_txIn.GetPreviousOutPoint().GetHash())
 			if err != nil {
 				return err
@@ -326,7 +328,6 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 			})
 		}
 		for _, _txOut := range msgTx.GetTxOut() {
-			fmt.Println(_txOut)
 			txOut = append(txOut, &wire.TxOut{
 				Value:    _txOut.GetValue(),
 				PkScript: _txOut.GetPkScript(),

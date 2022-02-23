@@ -34,8 +34,16 @@
 
 ### 环境变量
 
-1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
+|  币种  | 变量名称       |       支持的值        | 说明  |
+| :----: | :------------- | :-------------------: | :---: |
+| Common | ENV_COIN_NET   |     main or test      |       |
+|        | ENV_COIN_TYPE  | FIL BTC ETH SpaceMesh |       |
+|        | ENV_COIN_API   |        ip:port        |       |
+|  FIL   | ENV_COIN_TOKEN |                       |       |
+|  BTC   | ENV_COIN_USER  |                       |       |
+|        | ENV_COIN_PASS  |                       |       |
 
+1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**
 
 ### 部署
