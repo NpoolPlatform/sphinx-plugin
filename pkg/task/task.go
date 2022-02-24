@@ -184,7 +184,7 @@ func (c *pluginClient) recv() {
 // register coin handle
 var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error{
 	sphinxplugin.CoinType_CoinTypefilecoin: pluginFIL,
-	sphinxplugin.CoinType_CoinTypebtc:      pluginBTC,
+	sphinxplugin.CoinType_CoinTypebitcoin:  pluginBTC,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
@@ -256,8 +256,8 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if err != nil {
 			return err
 		}
-		resp.Nonce = nonce
 		resp.Message = req.GetMessage()
+		resp.Message.Nonce = nonce
 	case sphinxproxy.TransactionType_Broadcast:
 		cid, err := fil.MpoolPush(ctx, req.GetMessage(), req.GetSignature())
 		if err != nil {
@@ -294,8 +294,9 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if err != nil {
 			return err
 		}
+		resp.Message = req.GetMessage()
 		for _, unspent := range unspents {
-			resp.Unspent = append(resp.Unspent, &sphinxplugin.Unspent{
+			resp.Message.Unspent = append(resp.Message.Unspent, &sphinxplugin.Unspent{
 				TxID:          unspent.TxID,
 				Vout:          unspent.Vout,
 				Address:       unspent.Address,
