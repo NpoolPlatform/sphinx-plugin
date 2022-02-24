@@ -54,7 +54,7 @@ Description=Sphinx Plugin
 After=network.target
 
 [Service]
-Environment="ENV_COIN_NETWORK=test"
+Environment="ENV_COIN_NET=test"
 Environment="ENV_COIN_TYPE=FIL"
 Environment="ENV_COIN_API=$wallet-ip:1234"
 Environment="ENV_COIN_TOKEN=$wallet-api"
