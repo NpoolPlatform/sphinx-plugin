@@ -49,6 +49,8 @@
 ### 部署
 
 ```
+# mkdir -p /etc/SphinxPlugin
+# cp cmd/sphinx-plugin/SphinxPlugin.viper.yaml /etc/SphinxPlugin/
 # cat /etc/SphinxPlugin/SphinxPlugin.viper.yaml 
 ---
 config:
