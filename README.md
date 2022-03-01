@@ -49,6 +49,20 @@
 ### 部署
 
 ```
+# cat /etc/SphinxPlugin/SphinxPlugin.viper.yaml 
+---
+config:
+  hostname: "sphinx-plugin.npool.top"
+  http_port: 50170
+  grpc_port: 50171
+  prometheus_port: 50172
+  appid: "89089012783789789719823798127398"
+  logdir: "/var/log"
+  apolloAccessKey: "0147fb70b815403790e8634b899fac07"
+  sphinx_proxy_addr: "sphinx.proxy.api.npool.top:8080,sphinx.proxy.api.xpool.top:8080"
+
+
+# cat /etc/systemd/system/sphinx-plugin.service
 [Unit]
 Description=Sphinx Plugin
 After=network.target
