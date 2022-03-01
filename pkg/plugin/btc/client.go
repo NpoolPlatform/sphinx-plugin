@@ -2,8 +2,15 @@ package btc
 
 import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/rpcclient"
 )
+
+var configParam = map[string]string{
+	plugin.CoinNetMain: chaincfg.MainNetParams.Name,
+	plugin.CoinNetTest: chaincfg.RegressionNetParams.Name,
+}
 
 // TODO main init env and check, use conn pool
 func client() (*rpcclient.Client, error) {
@@ -29,9 +36,11 @@ func client() (*rpcclient.Client, error) {
 		return nil, env.ErrENVCoinPassNotFound
 	}
 	connCfg := &rpcclient.ConnConfig{
-		Host:         host,
-		User:         user,
-		Pass:         pass,
+		Host: host,
+		User: user,
+		Pass: pass,
+		// default mainnet
+		Params:       configParam[plugin.CoinNet],
 		HTTPPostMode: true,
 		DisableTLS:   true,
 	}
