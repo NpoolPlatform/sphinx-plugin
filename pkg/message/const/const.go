@@ -1,7 +1,6 @@
 package constant
 
 import (
-	"strings"
 	"time"
 )
 
@@ -10,7 +9,3 @@ const (
 	GrpcTimeout       = time.Second * 10
 	WaitMsgOutTimeout = time.Second * 40
 )
-
-func FormatServiceName() string {
-	return strings.Title(ServiceName)
-}

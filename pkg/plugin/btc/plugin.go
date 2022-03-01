@@ -1,6 +1,7 @@
 package btc
 
 import (
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -9,19 +10,59 @@ import (
 	"github.com/btcsuite/btcutil"
 )
 
+var (
+	// CoinNetMap support coin test net
+	CoinNetMap = map[string]*chaincfg.Params{
+		plugin.CoinNetMain: &chaincfg.MainNetParams,
+		plugin.CoinNetTest: &chaincfg.RegressionNetParams,
+	}
+
+	// CoinNetMapCheck check coin net env
+	CoinNetMapCheck = func(key string) bool {
+		for k := range CoinNetMap {
+			if k == key {
+				return true
+			}
+		}
+		return false
+	}
+
+	// CoinNetMapKeys get all support coin net env
+	CoinNetMapKeys = func() (keys []string) {
+		for k := range CoinNetMap {
+			keys = append(keys, k)
+		}
+		return
+	}
+)
+
 // WalletBalance
-func WalletBalance(accountAddr string, minConfirms int) (btcutil.Amount, error) {
+func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 	cli, err := client()
 	if err != nil {
 		return btcutil.Amount(0), err
 	}
 	defer cli.Shutdown()
 
+	// create new address not auto import to wallet
+	if err := cli.ImportAddressRescan(addr, "", true); err != nil {
+		return btcutil.Amount(0), err
+	}
+
 	if minConfirms <= 0 {
 		minConfirms = plugin.DefaultMinConfirms
 	}
 
-	address, err := btcutil.DecodeAddress(accountAddr, &chaincfg.MainNetParams)
+	coinNet, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return btcutil.Amount(0), env.ErrEVNCoinNet
+	}
+
+	if CoinNetMapCheck(coinNet) {
+		return btcutil.Amount(0), env.ErrEVNCoinNetValue
+	}
+
+	address, err := btcutil.DecodeAddress(addr, CoinNetMap[coinNet])
 	if err != nil {
 		return btcutil.Amount(0), err
 	}

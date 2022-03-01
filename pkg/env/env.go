@@ -24,8 +24,9 @@ const (
 )
 
 var (
-	ErrEVNCoinType = errors.New("env ENV_COIN_TYPE not found")
-	ErrEVNCoinNet  = errors.New("env ENV_COIN_NET not found")
+	ErrEVNCoinType     = errors.New("env ENV_COIN_TYPE not found")
+	ErrEVNCoinNet      = errors.New("env ENV_COIN_NET not found")
+	ErrEVNCoinNetValue = errors.New("env ENV_COIN_NET value only support main|test")
 
 	ErrENVCoinAPINotFound = errors.New("env ENV_COIN_API not found")
 

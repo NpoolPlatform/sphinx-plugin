@@ -15,6 +15,7 @@ func client() (*rpcclient.Client, error) {
 		DisableTLS:   true, // Bitcoin core does not provide TLS by default
 	*/
 
+	// TODO all env use cache
 	host, ok := env.LookupEnv(env.ENVCOINAPI)
 	if !ok {
 		return nil, env.ErrENVCoinAPINotFound

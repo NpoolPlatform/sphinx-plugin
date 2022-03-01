@@ -7,15 +7,33 @@ import (
 )
 
 const (
+	CoinNetMain = "main"
+	CoinNetTest = "test"
+
 	// DefaultMinConfirms ..
 	DefaultMinConfirms = 6
 )
 
-var CoinUnit = map[sphinxplugin.CoinType]string{
-	sphinxplugin.CoinType_CoinTypefilecoin: "FIL",
-	sphinxplugin.CoinType_CoinTypebitcoin:  "BTC",
-	sphinxplugin.CoinType_CoinTypeethereum: "ETH",
-}
+var (
+	// CoinNet will filled value in app run
+	CoinNet string
+
+	CoinUnit = map[string]map[sphinxplugin.CoinType]string{
+		// main
+		CoinNetMain: {
+			sphinxplugin.CoinType_CoinTypefilecoin: "FIL",
+			sphinxplugin.CoinType_CoinTypebitcoin:  "BTC",
+			sphinxplugin.CoinType_CoinTypeethereum: "ETH",
+		},
+
+		// test
+		CoinNetTest: {
+			sphinxplugin.CoinType_CoinTypefilecoin: "tFIL",
+			sphinxplugin.CoinType_CoinTypebitcoin:  "tBTC",
+			sphinxplugin.CoinType_CoinTypeethereum: "tETH",
+		},
+	}
+)
 
 // TODO match case elegant deal
 func CoinStr2CoinType(coinStr string) sphinxplugin.CoinType {

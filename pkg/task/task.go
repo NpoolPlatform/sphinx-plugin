@@ -133,7 +133,7 @@ func (c *pluginClient) register() {
 				CoinType:        plugin.CoinStr2CoinType(coinType),
 				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
 				ENV:             coinNetwork,
-				Unit:            plugin.CoinUnit[plugin.CoinStr2CoinType(coinType)],
+				Unit:            plugin.CoinUnit[plugin.CoinNet][plugin.CoinStr2CoinType(coinType)],
 			}
 		}
 	}
