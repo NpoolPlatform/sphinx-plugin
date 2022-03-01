@@ -30,7 +30,6 @@ var runCmd = &cli.Command{
 			Name:        "coin_net",
 			Hidden:      true,
 			Destination: &plugin.CoinNet,
-			Aliases:     []string{"coin_net"},
 			EnvVars:     []string{env.ENVCOINNET},
 		},
 	},
