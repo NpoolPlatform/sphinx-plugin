@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/filecoin-project/go-address"
 )
 
 const (
@@ -33,7 +35,24 @@ var (
 			sphinxplugin.CoinType_CoinTypeethereum: "tETH",
 		},
 	}
+
+	// BTCNetMap btc net map
+	BTCNetMap = map[string]*chaincfg.Params{
+		CoinNetMain: &chaincfg.MainNetParams,
+		CoinNetTest: &chaincfg.RegressionNetParams,
+	}
+
+	// FILNetMap fil net map
+	FILNetMap = map[string]address.Network{
+		CoinNetMain: address.Mainnet,
+		CoinNetTest: address.Testnet,
+	}
 )
+
+func CheckSupportNet(netEnv string) bool {
+	return (netEnv == CoinNetMain ||
+		netEnv == CoinNetTest)
+}
 
 // TODO match case elegant deal
 func CoinStr2CoinType(coinStr string) sphinxplugin.CoinType {

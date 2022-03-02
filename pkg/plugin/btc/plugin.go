@@ -4,36 +4,9 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
-)
-
-var (
-	// CoinNetMap support coin test net
-	CoinNetMap = map[string]*chaincfg.Params{
-		plugin.CoinNetMain: &chaincfg.MainNetParams,
-		plugin.CoinNetTest: &chaincfg.RegressionNetParams,
-	}
-
-	// CoinNetMapCheck check coin net env
-	CoinNetMapCheck = func(key string) bool {
-		for k := range CoinNetMap {
-			if k == key {
-				return true
-			}
-		}
-		return false
-	}
-
-	// CoinNetMapKeys get all support coin net env
-	CoinNetMapKeys = func() (keys []string) {
-		for k := range CoinNetMap {
-			keys = append(keys, k)
-		}
-		return
-	}
 )
 
 // WalletBalance
@@ -58,11 +31,11 @@ func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 		return btcutil.Amount(0), env.ErrEVNCoinNet
 	}
 
-	if CoinNetMapCheck(coinNet) {
+	if plugin.CheckSupportNet(coinNet) {
 		return btcutil.Amount(0), env.ErrEVNCoinNetValue
 	}
 
-	address, err := btcutil.DecodeAddress(addr, CoinNetMap[coinNet])
+	address, err := btcutil.DecodeAddress(addr, plugin.BTCNetMap[coinNet])
 	if err != nil {
 		return btcutil.Amount(0), err
 	}
