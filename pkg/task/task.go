@@ -198,6 +198,7 @@ func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxpr
 	}
 
 	if err := hf(req, resp); err != nil {
+		resp.RPCExitMessage = err.Error()
 		logger.Sugar().Errorf("plugin deal error: %v", err)
 	}
 
@@ -244,12 +245,10 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	case sphinxproxy.TransactionType_Balance:
 		balance, err := fil.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
-			resp.RPCExitMessage = err.Error()
 			return err
 		}
 		bl, err := decimal.NewFromString(balance.String())
 		if err != nil {
-			resp.RPCExitMessage = err.Error()
 			return err
 		}
 		f, exist := bl.Float64()
@@ -261,7 +260,6 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	case sphinxproxy.TransactionType_PreSign:
 		nonce, err := fil.MpoolGetNonce(ctx, req.GetAddress())
 		if err != nil {
-			resp.RPCExitMessage = err.Error()
 			return err
 		}
 		resp.Message = req.GetMessage()
@@ -269,7 +267,6 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	case sphinxproxy.TransactionType_Broadcast:
 		cid, err := fil.MpoolPush(ctx, req.GetMessage(), req.GetSignature())
 		if err != nil {
-			resp.RPCExitMessage = err.Error()
 			return err
 		}
 		resp.CID = cid
@@ -281,7 +278,6 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 				// return error code
 				resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
 			}
-			resp.RPCExitMessage = err.Error()
 			return err
 		}
 		resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
@@ -294,7 +290,6 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	case sphinxproxy.TransactionType_Balance:
 		balance, err := btc.WalletBalance(req.GetAddress(), plugin.DefaultMinConfirms)
 		if err != nil {
-			resp.RPCExitMessage = err.Error()
 			return err
 		}
 		resp.Balance = balance.ToBTC()
@@ -303,7 +298,6 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		// get utxo
 		unspents, err := btc.ListUnspent(req.GetAddress(), plugin.DefaultMinConfirms)
 		if err != nil {
-			resp.RPCExitMessage = err.Error()
 			return err
 		}
 		resp.Message = req.GetMessage()
@@ -328,7 +322,6 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		for _, _txIn := range msgTx.GetTxIn() {
 			cHaxh, err := chainhash.NewHash(_txIn.GetPreviousOutPoint().GetHash())
 			if err != nil {
-				resp.RPCExitMessage = err.Error()
 				return err
 			}
 			txIn = append(txIn, &wire.TxIn{
@@ -355,7 +348,6 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 			LockTime: msgTx.GetLockTime(),
 		})
 		if err != nil {
-			resp.RPCExitMessage = err.Error()
 			return err
 		}
 		resp.CID = txHash.String()
