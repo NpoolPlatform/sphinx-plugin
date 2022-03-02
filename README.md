@@ -73,6 +73,8 @@ After=network.target
 Environment="ENV_COIN_NET=test"
 Environment="ENV_COIN_TYPE=FIL"
 Environment="ENV_COIN_API=$wallet-ip:1234"
+# BTC test
+# Environment="ENV_COIN_API=127.0.0.1:18443"
 Environment="ENV_COIN_TOKEN=$wallet-api"
 ExecStart=/opt/sphinx-plugin/sphinx-plugin run
 ExecStop=/bin/kill -s QUIT $MAINPID
