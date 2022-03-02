@@ -71,6 +71,7 @@ Description=Sphinx Plugin
 After=network.target
 
 [Service]
+# FIL
 Environment="ENV_COIN_NET=test"
 Environment="ENV_COIN_TYPE=FIL"
 Environment="ENV_COIN_API=$wallet-ip:1234"
@@ -79,6 +80,9 @@ Environment="ENV_COIN_API=$wallet-ip:1234"
 Environment="ENV_COIN_TOKEN=$wallet-api"
 ExecStart=/opt/sphinx-plugin/sphinx-plugin run
 ExecStop=/bin/kill -s QUIT $MAINPID
+# resource limit
+CPUQuota=200%
+MemoryMax=128M
 Restart=always
 RestartSec=30
 TimeoutSec=infinity
