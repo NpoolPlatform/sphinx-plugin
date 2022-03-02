@@ -123,6 +123,7 @@ func (c *pluginClient) register() {
 			logger.Sugar().Info("register new coin exit")
 			return
 		case <-time.After(registerCoinDuration):
+			// TODO coin net
 			coinType, coinNetwork, err := env.CoinInfo()
 			if err != nil {
 				logger.Sugar().Errorf("register new coin error: %v", err)
@@ -130,10 +131,10 @@ func (c *pluginClient) register() {
 			}
 			logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
 			c.sendChannel <- &sphinxproxy.ProxyPluginResponse{
-				CoinType:        plugin.CoinStr2CoinType(coinType),
+				CoinType:        plugin.CoinStr2CoinType(plugin.CoinNet, coinType),
 				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
 				ENV:             coinNetwork,
-				Unit:            plugin.CoinUnit[plugin.CoinNet][plugin.CoinStr2CoinType(coinType)],
+				Unit:            plugin.CoinUnit[plugin.CoinStr2CoinType(plugin.CoinNet, coinType)],
 			}
 		}
 	}
@@ -183,8 +184,11 @@ func (c *pluginClient) recv() {
 
 // register coin handle
 var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error{
-	sphinxplugin.CoinType_CoinTypefilecoin: pluginFIL,
+	sphinxplugin.CoinType_CoinTypefilecoin:  pluginFIL,
+	sphinxplugin.CoinType_CoinTypetfilecoin: pluginFIL,
+
 	sphinxplugin.CoinType_CoinTypebitcoin:  pluginBTC,
+	sphinxplugin.CoinType_CoinTypetbitcoin: pluginBTC,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {

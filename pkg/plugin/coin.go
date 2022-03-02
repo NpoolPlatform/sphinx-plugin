@@ -20,20 +20,15 @@ var (
 	// CoinNet will filled value in app run
 	CoinNet string
 
-	CoinUnit = map[string]map[sphinxplugin.CoinType]string{
-		// main
-		CoinNetMain: {
-			sphinxplugin.CoinType_CoinTypefilecoin: "FIL",
-			sphinxplugin.CoinType_CoinTypebitcoin:  "BTC",
-			sphinxplugin.CoinType_CoinTypeethereum: "ETH",
-		},
+	CoinUnit = map[sphinxplugin.CoinType]string{
+		sphinxplugin.CoinType_CoinTypefilecoin:  "FIL",
+		sphinxplugin.CoinType_CoinTypetfilecoin: "FIL",
 
-		// test
-		CoinNetTest: {
-			sphinxplugin.CoinType_CoinTypefilecoin: "tFIL",
-			sphinxplugin.CoinType_CoinTypebitcoin:  "tBTC",
-			sphinxplugin.CoinType_CoinTypeethereum: "tETH",
-		},
+		sphinxplugin.CoinType_CoinTypebitcoin:  "BTC",
+		sphinxplugin.CoinType_CoinTypetbitcoin: "BTC",
+
+		sphinxplugin.CoinType_CoinTypeethereum:  "ETH",
+		sphinxplugin.CoinType_CoinTypetethereum: "ETH",
 	}
 
 	// BTCNetMap btc net map
@@ -47,6 +42,22 @@ var (
 		CoinNetMain: address.Mainnet,
 		CoinNetTest: address.Testnet,
 	}
+
+	// not export
+	netCoinMap = map[string]map[string]sphinxplugin.CoinType{
+		CoinNetMain: {
+			"fil":       sphinxplugin.CoinType_CoinTypefilecoin,
+			"btc":       sphinxplugin.CoinType_CoinTypebitcoin,
+			"eth":       sphinxplugin.CoinType_CoinTypeethereum,
+			"spacemesh": sphinxplugin.CoinType_CoinTypespacemesh,
+		},
+		CoinNetTest: {
+			"fil":       sphinxplugin.CoinType_CoinTypetfilecoin,
+			"btc":       sphinxplugin.CoinType_CoinTypetbitcoin,
+			"eth":       sphinxplugin.CoinType_CoinTypetethereum,
+			"spacemesh": sphinxplugin.CoinType_CoinTypetspacemesh,
+		},
+	}
 )
 
 func CheckSupportNet(netEnv string) bool {
@@ -55,18 +66,8 @@ func CheckSupportNet(netEnv string) bool {
 }
 
 // TODO match case elegant deal
-func CoinStr2CoinType(coinStr string) sphinxplugin.CoinType {
-	switch strings.ToLower(coinStr) {
-	case "fil":
-		return sphinxplugin.CoinType_CoinTypefilecoin
-	case "btc":
-		return sphinxplugin.CoinType_CoinTypebitcoin
-	case "eth":
-		return sphinxplugin.CoinType_CoinTypeethereum
-	case "spacemesh":
-		return sphinxplugin.CoinType_CoinTypespacemesh
-	default:
-	}
-
-	return sphinxplugin.CoinType_CoinTypeUnKnow
+func CoinStr2CoinType(netEnv, coinStr string) sphinxplugin.CoinType {
+	_netEnv := strings.ToLower(netEnv)
+	_coinStr := strings.ToLower(coinStr)
+	return netCoinMap[_netEnv][_coinStr]
 }
