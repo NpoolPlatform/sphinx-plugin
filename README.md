@@ -9,6 +9,7 @@
     - [最佳实践](#最佳实践)
     - [环境变量](#环境变量)
     - [部署](#部署)
+    - [升级说明](#升级说明)
     - [推荐](#推荐)
     - [说明](#说明)
 
@@ -51,7 +52,7 @@
 ```
 # mkdir -p /etc/SphinxPlugin
 # cp cmd/sphinx-plugin/SphinxPlugin.viper.yaml /etc/SphinxPlugin/
-# cat /etc/SphinxPlugin/SphinxPlugin.viper.yaml 
+# cat /etc/SphinxPlugin/SphinxPlugin.viper.yaml
 ---
 config:
   hostname: "sphinx-plugin.npool.top"
@@ -86,6 +87,15 @@ PrivateTmp=true
 [Install]
 WantedBy=multi-user.target
 ```
+
+### 升级说明
+
+**需要关闭用户购买商品的入口**
+
+| 条件    | 升级 SQL                     |
+| :------ | :--------------------------- |
+| mainnet | DO NOTHING                   |
+| testnet | [upgrade](./sql/upgrade.sql) |
 
 ### 推荐
 BTC 钱包节点的配置文件中, **rpcclienttimeout=30** 需要配置

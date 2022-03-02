@@ -1,0 +1,35 @@
+START TRANSACTION;
+
+SELECT
+  @pid := `id`,
+  @reserved_amount := `reserved_amount`,
+  @pre_sale := `pre_sale`,
+  @logo := `logo`,
+  @for_pay := `for_pay`
+FROM
+  `sphinx_coininfo`.`coin_infos`
+WHERE
+  `name` = 'filecoin'
+  AND `env` = 'test';
+
+UPDATE
+  `sphinx_coininfo`.`coin_infos`
+SET
+  `id` = UUID()
+WHERE
+  `name` = 'filecoin'
+  AND `env` = 'test';
+
+UPDATE
+  `sphinx_coininfo`.`coin_infos`
+SET
+  `id` = @pid,
+  `reserved_amount` = @reserved_amount,
+  `pre_sale` = @pre_sale,
+  `logo` = @logo,
+  `for_pay` = @for_pay
+WHERE
+  `name` = 'tfilecoin'
+  AND `env` = 'test';
+
+COMMIT;
