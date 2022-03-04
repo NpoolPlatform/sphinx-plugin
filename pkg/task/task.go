@@ -15,7 +15,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/btc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
-	"github.com/NpoolPlatform/sphinx-proxy/pkg/check"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/shopspring/decimal"
@@ -170,11 +169,6 @@ func (c *pluginClient) recv() {
 				CoinType:        req.GetCoinType(),
 				TransactionID:   req.GetTransactionID(),
 				Message:         &sphinxplugin.UnsignedMessage{},
-			}
-
-			if err := check.CoinType(req.GetCoinType()); err != nil {
-				logger.Sugar().Errorf("check CoinType: %v invalid", req.GetCoinType())
-				c.sendChannel <- resp
 			}
 
 			go handle(c, req, resp)
