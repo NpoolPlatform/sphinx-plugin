@@ -31,7 +31,7 @@ func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 		return btcutil.Amount(0), env.ErrEVNCoinNet
 	}
 
-	if plugin.CheckSupportNet(coinNet) {
+	if !plugin.CheckSupportNet(coinNet) {
 		return btcutil.Amount(0), env.ErrEVNCoinNetValue
 	}
 
