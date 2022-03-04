@@ -58,8 +58,29 @@ var (
 			"spacemesh": sphinxplugin.CoinType_CoinTypetspacemesh,
 		},
 	}
+
+	// not export
+	coinNetMap = map[sphinxplugin.CoinType]string{
+		// main
+		sphinxplugin.CoinType_CoinTypefilecoin:  CoinNetMain,
+		sphinxplugin.CoinType_CoinTypebitcoin:   CoinNetMain,
+		sphinxplugin.CoinType_CoinTypeethereum:  CoinNetMain,
+		sphinxplugin.CoinType_CoinTypespacemesh: CoinNetMain,
+
+		// test
+		sphinxplugin.CoinType_CoinTypetfilecoin:  CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetbitcoin:   CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetethereum:  CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetspacemesh: CoinNetTest,
+	}
 )
 
+// CoinType2Net ..
+func CoinType2Net(ct sphinxplugin.CoinType) string {
+	return coinNetMap[ct]
+}
+
+// CheckSupportNet ..
 func CheckSupportNet(netEnv string) bool {
 	return (netEnv == CoinNetMain ||
 		netEnv == CoinNetTest)
