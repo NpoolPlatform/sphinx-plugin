@@ -18,7 +18,7 @@ func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 	defer cli.Shutdown()
 
 	// create new address not auto import to wallet
-	if err := cli.ImportAddressRescan(addr, "", true); err != nil {
+	if err := cli.ImportAddress(addr); err != nil {
 		return btcutil.Amount(0), err
 	}
 
