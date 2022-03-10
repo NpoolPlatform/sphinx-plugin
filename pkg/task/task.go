@@ -262,6 +262,9 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 			return err
 		}
 		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
 		resp.Message.Nonce = nonce
 	case sphinxproxy.TransactionType_Broadcast:
 		cid, err := fil.MpoolPush(ctx, req.GetMessage(), req.GetSignature())
@@ -300,6 +303,9 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 			return err
 		}
 		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
 		for _, unspent := range unspents {
 			resp.Message.Unspent = append(resp.Message.Unspent, &sphinxplugin.Unspent{
 				TxID:          unspent.TxID,
