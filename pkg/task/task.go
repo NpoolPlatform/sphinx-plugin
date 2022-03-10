@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -189,11 +190,14 @@ func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxpr
 	hf, ok := handleMap[req.GetCoinType()]
 	if !ok {
 		logger.Sugar().Errorf("not register handle for %v", req.GetCoinType())
+		resp.RPCExitMessage = fmt.Sprintf("not register handle for %v", req.GetCoinType())
+		goto dirct
 	}
 
 	if err := hf(req, resp); err != nil {
-		resp.RPCExitMessage = err.Error()
 		logger.Sugar().Errorf("plugin deal error: %v", err)
+		resp.RPCExitMessage = err.Error()
+		goto dirct
 	}
 
 	logger.Sugar().Infof(
@@ -203,6 +207,7 @@ func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxpr
 		req.GetCoinType(),
 	)
 
+dirct:
 	c.sendChannel <- resp
 }
 
