@@ -287,7 +287,11 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	return nil
 }
 
+// nolint
 func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
 	switch req.GetTransactionType() {
 	case sphinxproxy.TransactionType_Balance:
 		balance, err := btc.WalletBalance(req.GetAddress(), plugin.DefaultMinConfirms)
@@ -357,6 +361,17 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		}
 		resp.CID = txHash.String()
 	case sphinxproxy.TransactionType_SyncMsgState:
+		txHash, err := chainhash.NewHashFromStr(req.GetCID())
+		if err != nil {
+			return err
+		}
+		tranTx, err := btc.StateSearchMsg(ctx, txHash)
+		if err != nil {
+			return err
+		}
+		if tranTx.Confirmations < plugin.DefaultMinConfirms {
+			return btc.ErrWaitMessageOnChainMinConfirms
+		}
 	}
 	return nil
 }

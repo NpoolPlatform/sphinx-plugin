@@ -1,6 +1,9 @@
 package btc
 
 import (
+	"context"
+	"errors"
+
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/btcsuite/btcd/btcjson"
@@ -8,6 +11,8 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 )
+
+var ErrWaitMessageOnChainMinConfirms = errors.New("wait message on chain min confirms")
 
 // WalletBalance
 func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
@@ -70,7 +75,7 @@ func ListUnspent(address string, minConf int) ([]btcjson.ListUnspentResult, erro
 	return out, nil
 }
 
-// SendRawTransaction
+// SendRawTransaction ..
 func SendRawTransaction(rawMsg *wire.MsgTx) (*chainhash.Hash, error) {
 	cli, err := client()
 	if err != nil {
@@ -79,4 +84,15 @@ func SendRawTransaction(rawMsg *wire.MsgTx) (*chainhash.Hash, error) {
 	defer cli.Shutdown()
 
 	return cli.SendRawTransaction(rawMsg, false)
+}
+
+// StateSearchMsg ..
+func StateSearchMsg(_ctx context.Context, in *chainhash.Hash) (*btcjson.GetTransactionResult, error) {
+	cli, err := client()
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Shutdown()
+
+	return cli.GetTransaction(in)
 }
