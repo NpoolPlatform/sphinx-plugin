@@ -351,7 +351,7 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		}
 
 		txHash, err := btc.SendRawTransaction(&wire.MsgTx{
-			Version:  req.GetMsgTx().GetVersion(),
+			Version:  msgTx.GetVersion(),
 			TxIn:     txIn,
 			TxOut:    txOut,
 			LockTime: msgTx.GetLockTime(),
