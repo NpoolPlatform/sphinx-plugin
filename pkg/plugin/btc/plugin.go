@@ -40,12 +40,19 @@ func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 		return btcutil.Amount(0), env.ErrEVNCoinNetValue
 	}
 
-	address, err := btcutil.DecodeAddress(addr, plugin.BTCNetMap[coinNet])
+	unspents, err := cli.ListUnspentMin(minConfirms)
 	if err != nil {
 		return btcutil.Amount(0), err
 	}
 
-	return cli.GetReceivedByAddressMinConf(address, minConfirms)
+	accountAmount := .0
+	for _, sp := range unspents {
+		if sp.Address == addr {
+			accountAmount += sp.Amount
+		}
+	}
+
+	return btcutil.NewAmount(accountAmount)
 }
 
 func ListUnspent(address string, minConf int) ([]btcjson.ListUnspentResult, error) {
