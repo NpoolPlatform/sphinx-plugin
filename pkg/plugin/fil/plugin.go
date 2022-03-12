@@ -8,6 +8,7 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/crypto"
@@ -19,6 +20,9 @@ import (
 )
 
 func WalletBalance(ctx context.Context, wallet string) (balance types.BigInt, err error) {
+	// TODO in main init
+	address.CurrentNetwork = plugin.FILNetMap[plugin.CoinNet]
+
 	if wallet == "" {
 		return types.EmptyInt, env.ErrAddressInvalid
 	}
@@ -38,6 +42,9 @@ func WalletBalance(ctx context.Context, wallet string) (balance types.BigInt, er
 }
 
 func MpoolGetNonce(ctx context.Context, wallet string) (nonce uint64, err error) {
+	// TODO in main init
+	address.CurrentNetwork = plugin.FILNetMap[plugin.CoinNet]
+
 	if wallet == "" {
 		return 0, env.ErrAddressInvalid
 	}
@@ -62,6 +69,9 @@ func MpoolGetNonce(ctx context.Context, wallet string) (nonce uint64, err error)
 }
 
 func MpoolPush(ctx context.Context, inMsg *sphinxplugin.UnsignedMessage, inSign *sphinxplugin.Signature) (chainID string, err error) {
+	// TODO in main init
+	address.CurrentNetwork = plugin.FILNetMap[plugin.CoinNet]
+
 	to, err := address.NewFromString(inMsg.GetTo())
 	if err != nil {
 		return "", env.ErrAddressInvalid
@@ -112,6 +122,9 @@ func MpoolPush(ctx context.Context, inMsg *sphinxplugin.UnsignedMessage, inSign 
 }
 
 func StateSearchMsg(_ctx context.Context, in *sphinxproxy.ProxyPluginRequest) (*lotusapi.MsgLookup, error) {
+	// TODO in main init
+	address.CurrentNetwork = plugin.FILNetMap[plugin.CoinNet]
+
 	api, closer, err := client()
 	if err != nil {
 		return nil, err
