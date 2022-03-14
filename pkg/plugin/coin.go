@@ -14,6 +14,8 @@ const (
 
 	// DefaultMinConfirms ..
 	DefaultMinConfirms = 6
+	// DefaultMaxConfirms ..
+	DefaultMaxConfirms = 9999999
 )
 
 var (
