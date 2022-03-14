@@ -172,7 +172,13 @@ func (c *pluginClient) recv() {
 				Message:         &sphinxplugin.UnsignedMessage{},
 			}
 
-			go handle(c, req, resp)
+			go func() {
+				now := time.Now()
+				defer func(req *sphinxproxy.ProxyPluginRequest) {
+					logger.Sugar().Infof("plugin handle transaction: %v use: %v", req.GetTransactionID(), time.Since(now).Seconds())
+				}(req)
+				handle(c, req, resp)
+			}()
 		}
 	}
 }
