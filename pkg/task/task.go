@@ -175,7 +175,7 @@ func (c *pluginClient) recv() {
 			go func() {
 				now := time.Now()
 				defer func(req *sphinxproxy.ProxyPluginRequest) {
-					logger.Sugar().Infof("plugin handle transaction: %v use: %v", req.GetTransactionID(), time.Since(now).Seconds())
+					logger.Sugar().Infof("plugin handle transaction type: %v id: %v use: %v", req.GetTransactionType(), req.GetTransactionID(), time.Since(now).Seconds())
 				}(req)
 				handle(c, req, resp)
 			}()
