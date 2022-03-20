@@ -15,6 +15,8 @@ import (
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/btc"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth/usdt"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
@@ -190,6 +192,12 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 
 	sphinxplugin.CoinType_CoinTypebitcoin:  pluginBTC,
 	sphinxplugin.CoinType_CoinTypetbitcoin: pluginBTC,
+
+	sphinxplugin.CoinType_CoinTypeethereum:  pluginETH,
+	sphinxplugin.CoinType_CoinTypetethereum: pluginETH,
+
+	sphinxplugin.CoinType_CoinTypeusdt:  pluginUSDT,
+	sphinxplugin.CoinType_CoinTypetusdt: pluginUSDT,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
@@ -378,6 +386,44 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if tranTx.Confirmations < plugin.DefaultMinConfirms {
 			return btc.ErrWaitMessageOnChainMinConfirms
 		}
+	}
+	return nil
+}
+
+func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		balance, err := eth.WalletBalance(ctx, req.GetAddress())
+		if err != nil {
+			return err
+		}
+		resp.Balance = float64(balance.Int64())
+		resp.BalanceStr = balance.String()
+	case sphinxproxy.TransactionType_PreSign:
+	case sphinxproxy.TransactionType_Broadcast:
+	case sphinxproxy.TransactionType_SyncMsgState:
+	}
+	return nil
+}
+
+func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		balance, err := usdt.WalletBalance(ctx, req.GetAddress())
+		if err != nil {
+			return err
+		}
+		resp.Balance = float64(balance.Int64())
+		resp.BalanceStr = balance.String()
+	case sphinxproxy.TransactionType_PreSign:
+	case sphinxproxy.TransactionType_Broadcast:
+	case sphinxproxy.TransactionType_SyncMsgState:
 	}
 	return nil
 }

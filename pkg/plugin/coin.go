@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/filecoin-project/go-address"
 )
@@ -19,32 +20,6 @@ const (
 )
 
 var (
-	// CoinNet will filled value in app run
-	CoinNet string
-
-	CoinUnit = map[sphinxplugin.CoinType]string{
-		sphinxplugin.CoinType_CoinTypefilecoin:  "FIL",
-		sphinxplugin.CoinType_CoinTypetfilecoin: "FIL",
-
-		sphinxplugin.CoinType_CoinTypebitcoin:  "BTC",
-		sphinxplugin.CoinType_CoinTypetbitcoin: "BTC",
-
-		sphinxplugin.CoinType_CoinTypeethereum:  "ETH",
-		sphinxplugin.CoinType_CoinTypetethereum: "ETH",
-	}
-
-	// BTCNetMap btc net map
-	BTCNetMap = map[string]*chaincfg.Params{
-		CoinNetMain: &chaincfg.MainNetParams,
-		CoinNetTest: &chaincfg.RegressionNetParams,
-	}
-
-	// FILNetMap fil net map
-	FILNetMap = map[string]address.Network{
-		CoinNetMain: address.Mainnet,
-		CoinNetTest: address.Testnet,
-	}
-
 	// not export
 	netCoinMap = map[string]map[string]sphinxplugin.CoinType{
 		CoinNetMain: {
@@ -74,6 +49,43 @@ var (
 		sphinxplugin.CoinType_CoinTypetbitcoin:   CoinNetTest,
 		sphinxplugin.CoinType_CoinTypetethereum:  CoinNetTest,
 		sphinxplugin.CoinType_CoinTypetspacemesh: CoinNetTest,
+	}
+
+	// CoinNet will filled value in app run
+	CoinNet string
+
+	CoinUnit = map[sphinxplugin.CoinType]string{
+		sphinxplugin.CoinType_CoinTypefilecoin:  "FIL",
+		sphinxplugin.CoinType_CoinTypetfilecoin: "FIL",
+
+		sphinxplugin.CoinType_CoinTypebitcoin:  "BTC",
+		sphinxplugin.CoinType_CoinTypetbitcoin: "BTC",
+
+		sphinxplugin.CoinType_CoinTypeethereum:  "ETH",
+		sphinxplugin.CoinType_CoinTypetethereum: "ETH",
+	}
+
+	// BTCNetMap btc net map
+	BTCNetMap = map[string]*chaincfg.Params{
+		CoinNetMain: &chaincfg.MainNetParams,
+		CoinNetTest: &chaincfg.RegressionNetParams,
+	}
+
+	// FILNetMap fil net map
+	FILNetMap = map[string]address.Network{
+		CoinNetMain: address.Mainnet,
+		CoinNetTest: address.Testnet,
+	}
+
+	// usdt contract id
+	USDTContractID = func(chainet int64) string {
+		switch chainet {
+		case 1:
+			return "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+		case 1337:
+			return config.GetString(config.KeyContractID)
+		}
+		return ""
 	}
 )
 

@@ -7,4 +7,6 @@ config:
   appid: "89089012783789789719823798127398"
   logdir: "/var/log"
   apolloAccessKey: "0147fb70b815403790e8634b899fac07"
+  # contract id of usdt
+  contractID: ""
   sphinx_proxy_addr: ""

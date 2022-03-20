@@ -14,6 +14,7 @@ const (
 	KeyGRPCPort        = "grpc_port"
 	KeyPrometheusPort  = "prometheus_port"
 	KeySphinxProxyAddr = "sphinx_proxy_addr"
+	KeyContractID      = "contract_id"
 	rootConfig         = "config"
 )
 

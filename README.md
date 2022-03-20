@@ -8,6 +8,7 @@
     - [命令](#命令)
     - [最佳实践](#最佳实践)
     - [环境变量](#环境变量)
+    - [ETH 部署](#eth-部署)
     - [部署](#部署)
     - [升级说明](#升级说明)
     - [推荐](#推荐)
@@ -35,17 +36,30 @@
 
 ### 环境变量
 
-|  币种  | 变量名称       |       支持的值        | 说明  |
-| :----: | :------------- | :-------------------: | :---: |
-| Common | ENV_COIN_NET   |     main or test      |       |
-|        | ENV_COIN_TYPE  | FIL BTC ETH SpaceMesh |       |
-|        | ENV_COIN_API   |        ip:port        |       |
-|  FIL   | ENV_COIN_TOKEN |                       |       |
-|  BTC   | ENV_COIN_USER  |                       |       |
-|        | ENV_COIN_PASS  |                       |       |
+|   币种   | 变量名称        |          支持的值          |               说明               |
+| :------: | :-------------- | :------------------------: | :------------------------------: |
+|  Common  | ENV_COIN_NET    |        main or test        |                                  |
+|          | ENV_COIN_TYPE   | FIL BTC ETH/USDT SpaceMesh |                                  |
+|          | ENV_COIN_API    |          ip:port           |                                  |
+|   FIL    | ENV_COIN_TOKEN  |                            |                                  |
+|   BTC    | ENV_COIN_USER   |                            |                                  |
+|          | ENV_COIN_PASS   |                            |                                  |
+| ETH/USDT | ENV_CONTRACT_ID |                            | 需要支持智能合约才需要设置(USDT) |
+
 
 1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**
+
+### ETH 部署
+
+1. 启动测试网
+2. 部署智能合约
+   1. 部署合约
+    ```
+    sphinx-plugin usdt -addr 127.0.0.1 -port 8545
+    ```
+   2. 上述的命令会会返回合约的**ID**,设置到环境变量**ENV_CONTRACT_ID**
+   3. 部署支持 ETH/USDT 的 plugin
 
 ### 部署
 

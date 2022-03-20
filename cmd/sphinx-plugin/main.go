@@ -7,6 +7,7 @@ import (
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/version"
+	"github.com/NpoolPlatform/sphinx-plugin/cmd/usdt"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	banner "github.com/common-nighthawk/go-figure"
 	cli "github.com/urfave/cli/v2"
@@ -21,6 +22,7 @@ const (
 func main() {
 	commands := cli.Commands{
 		runCmd,
+		usdt.DeployUSDTCmd,
 	}
 
 	description := fmt.Sprintf("%v service cli\nFor help on any individual command run <%v COMMAND -h>\n",

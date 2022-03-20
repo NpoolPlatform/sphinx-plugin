@@ -9,7 +9,7 @@ const (
 	// main or test
 	ENVCOINNET = "ENV_COIN_NET"
 
-	// FIL BTC ETH SpaceMesh
+	// FIL BTC ETH/USDT SpaceMesh
 	ENVCOINTYPE = "ENV_COIN_TYPE"
 
 	// fil btc ip:port
@@ -21,6 +21,9 @@ const (
 
 	// for fil
 	ENVCOINTOKEN = "ENV_COIN_TOKEN"
+
+	// for eth/usdt
+	ENVCONTRACTID = "ENV_CONTRACT_ID"
 )
 
 var (
@@ -40,6 +43,9 @@ var (
 	ErrSignTypeInvalid      = errors.New("sign type invalid")
 	ErrFindMsgNotFound      = errors.New("failed to find message")
 	ErrCIDInvalid           = errors.New("cid invalid")
+
+	// eth/usdt
+	ErrENVContractIDNotFound = errors.New("env ENV_CONTRACT_ID not found")
 )
 
 func LookupEnv(key string) (string, bool) {
