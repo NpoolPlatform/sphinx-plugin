@@ -36,16 +36,15 @@
 
 ### 环境变量
 
-|   币种   | 变量名称        |          支持的值          |               说明               |
-| :------: | :-------------- | :------------------------: | :------------------------------: |
-|  Common  | ENV_COIN_NET    |        main or test        |                                  |
-|          | ENV_COIN_TYPE   | FIL BTC ETH/USDT SpaceMesh |                                  |
-|          | ENV_COIN_API    |          ip:port           |                                  |
-|   FIL    | ENV_COIN_TOKEN  |                            |                                  |
-|   BTC    | ENV_COIN_USER   |                            |                                  |
-|          | ENV_COIN_PASS   |                            |                                  |
-| ETH/USDT | ENV_CONTRACT_ID |                            | 需要支持智能合约才需要设置(USDT) |
-
+|   币种   | 变量名称        |          支持的值          |                说明                 |
+| :------: | :-------------- | :------------------------: | :---------------------------------: |
+|  Common  | ENV_COIN_NET    |        main or test        |                                     |
+|          | ENV_COIN_TYPE   | FIL BTC ETH/USDT SpaceMesh | 如果此**plugin**支持多币种使用,分割 |
+|          | ENV_COIN_API    |          ip:port           |                                     |
+|   FIL    | ENV_COIN_TOKEN  |                            |                                     |
+|   BTC    | ENV_COIN_USER   |                            |                                     |
+|          | ENV_COIN_PASS   |                            |                                     |
+| ETH/USDT | ENV_CONTRACT_ID |                            |  需要支持智能合约才需要设置(USDT)   |
 
 1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**

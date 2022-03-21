@@ -10,8 +10,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+type BigUSDT struct {
+	Decimal *big.Int
+	Balance *big.Int
+}
+
 // WalletBalance ..
-func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
+func WalletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 	client, err := eth.Client()
 	if err != nil {
 		return nil, err
@@ -28,11 +33,27 @@ func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
 		return nil, err
 	}
 
-	return tetherERC20Token.BalanceOf(
+	decimal, err := tetherERC20Token.Decimals(&bind.CallOpts{
+		Pending: true,
+		Context: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	balance, err := tetherERC20Token.BalanceOf(
 		&bind.CallOpts{
 			Pending: true,
 			Context: ctx,
 		},
 		common.HexToAddress(addr),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BigUSDT{
+		Decimal: decimal,
+		Balance: balance,
+	}, nil
 }

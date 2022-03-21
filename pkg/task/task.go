@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math"
+	"math/big"
+	"strings"
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
@@ -114,7 +117,6 @@ func (c *pluginClient) watch() {
 	c.closeProxyClient()
 	logger.Sugar().Info("start watch plugin client exit")
 
-	logger.Sugar().Info("start try new plugin client")
 	newConn <- struct{}{}
 }
 
@@ -126,17 +128,21 @@ func (c *pluginClient) register() {
 			return
 		case <-time.After(registerCoinDuration):
 			// TODO coin net
-			coinType, coinNetwork, err := env.CoinInfo()
+			coinTypes, coinNetwork, err := env.CoinInfo()
 			if err != nil {
 				logger.Sugar().Errorf("register new coin error: %v", err)
 				continue
 			}
-			logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
-			c.sendChannel <- &sphinxproxy.ProxyPluginResponse{
-				CoinType:        plugin.CoinStr2CoinType(plugin.CoinNet, coinType),
-				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
-				ENV:             coinNetwork,
-				Unit:            plugin.CoinUnit[plugin.CoinStr2CoinType(plugin.CoinNet, coinType)],
+
+			// 支持多币种
+			for _, coinType := range strings.Split(coinTypes, ",") {
+				logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
+				c.sendChannel <- &sphinxproxy.ProxyPluginResponse{
+					CoinType:        plugin.CoinStr2CoinType(plugin.CoinNet, coinType),
+					TransactionType: sphinxproxy.TransactionType_RegisterCoin,
+					ENV:             coinNetwork,
+					Unit:            plugin.CoinUnit[plugin.CoinStr2CoinType(plugin.CoinNet, coinType)],
+				}
 			}
 		}
 	}
@@ -264,8 +270,8 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if err != nil {
 			return err
 		}
-		f, exist := bl.Float64()
-		if !exist {
+		f, exact := bl.Float64()
+		if !exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 		}
 		resp.Balance = f
@@ -396,11 +402,19 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 
 	switch req.GetTransactionType() {
 	case sphinxproxy.TransactionType_Balance:
-		balance, err := eth.WalletBalance(ctx, req.GetAddress())
+		bl, err := eth.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
 		}
-		resp.Balance = float64(balance.Int64())
+
+		balance := big.NewFloat(float64(bl.Int64()))
+		balance.Quo(balance, big.NewFloat(math.Pow10(18)))
+		f, exact := balance.Float64()
+		if exact != big.Exact {
+			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		}
+
+		resp.Balance = f
 		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
 	case sphinxproxy.TransactionType_Broadcast:
@@ -415,11 +429,17 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 
 	switch req.GetTransactionType() {
 	case sphinxproxy.TransactionType_Balance:
-		balance, err := usdt.WalletBalance(ctx, req.GetAddress())
+		bls, err := usdt.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
 		}
-		resp.Balance = float64(balance.Int64())
+		balance := big.NewFloat(float64(bls.Balance.Int64()))
+		balance.Quo(balance, big.NewFloat(math.Pow10(int(bls.Decimal.Int64()))))
+		f, exact := balance.Float64()
+		if exact != big.Exact {
+			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		}
+		resp.Balance = f
 		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
 	case sphinxproxy.TransactionType_Broadcast:
