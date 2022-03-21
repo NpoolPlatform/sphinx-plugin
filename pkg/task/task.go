@@ -23,7 +23,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
-	"github.com/shopspring/decimal"
+	"github.com/filecoin-project/lotus/build"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -262,16 +262,14 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 
 	switch req.GetTransactionType() {
 	case sphinxproxy.TransactionType_Balance:
-		balance, err := fil.WalletBalance(ctx, req.GetAddress())
+		bl, err := fil.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
 		}
-		bl, err := decimal.NewFromString(balance.String())
-		if err != nil {
-			return err
-		}
-		f, exact := bl.Float64()
-		if !exact {
+		balance := big.NewFloat(float64(bl.Int64()))
+		balance.Quo(balance, big.NewFloat(math.Pow10(int(build.FilecoinPrecision))))
+		f, exact := balance.Float64()
+		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 		}
 		resp.Balance = f
