@@ -417,8 +417,32 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
+		preSignInfo, err := eth.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		if err != nil {
+			return err
+		}
+		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
+		resp.Message.ChainID = preSignInfo.ChainID
+		resp.Message.Nonce = preSignInfo.Nonce
+		resp.Message.GasPrice = preSignInfo.GasPrice
+		resp.Message.GasLimit = preSignInfo.GasLimit
 	case sphinxproxy.TransactionType_Broadcast:
+		txHash, err := eth.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		if err != nil {
+			return err
+		}
+		resp.CID = txHash
 	case sphinxproxy.TransactionType_SyncMsgState:
+		pending, err := eth.SyncTxState(ctx, req.GetCID())
+		if err != nil {
+			return err
+		}
+		if !pending {
+			return eth.ErrWaitMessageOnChain
+		}
 	}
 	return nil
 }
@@ -442,8 +466,32 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
+		preSignInfo, err := eth.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		if err != nil {
+			return err
+		}
+		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
+		resp.Message.ChainID = preSignInfo.ChainID
+		resp.Message.Nonce = preSignInfo.Nonce
+		resp.Message.GasPrice = preSignInfo.GasPrice
+		resp.Message.GasLimit = preSignInfo.GasLimit
 	case sphinxproxy.TransactionType_Broadcast:
+		txHash, err := eth.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		if err != nil {
+			return err
+		}
+		resp.CID = txHash
 	case sphinxproxy.TransactionType_SyncMsgState:
+		pending, err := eth.SyncTxState(ctx, req.GetCID())
+		if err != nil {
+			return err
+		}
+		if !pending {
+			return eth.ErrWaitMessageOnChain
+		}
 	}
 	return nil
 }
