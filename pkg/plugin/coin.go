@@ -23,16 +23,16 @@ var (
 	// not export
 	netCoinMap = map[string]map[string]sphinxplugin.CoinType{
 		CoinNetMain: {
-			"fil":       sphinxplugin.CoinType_CoinTypefilecoin,
-			"btc":       sphinxplugin.CoinType_CoinTypebitcoin,
-			"eth":       sphinxplugin.CoinType_CoinTypeethereum,
+			"filecoin":  sphinxplugin.CoinType_CoinTypefilecoin,
+			"bitcoin":   sphinxplugin.CoinType_CoinTypebitcoin,
+			"ethereum":  sphinxplugin.CoinType_CoinTypeethereum,
 			"usdt":      sphinxplugin.CoinType_CoinTypeusdt,
 			"spacemesh": sphinxplugin.CoinType_CoinTypespacemesh,
 		},
 		CoinNetTest: {
-			"fil":       sphinxplugin.CoinType_CoinTypetfilecoin,
-			"btc":       sphinxplugin.CoinType_CoinTypetbitcoin,
-			"eth":       sphinxplugin.CoinType_CoinTypetethereum,
+			"filecoin":  sphinxplugin.CoinType_CoinTypetfilecoin,
+			"bitcoin":   sphinxplugin.CoinType_CoinTypetbitcoin,
+			"ethereum":  sphinxplugin.CoinType_CoinTypetethereum,
 			"usdt":      sphinxplugin.CoinType_CoinTypetusdt,
 			"spacemesh": sphinxplugin.CoinType_CoinTypetspacemesh,
 		},
