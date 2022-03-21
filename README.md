@@ -8,7 +8,7 @@
     - [命令](#命令)
     - [最佳实践](#最佳实践)
     - [环境变量](#环境变量)
-    - [ETH 部署](#eth-部署)
+    - [ethereum 部署](#ethereum-部署)
     - [部署](#部署)
     - [升级说明](#升级说明)
     - [推荐](#推荐)
@@ -36,20 +36,20 @@
 
 ### 环境变量
 
-|   币种   | 变量名称        |                 支持的值                 |                说明                 |
-| :------: | :-------------- | :--------------------------------------: | :---------------------------------: |
-|  Common  | ENV_COIN_NET    |               main or test               |                                     |
-|          | ENV_COIN_TYPE   | filecoin bitcoin ethereum/usdt spacemesh | 如果此**plugin**支持多币种使用,分割 |
-|          | ENV_COIN_API    |                 ip:port                  |                                     |
-|   FIL    | ENV_COIN_TOKEN  |                                          |                                     |
-|   BTC    | ENV_COIN_USER   |                                          |                                     |
-|          | ENV_COIN_PASS   |                                          |                                     |
-| ETH/USDT | ENV_CONTRACT_ID |                                          |  需要支持智能合约才需要设置(USDT)   |
+|     币种      | 变量名称        |                 支持的值                 |                说明                 |
+| :-----------: | :-------------- | :--------------------------------------: | :---------------------------------: |
+|    common     | ENV_COIN_NET    |               main or test               |                                     |
+|               | ENV_COIN_TYPE   | filecoin bitcoin ethereum/usdt spacemesh | 如果此**plugin**支持多币种使用,分割 |
+|               | ENV_COIN_API    |                 ip:port                  |                                     |
+|   filecoin    | ENV_COIN_TOKEN  |                                          |                                     |
+|    bitcoin    | ENV_COIN_USER   |                                          |                                     |
+|               | ENV_COIN_PASS   |                                          |                                     |
+| ethereum/usdt | ENV_CONTRACT_ID |                                          |  需要支持智能合约才需要设置(usdt)   |
 
 1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**
 
-### ETH 部署
+### ethereum 部署
 
 1. 启动测试网
 2. 部署智能合约
@@ -58,7 +58,7 @@
     sphinx-plugin usdt -addr 127.0.0.1 -port 8545
     ```
    2. 上述的命令会会返回合约的**ID**,设置到环境变量**ENV_CONTRACT_ID**
-   3. 部署支持 ETH/USDT 的 plugin
+   3. 部署支持 ethereum/usdt 的 plugin
 
 ### 部署
 
@@ -84,9 +84,9 @@ Description=Sphinx Plugin
 After=network.target
 
 [Service]
-# FIL
+# filecoin
 Environment="ENV_COIN_NET=test"
-Environment="ENV_COIN_TYPE=FIL"
+Environment="ENV_COIN_TYPE=filecoin"
 Environment="ENV_COIN_API=$wallet-ip:1234"
 # BTC test
 # Environment="ENV_COIN_API=127.0.0.1:18443"
@@ -109,7 +109,7 @@ WantedBy=multi-user.target
 
 + **需要关闭用户购买商品的入口**
 + **失败可以重试, 成功操作不可重试**
-+ **注意 SQL 只更新了 FIL 和 BTC 币种，其余可参考 FIL 和 BTC，必须要等 tfilecoin 和 tbitcoin 上报完成才可以执行**
++ **注意 SQL 只更新了 filecoin 和 bitcoin 币种，其余可参考 filecoin 和 bitcoin, tfilecoin 和 tbitcoin 上报完成才可以执行**
 
 | 条件    | 升级 SQL                     |
 | :------ | :--------------------------- |
@@ -117,7 +117,7 @@ WantedBy=multi-user.target
 | testnet | [upgrade](./sql/upgrade.sql) |
 
 ### 推荐
-BTC 钱包节点的配置文件中, **rpcclienttimeout=30** 需要配置
+bitcoin 钱包节点的配置文件中, **rpcclienttimeout=30** 需要配置
 
 ### 说明
 
