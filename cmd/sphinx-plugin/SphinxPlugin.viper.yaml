@@ -8,5 +8,5 @@ config:
   logdir: "/var/log"
   apolloAccessKey: "0147fb70b815403790e8634b899fac07"
   # contract id of usdt
-  contractID: ""
+  contract_id: ""
   sphinx_proxy_addr: ""

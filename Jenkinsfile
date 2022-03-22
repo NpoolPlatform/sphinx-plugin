@@ -16,13 +16,18 @@ pipeline {
     stage('Prepare') {
       steps {
         // Get linter and other build tools.
-        sh 'go get -u golang.org/x/lint/golint'
-        sh 'go get github.com/tebeka/go2xunit'
-        sh 'go get github.com/t-yuki/gocover-cobertura'
-
-        // Get dependencies
-        sh 'go get golang.org/x/image/tiff/lzw'
-        sh 'go get github.com/boombuler/barcode'
+        sh '''
+          go get golang.org/x/lint/golint
+          go get github.com/tebeka/go2xunit
+          go get github.com/t-yuki/gocover-cobertura
+          go get golang.org/x/image/tiff/lzw
+          go get github.com/boombuler/barcode
+          go install golang.org/x/lint/golint
+          go install github.com/tebeka/go2xunit
+          go install github.com/t-yuki/gocover-cobertura
+          go install golang.org/x/image/tiff/lzw
+          go install github.com/boombuler/barcode
+        '''
         sh 'make deps'
       }
     }
@@ -75,8 +80,8 @@ pipeline {
 
           username=`helm status rabbitmq --namespace kube-system | grep Username | awk -F ' : ' '{print $2}' | sed 's/"//g'`
           for vhost in `cat cmd/*/*.viper.yaml | grep hostname | awk '{print $2}' | sed 's/"//g' | sed 's/\\./-/g'`; do
-            kubectl exec -it --namespace kube-system rabbitmq-0 -- rabbitmqctl add_vhost $vhost
-            kubectl exec -it --namespace kube-system rabbitmq-0 -- rabbitmqctl set_permissions -p $vhost $username ".*" ".*" ".*"
+            kubectl exec --namespace kube-system rabbitmq-0 -- rabbitmqctl add_vhost $vhost
+            kubectl exec --namespace kube-system rabbitmq-0 -- rabbitmqctl set_permissions -p $vhost $username ".*" ".*" ".*"
 
             cd .apollo-base-config
             ./apollo-base-config.sh $APP_ID $TARGET_ENV $vhost
@@ -130,8 +135,8 @@ pipeline {
           kubectl -n kube-system exec mysql-0 -- mysql -h 127.0.0.1 -uroot -p$PASSWORD -P3306 -e "create database if not exists service_sample;"
           username=`helm status rabbitmq --namespace kube-system | grep Username | awk -F ' : ' '{print $2}' | sed 's/"//g'`
           for vhost in `cat cmd/*/*.viper.yaml | grep hostname | awk '{print $2}' | sed 's/"//g' | sed 's/\\./-/g'`; do
-            kubectl exec -it --namespace kube-system rabbitmq-0 -- rabbitmqctl add_vhost $vhost
-            kubectl exec -it --namespace kube-system rabbitmq-0 -- rabbitmqctl set_permissions -p $vhost $username ".*" ".*" ".*"
+            kubectl exec --namespace kube-system rabbitmq-0 -- rabbitmqctl add_vhost $vhost
+            kubectl exec --namespace kube-system rabbitmq-0 -- rabbitmqctl set_permissions -p $vhost $username ".*" ".*" ".*"
             cd .apollo-base-config
             ./apollo-base-config.sh $APP_ID $TARGET_ENV $vhost
             ./apollo-item-config.sh $APP_ID $TARGET_ENV $vhost database_name service_sample
