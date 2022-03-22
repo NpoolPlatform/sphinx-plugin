@@ -17,16 +17,9 @@ pipeline {
       steps {
         // Get linter and other build tools.
         sh '''
-          go get golang.org/x/lint/golint
-          go get github.com/tebeka/go2xunit
-          go get github.com/t-yuki/gocover-cobertura
-          go get golang.org/x/image/tiff/lzw
-          go get github.com/boombuler/barcode
-          go install golang.org/x/lint/golint
-          go install github.com/tebeka/go2xunit
-          go install github.com/t-yuki/gocover-cobertura
-          go install golang.org/x/image/tiff/lzw
-          go install github.com/boombuler/barcode
+          go install golang.org/x/lint/golint@latest
+          go install github.com/tebeka/go2xunit@latest
+          go install github.com/t-yuki/gocover-cobertura@latest
         '''
         sh 'make deps'
       }
