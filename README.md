@@ -37,15 +37,15 @@
 
 ### 环境变量
 
-| 币种                | 变量名称       | 支持的值                                       | 说明                                |
-| :------------------ | :------------- | :--------------------------------------------- | :---------------------------------- |
-| common              | ENV_COIN_NET   | main or test                                   |                                     |
-|                     | ENV_COIN_TYPE  | filecoin bitcoin ethereum/usdt-erc20 spacemesh | 如果此**plugin**支持多币种使用,分割 |
-|                     | ENV_COIN_API   | ip:port                                        |                                     |
-| ethereum/usdt-erc20 |                |                                                |                                     |
-| filecoin            | ENV_COIN_TOKEN |                                                |                                     |
-| bitcoin             | ENV_COIN_USER  |                                                |                                     |
-|                     | ENV_COIN_PASS  |                                                |                                     |
+| 币种               | 变量名称       | 支持的值                                      | 说明                                |
+| :----------------- | :------------- | :-------------------------------------------- | :---------------------------------- |
+| common             | ENV_COIN_NET   | main or test                                  |                                     |
+|                    | ENV_COIN_TYPE  | filecoin bitcoin ethereum/usdterc20 spacemesh | 如果此**plugin**支持多币种使用,分割 |
+|                    | ENV_COIN_API   | ip:port                                       |                                     |
+| ethereum/usdterc20 |                |                                               |                                     |
+| filecoin           | ENV_COIN_TOKEN |                                               |                                     |
+| bitcoin            | ENV_COIN_USER  |                                               |                                     |
+|                    | ENV_COIN_PASS  |                                               |                                     |
 
 1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**
@@ -70,10 +70,10 @@
 2. 部署智能合约
    1. 部署合约
     ```
-    sphinx-plugin usdt-erc20 -addr 127.0.0.1 -port 8545
+    sphinx-plugin usdterc20 -addr 127.0.0.1 -port 8545
     ```
    2. 上述的命令会返回合约的**ID**,设置到配置文件**contract_id**的值
-   3. 部署支持 ethereum/usdt-erc20 的 plugin
+   3. 部署支持 ethereum/usdterc20 的 plugin
 
 ### 部署
 

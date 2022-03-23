@@ -22,7 +22,7 @@ import (
 )
 
 var DeployUSDTCmd = &cli.Command{
-	Name:   "usdt-erc20",
+	Name:   "usdterc20",
 	Usage:  "deploy usdt erc20 contract",
 	Hidden: true,
 	Flags: []cli.Flag{

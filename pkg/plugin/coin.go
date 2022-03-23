@@ -26,14 +26,14 @@ var (
 			"filecoin":  sphinxplugin.CoinType_CoinTypefilecoin,
 			"bitcoin":   sphinxplugin.CoinType_CoinTypebitcoin,
 			"ethereum":  sphinxplugin.CoinType_CoinTypeethereum,
-			"usdt":      sphinxplugin.CoinType_CoinTypeusdterc20,
+			"usdterc20": sphinxplugin.CoinType_CoinTypeusdterc20,
 			"spacemesh": sphinxplugin.CoinType_CoinTypespacemesh,
 		},
 		CoinNetTest: {
 			"filecoin":  sphinxplugin.CoinType_CoinTypetfilecoin,
 			"bitcoin":   sphinxplugin.CoinType_CoinTypetbitcoin,
 			"ethereum":  sphinxplugin.CoinType_CoinTypetethereum,
-			"usdt":      sphinxplugin.CoinType_CoinTypetusdterc20,
+			"usdterc20": sphinxplugin.CoinType_CoinTypetusdterc20,
 			"spacemesh": sphinxplugin.CoinType_CoinTypetspacemesh,
 		},
 	}
