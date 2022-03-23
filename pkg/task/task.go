@@ -202,8 +202,8 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 	sphinxplugin.CoinType_CoinTypeethereum:  pluginETH,
 	sphinxplugin.CoinType_CoinTypetethereum: pluginETH,
 
-	sphinxplugin.CoinType_CoinTypeusdt:  pluginUSDT,
-	sphinxplugin.CoinType_CoinTypetusdt: pluginUSDT,
+	sphinxplugin.CoinType_CoinTypeusdterc20:  pluginUSDT,
+	sphinxplugin.CoinType_CoinTypetusdterc20: pluginUSDT,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {

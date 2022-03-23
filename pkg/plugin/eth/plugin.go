@@ -57,7 +57,7 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 	switch coinType {
 	case sphinxplugin.CoinType_CoinTypeethereum, sphinxplugin.CoinType_CoinTypetethereum:
 		gasLimit = 300000
-	case sphinxplugin.CoinType_CoinTypeusdt, sphinxplugin.CoinType_CoinTypetusdt:
+	case sphinxplugin.CoinType_CoinTypeusdterc20, sphinxplugin.CoinType_CoinTypetusdterc20:
 		// client.EstimateGas(ctx, ethereum.CallMsg{})
 		gasLimit = 300000
 	}

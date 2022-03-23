@@ -26,14 +26,14 @@ var (
 			"filecoin":  sphinxplugin.CoinType_CoinTypefilecoin,
 			"bitcoin":   sphinxplugin.CoinType_CoinTypebitcoin,
 			"ethereum":  sphinxplugin.CoinType_CoinTypeethereum,
-			"usdt":      sphinxplugin.CoinType_CoinTypeusdt,
+			"usdt":      sphinxplugin.CoinType_CoinTypeusdterc20,
 			"spacemesh": sphinxplugin.CoinType_CoinTypespacemesh,
 		},
 		CoinNetTest: {
 			"filecoin":  sphinxplugin.CoinType_CoinTypetfilecoin,
 			"bitcoin":   sphinxplugin.CoinType_CoinTypetbitcoin,
 			"ethereum":  sphinxplugin.CoinType_CoinTypetethereum,
-			"usdt":      sphinxplugin.CoinType_CoinTypetusdt,
+			"usdt":      sphinxplugin.CoinType_CoinTypetusdterc20,
 			"spacemesh": sphinxplugin.CoinType_CoinTypetspacemesh,
 		},
 	}
@@ -44,14 +44,14 @@ var (
 		sphinxplugin.CoinType_CoinTypefilecoin:  CoinNetMain,
 		sphinxplugin.CoinType_CoinTypebitcoin:   CoinNetMain,
 		sphinxplugin.CoinType_CoinTypeethereum:  CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdt:      CoinNetMain,
+		sphinxplugin.CoinType_CoinTypeusdterc20: CoinNetMain,
 		sphinxplugin.CoinType_CoinTypespacemesh: CoinNetMain,
 
 		// test
 		sphinxplugin.CoinType_CoinTypetfilecoin:  CoinNetTest,
 		sphinxplugin.CoinType_CoinTypetbitcoin:   CoinNetTest,
 		sphinxplugin.CoinType_CoinTypetethereum:  CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdt:      CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetusdterc20: CoinNetTest,
 		sphinxplugin.CoinType_CoinTypetspacemesh: CoinNetTest,
 	}
 
@@ -68,8 +68,8 @@ var (
 		sphinxplugin.CoinType_CoinTypeethereum:  "ETH",
 		sphinxplugin.CoinType_CoinTypetethereum: "ETH",
 
-		sphinxplugin.CoinType_CoinTypeusdt:  "USD",
-		sphinxplugin.CoinType_CoinTypetusdt: "USD",
+		sphinxplugin.CoinType_CoinTypeusdterc20:  "USD",
+		sphinxplugin.CoinType_CoinTypetusdterc20: "USD",
 	}
 
 	// BTCNetMap btc net map
