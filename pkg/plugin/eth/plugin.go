@@ -13,7 +13,12 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-var ErrWaitMessageOnChain = errors.New("wait message on chain")
+var (
+	// ErrWaitMessageOnChain ..
+	ErrWaitMessageOnChain = errors.New("wait message on chain")
+	// ErrAddrNotValid ..
+	ErrAddrNotValid = errors.New("invalid address")
+)
 
 type PreSignInfo struct {
 	ChainID  int64
@@ -28,6 +33,9 @@ func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
 		return nil, err
 	}
 	defer client.Close()
+	if !common.IsHexAddress(addr) {
+		return nil, ErrAddrNotValid
+	}
 	return client.BalanceAt(ctx, common.HexToAddress(addr), nil)
 }
 
@@ -37,6 +45,10 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 		return nil, err
 	}
 	defer client.Close()
+
+	if !common.IsHexAddress(from) {
+		return nil, ErrAddrNotValid
+	}
 
 	chainID, err := client.NetworkID(ctx)
 	if err != nil {
