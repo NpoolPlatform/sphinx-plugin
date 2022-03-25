@@ -18,6 +18,8 @@ var (
 	ErrWaitMessageOnChain = errors.New("wait message on chain")
 	// ErrAddrNotValid ..
 	ErrAddrNotValid = errors.New("invalid address")
+	// ErrTransactionFail ..
+	ErrTransactionFail = errors.New("transaction fail")
 )
 
 type PreSignInfo struct {
@@ -68,10 +70,10 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 
 	switch coinType {
 	case sphinxplugin.CoinType_CoinTypeethereum, sphinxplugin.CoinType_CoinTypetethereum:
-		gasLimit = 300000
+		gasLimit = 30000
 	case sphinxplugin.CoinType_CoinTypeusdterc20, sphinxplugin.CoinType_CoinTypetusdterc20:
 		// client.EstimateGas(ctx, ethereum.CallMsg{})
-		gasLimit = 300000
+		gasLimit = 100000
 	}
 
 	return &PreSignInfo{
@@ -115,6 +117,18 @@ func SyncTxState(ctx context.Context, txHash string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	if isPending {
+		return false, ErrWaitMessageOnChain
+	}
 
-	return !isPending, nil
+	receipt, err := client.TransactionReceipt(ctx, common.HexToHash(txHash))
+	if err != nil {
+		return false, err
+	}
+
+	if receipt.Status == 1 {
+		return true, nil
+	}
+
+	return false, ErrTransactionFail
 }
