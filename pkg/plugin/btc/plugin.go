@@ -11,9 +11,13 @@ import (
 	"github.com/btcsuite/btcutil"
 )
 
+// BTCGas 0.001BTC
+const BTCGas = 0.001
+
+// ErrWaitMessageOnChainMinConfirms ..
 var ErrWaitMessageOnChainMinConfirms = errors.New("wait message on chain min confirms")
 
-// WalletBalance
+// WalletBalance ..
 func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 	cli, err := client()
 	if err != nil {
@@ -50,6 +54,7 @@ func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 	return btcutil.NewAmount(accountAmount)
 }
 
+// ListUnspent ..
 func ListUnspent(addr string, minConfirms int) ([]btcjson.ListUnspentResult, error) {
 	cli, err := client()
 	if err != nil {
