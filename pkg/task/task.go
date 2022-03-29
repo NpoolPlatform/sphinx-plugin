@@ -267,7 +267,7 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 			return err
 		}
 		balance := big.NewFloat(float64(bl.Int64()))
-		balance.Quo(balance, big.NewFloat(math.Pow10(int(build.FilecoinPrecision))))
+		balance.Quo(balance, big.NewFloat(float64((build.FilecoinPrecision))))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
@@ -317,6 +317,7 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 			return err
 		}
 		resp.Balance = balance.ToBTC()
+		// take unit
 		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
 		// get utxo
