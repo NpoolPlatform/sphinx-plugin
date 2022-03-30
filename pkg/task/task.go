@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -266,7 +267,10 @@ func pluginFIL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if err != nil {
 			return err
 		}
-		balance := big.NewFloat(float64(bl.Int64()))
+		balance, ok := big.NewFloat(0).SetString(bl.String())
+		if !ok {
+			return errors.New("convert balance string to float64 error")
+		}
 		balance.Quo(balance, big.NewFloat(float64((build.FilecoinPrecision))))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
@@ -406,7 +410,10 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 			return err
 		}
 
-		balance := big.NewFloat(float64(bl.Int64()))
+		balance, ok := big.NewFloat(0).SetString(bl.String())
+		if !ok {
+			return errors.New("convert balance string to float64 error")
+		}
 		balance.Quo(balance, big.NewFloat(math.Pow10(18)))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
@@ -452,12 +459,17 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 
 	switch req.GetTransactionType() {
 	case sphinxproxy.TransactionType_Balance:
-		bls, err := usdt.WalletBalance(ctx, req.GetAddress())
+		bl, err := usdt.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
 		}
-		balance := big.NewFloat(float64(bls.Balance.Int64()))
-		balance.Quo(balance, big.NewFloat(math.Pow10(int(bls.Decimal.Int64()))))
+
+		balance, ok := big.NewFloat(0).SetString(bl.Balance.String())
+		if !ok {
+			return errors.New("convert balance string to float64 error")
+		}
+
+		balance.Quo(balance, big.NewFloat(math.Pow10(int(bl.Decimal.Int64()))))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
