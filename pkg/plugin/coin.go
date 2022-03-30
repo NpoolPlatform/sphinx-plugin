@@ -96,6 +96,14 @@ var (
 	}
 )
 
+// CoinInfo report coin info
+type CoinInfo struct {
+	ENV      string // main or test
+	Unit     string
+	IP       string // wan ip
+	Location string
+}
+
 // CoinType2Net ..
 func CoinType2Net(ct sphinxplugin.CoinType) string {
 	return coinNetMap[ct]

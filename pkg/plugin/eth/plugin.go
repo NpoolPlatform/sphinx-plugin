@@ -1,10 +1,11 @@
 package eth
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
 	"math/big"
-	"strings"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/ethereum/go-ethereum/common"
@@ -94,7 +95,12 @@ func SendRawTransaction(ctx context.Context, rawHexTx string) (string, error) {
 
 	tx := new(types.Transaction)
 
-	if err := rlp.Decode(strings.NewReader(rawHexTx), tx); err != nil {
+	rawByteTx, err := hex.DecodeString(rawHexTx)
+	if err != nil {
+		return "", err
+	}
+
+	if err := rlp.Decode(bytes.NewReader(rawByteTx), tx); err != nil {
 		return "", err
 	}
 

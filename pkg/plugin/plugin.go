@@ -9,11 +9,10 @@ type WalletBalanceInfo struct {
 }
 
 type IPlugin interface {
-	NewAccount(ctx context.Context, fun interface{}) (string, error)
-	WalletBalance(ctx context.Context, fun interface{}) (WalletBalanceInfo, error)
-
-	// pre
-	// sign
-	// broadcast
-	// sync
+	NewAccount(ctx context.Context) (string, error)
+	WalletBalance(ctx context.Context) (WalletBalanceInfo, error)
+	PreSign(ctx context.Context) ([]byte, error)
+	Sign(ctx context.Context) ([]byte, error)
+	Broadcast(ctx context.Context) (string, error)
+	SyncTransaction(ctx context.Context) error
 }
