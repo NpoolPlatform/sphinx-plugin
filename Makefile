@@ -22,9 +22,7 @@ go.mod:
 
 deps:
 	go get ./...
-	go get github.com/stretchr/testify/assert@v1.7.0
-	go get github.com/go-resty/resty/v2
-	go install entgo.io/ent/cmd/ent@latest
+	go mod tidy
 
 ##@ Verify
 
