@@ -469,7 +469,6 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 			return errors.New("convert balance string to float64 error")
 		}
 
-		balance.Quo(balance, big.NewFloat(math.Pow10(int(bl.Decimal.Int64()))))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
