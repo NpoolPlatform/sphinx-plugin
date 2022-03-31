@@ -485,6 +485,7 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 			resp.Message = &sphinxplugin.UnsignedMessage{}
 		}
 		resp.Message.ChainID = preSignInfo.ChainID
+		resp.Message.ContractID = preSignInfo.ContractID
 		resp.Message.Nonce = preSignInfo.Nonce
 		resp.Message.GasPrice = preSignInfo.GasPrice
 		resp.Message.GasLimit = preSignInfo.GasLimit

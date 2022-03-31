@@ -8,6 +8,7 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
@@ -24,10 +25,11 @@ var (
 )
 
 type PreSignInfo struct {
-	ChainID  int64
-	Nonce    uint64
-	GasPrice int64
-	GasLimit int64
+	ChainID    int64
+	ContractID string
+	Nonce      uint64
+	GasPrice   int64
+	GasLimit   int64
 }
 
 func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
@@ -57,6 +59,7 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 	if err != nil {
 		return nil, err
 	}
+
 	nonce, err := client.PendingNonceAt(ctx, common.HexToAddress(from))
 	if err != nil {
 		return nil, err
@@ -78,10 +81,11 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 	}
 
 	return &PreSignInfo{
-		ChainID:  chainID.Int64(),
-		Nonce:    nonce,
-		GasPrice: gasPrice.Int64(),
-		GasLimit: gasLimit,
+		ChainID:    chainID.Int64(),
+		ContractID: plugin.USDTContractID(chainID.Int64()),
+		Nonce:      nonce,
+		GasPrice:   gasPrice.Int64(),
+		GasLimit:   gasLimit,
 	}, nil
 }
 
