@@ -2,6 +2,8 @@ package main
 
 import (
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
@@ -33,7 +35,11 @@ var runCmd = &cli.Command{
 		},
 	},
 	Action: func(c *cli.Context) error {
-		task.Plugin()
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+		go task.Plugin()
+		<-sigs
 		return nil
 	},
 }

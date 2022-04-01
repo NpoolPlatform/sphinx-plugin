@@ -46,12 +46,10 @@ type pluginClient struct {
 }
 
 func Plugin() {
-	deamon := make(chan struct{})
 	go delayNewClient()
 	go func() {
 		newClient()
 	}()
-	<-deamon
 }
 
 func delayNewClient() {
