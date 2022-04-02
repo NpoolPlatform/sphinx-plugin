@@ -120,7 +120,6 @@ func (c *pluginClient) watch(exitSig chan os.Signal) {
 			newConn <- struct{}{}
 		case <-exitSig:
 			c.closeProxyClient()
-			close(c.done)
 			return
 		}
 	}
