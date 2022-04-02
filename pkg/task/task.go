@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
@@ -42,6 +43,7 @@ var (
 type pluginClient struct {
 	closeBadConn chan struct{}
 	done         chan struct{}
+	onec         sync.Once
 	sendChannel  chan *sphinxproxy.ProxyPluginResponse
 	conn         *grpc.ClientConn
 	proxyClient  sphinxproxy.SphinxProxy_ProxyPluginClient
@@ -88,13 +90,15 @@ func newClient(exitSig chan os.Signal) {
 }
 
 func (c *pluginClient) closeProxyClient() {
-	logger.Sugar().Info("close plugin conn and client")
-	if c != nil {
-		close(c.done)
-		if c.conn != nil {
-			c.conn.Close()
+	c.onec.Do(func() {
+		logger.Sugar().Info("close plugin conn and client")
+		if c != nil {
+			close(c.done)
+			if c.conn != nil {
+				c.conn.Close()
+			}
 		}
-	}
+	})
 }
 
 func (c *pluginClient) newProxyClient() (*grpc.ClientConn, sphinxproxy.SphinxProxy_ProxyPluginClient, error) {
