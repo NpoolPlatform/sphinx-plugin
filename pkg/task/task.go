@@ -33,6 +33,7 @@ import (
 
 var (
 	chanBuff             = 1000
+	exitChan             = make(chan struct{})
 	newConn              = make(chan struct{})
 	delayDuration        = time.Second * 2
 	registerCoinDuration = time.Second * 5
@@ -52,11 +53,16 @@ func Plugin(exitSig chan os.Signal) {
 	}()
 
 	for {
-		<-newConn
-		logger.Sugar().Info("start try to create new plugin client")
-		time.Sleep(delayDuration)
-		logger.Sugar().Info("start try to create new plugin client end")
-		go newClient(exitSig)
+		select {
+		case <-exitChan:
+			logger.Sugar().Info("send sig close client")
+			return
+		case <-newConn:
+			logger.Sugar().Info("start try to create new plugin client")
+			time.Sleep(delayDuration)
+			logger.Sugar().Info("start try to create new plugin client end")
+			go newClient(exitSig)
+		}
 	}
 }
 
@@ -120,6 +126,7 @@ func (c *pluginClient) watch(exitSig chan os.Signal) {
 			newConn <- struct{}{}
 		case <-exitSig:
 			c.closeProxyClient()
+			exitChan <- struct{}{}
 			return
 		}
 	}
