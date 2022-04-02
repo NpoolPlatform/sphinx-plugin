@@ -37,9 +37,7 @@ var runCmd = &cli.Command{
 	Action: func(c *cli.Context) error {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
-		go task.Plugin()
-		<-sigs
+		task.Plugin(sigs)
 		return nil
 	},
 }

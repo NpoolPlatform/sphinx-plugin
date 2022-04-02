@@ -7,6 +7,7 @@ import (
 	"io"
 	"math"
 	"math/big"
+	"os"
 	"strings"
 	"time"
 
@@ -45,24 +46,21 @@ type pluginClient struct {
 	proxyClient  sphinxproxy.SphinxProxy_ProxyPluginClient
 }
 
-func Plugin() {
-	go delayNewClient()
+func Plugin(exitSig chan os.Signal) {
 	go func() {
-		newClient()
+		newClient(exitSig)
 	}()
-}
 
-func delayNewClient() {
 	for {
-		logger.Sugar().Info("start try to create new plugin client")
 		<-newConn
+		logger.Sugar().Info("start try to create new plugin client")
 		time.Sleep(delayDuration)
 		logger.Sugar().Info("start try to create new plugin client end")
-		go newClient()
+		go newClient(exitSig)
 	}
 }
 
-func newClient() {
+func newClient(exitSig chan os.Signal) {
 	proxyClient := &pluginClient{
 		closeBadConn: make(chan struct{}),
 		done:         make(chan struct{}),
@@ -77,7 +75,7 @@ func newClient() {
 
 	proxyClient.conn, proxyClient.proxyClient = conn, pc
 
-	go proxyClient.watch()
+	go proxyClient.watch(exitSig)
 	go proxyClient.register()
 	go proxyClient.send()
 	go proxyClient.recv()
@@ -110,13 +108,22 @@ func (c *pluginClient) newProxyClient() (*grpc.ClientConn, sphinxproxy.SphinxPro
 	return conn, proxyClient, nil
 }
 
-func (c *pluginClient) watch() {
-	logger.Sugar().Info("start watch plugin client")
-	<-c.closeBadConn
-	c.closeProxyClient()
-	logger.Sugar().Info("start watch plugin client exit")
+func (c *pluginClient) watch(exitSig chan os.Signal) {
+	for {
+		select {
+		case <-c.closeBadConn:
+			logger.Sugar().Info("start watch plugin client")
+			<-c.closeBadConn
+			c.closeProxyClient()
+			logger.Sugar().Info("start watch plugin client exit")
 
-	newConn <- struct{}{}
+			newConn <- struct{}{}
+		case <-exitSig:
+			c.closeProxyClient()
+			close(c.done)
+			return
+		}
+	}
 }
 
 func (c *pluginClient) register() {
