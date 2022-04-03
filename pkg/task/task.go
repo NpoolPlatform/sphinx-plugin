@@ -42,7 +42,7 @@ var (
 
 type pluginClient struct {
 	closeBadConn chan struct{}
-	done         chan struct{}
+	exitChan     chan struct{}
 	onec         sync.Once
 	sendChannel  chan *sphinxproxy.ProxyPluginResponse
 	conn         *grpc.ClientConn
@@ -71,7 +71,7 @@ func Plugin(exitSig chan os.Signal) {
 func newClient(exitSig chan os.Signal) {
 	proxyClient := &pluginClient{
 		closeBadConn: make(chan struct{}),
-		done:         make(chan struct{}),
+		exitChan:     make(chan struct{}),
 		sendChannel:  make(chan *sphinxproxy.ProxyPluginResponse, chanBuff),
 	}
 
@@ -93,7 +93,11 @@ func (c *pluginClient) closeProxyClient() {
 	c.onec.Do(func() {
 		logger.Sugar().Info("close plugin conn and client")
 		if c != nil {
-			close(c.done)
+			close(c.exitChan)
+			if c.proxyClient != nil {
+				// nolint
+				c.proxyClient.CloseSend()
+			}
 			if c.conn != nil {
 				c.conn.Close()
 			}
@@ -139,7 +143,7 @@ func (c *pluginClient) watch(exitSig chan os.Signal) {
 func (c *pluginClient) register() {
 	for {
 		select {
-		case <-c.done:
+		case <-c.exitChan:
 			logger.Sugar().Info("register new coin exit")
 			return
 		case <-time.After(registerCoinDuration):
@@ -167,43 +171,37 @@ func (c *pluginClient) register() {
 func (c *pluginClient) recv() {
 	logger.Sugar().Info("plugin client start recv")
 	for {
-		select {
-		case <-c.done:
-			logger.Sugar().Info("plugin client start recv exit")
-			return
-		default:
-			// this will block
-			req, err := c.proxyClient.Recv()
-			if err != nil {
-				logger.Sugar().Errorf("receiver info error: %v", err)
-				if checkCode(err) {
-					c.proxyClient.CloseSend() // nolint
-					c.closeBadConn <- struct{}{}
-				}
+		// this will block
+		req, err := c.proxyClient.Recv()
+		if err != nil {
+			logger.Sugar().Errorf("receiver info error: %v", err)
+			if checkCode(err) {
+				c.closeBadConn <- struct{}{}
+				break
 			}
-
-			logger.Sugar().Infof(
-				"sphinx plugin recv info TransactionID: %v TransactionType: %v CoinType: %v",
-				req.GetTransactionID(),
-				req.GetTransactionType(),
-				req.GetCoinType(),
-			)
-
-			resp := &sphinxproxy.ProxyPluginResponse{
-				TransactionType: req.GetTransactionType(),
-				CoinType:        req.GetCoinType(),
-				TransactionID:   req.GetTransactionID(),
-				Message:         &sphinxplugin.UnsignedMessage{},
-			}
-
-			go func() {
-				now := time.Now()
-				defer func(req *sphinxproxy.ProxyPluginRequest) {
-					logger.Sugar().Infof("plugin handle transaction type: %v id: %v use: %v", req.GetTransactionType(), req.GetTransactionID(), time.Since(now).Seconds())
-				}(req)
-				handle(c, req, resp)
-			}()
 		}
+
+		logger.Sugar().Infof(
+			"sphinx plugin recv info TransactionID: %v TransactionType: %v CoinType: %v",
+			req.GetTransactionID(),
+			req.GetTransactionType(),
+			req.GetCoinType(),
+		)
+
+		resp := &sphinxproxy.ProxyPluginResponse{
+			TransactionType: req.GetTransactionType(),
+			CoinType:        req.GetCoinType(),
+			TransactionID:   req.GetTransactionID(),
+			Message:         &sphinxplugin.UnsignedMessage{},
+		}
+
+		go func() {
+			now := time.Now()
+			defer func(req *sphinxproxy.ProxyPluginRequest) {
+				logger.Sugar().Infof("plugin handle transaction type: %v id: %v use: %v", req.GetTransactionType(), req.GetTransactionID(), time.Since(now).Seconds())
+			}(req)
+			handle(c, req, resp)
+		}()
 	}
 }
 
@@ -251,22 +249,16 @@ func (c *pluginClient) send() {
 	logger.Sugar().Info("plugin client start send")
 	for {
 		select {
-		case <-c.done:
+		case <-c.exitChan:
 			logger.Sugar().Info("plugin client start send exit")
 			return
-		default:
-			// paral deal
-			for resp := range c.sendChannel {
-				go func(resp *sphinxproxy.ProxyPluginResponse) {
-					err := c.proxyClient.Send(resp)
-					if err != nil {
-						logger.Sugar().Errorf("send info error: %v", err)
-						if checkCode(err) {
-							c.proxyClient.CloseSend() // nolint
-							c.closeBadConn <- struct{}{}
-						}
-					}
-				}(resp)
+		case resp := <-c.sendChannel:
+			err := c.proxyClient.Send(resp)
+			if err != nil {
+				logger.Sugar().Errorf("send info error: %v", err)
+				if checkCode(err) {
+					c.closeBadConn <- struct{}{}
+				}
 			}
 		}
 	}
