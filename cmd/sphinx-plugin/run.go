@@ -36,8 +36,11 @@ var runCmd = &cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		sigs := make(chan os.Signal, 1)
+		cleanChan := make(chan struct{})
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-		task.Plugin(sigs)
+		task.Plugin(sigs, cleanChan)
+		<-cleanChan
+		logger.Sugar().Info("graceful shutdown plugin service")
 		return nil
 	},
 }
