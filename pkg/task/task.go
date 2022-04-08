@@ -23,6 +23,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth/usdt"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/sol"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/filecoin-project/lotus/build"
@@ -228,6 +229,9 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 
 	sphinxplugin.CoinType_CoinTypeusdterc20:  pluginUSDT,
 	sphinxplugin.CoinType_CoinTypetusdterc20: pluginUSDT,
+
+	sphinxplugin.CoinType_CoinTypesolana:  pluginSOL,
+	sphinxplugin.CoinType_CoinTypetsolana: pluginSOL,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
@@ -502,6 +506,55 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		if !pending {
 			return eth.ErrWaitMessageOnChain
 		}
+	}
+	return nil
+}
+
+func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		bl, err := sol.WalletBalance(ctx, req.GetAddress())
+		if err != nil {
+			return err
+		}
+		balance := bl.ToSol()
+
+		f, exact := balance.Value.Float64()
+		if exact != big.Exact {
+			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		}
+		resp.Balance = f
+		resp.BalanceStr = balance.String()
+	case sphinxproxy.TransactionType_PreSign:
+		nonce, err := fil.MpoolGetNonce(ctx, req.GetAddress())
+		if err != nil {
+			return err
+		}
+		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
+		resp.Message.Nonce = nonce
+	case sphinxproxy.TransactionType_Broadcast:
+		cid, err := fil.MpoolPush(ctx, req.GetMessage(), req.GetSignature())
+		if err != nil {
+			return err
+		}
+		resp.CID = cid
+	case sphinxproxy.TransactionType_SyncMsgState:
+		// TODO 1: find replace cid 2: restry
+		msgInfo, err := fil.StateSearchMsg(ctx, req)
+		if err != nil {
+			if msgInfo != nil {
+				// return error code
+				resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
+			}
+			return err
+		}
+		resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
 	}
 	return nil
 }
