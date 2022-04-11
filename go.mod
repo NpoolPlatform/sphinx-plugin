@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220120091626-4e8035637592
-	github.com/NpoolPlatform/message v0.0.0-20220406080348-66ba25299e43
+	github.com/NpoolPlatform/message v0.0.0-20220411115430-e6febb4c6e3f
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
@@ -21,8 +21,6 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	google.golang.org/grpc v1.45.0
 )
-
-replace github.com/NpoolPlatform/message => ../message
 
 require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4 // indirect
