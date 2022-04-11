@@ -27,6 +27,7 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/filecoin-project/lotus/build"
+	"github.com/gagliardetto/solana-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -529,7 +530,7 @@ func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
 	case sphinxproxy.TransactionType_PreSign:
-		nonce, err := fil.MpoolGetNonce(ctx, req.GetAddress())
+		rhash, err := sol.GetRecentBlock(ctx)
 		if err != nil {
 			return err
 		}
@@ -537,24 +538,24 @@ func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if resp.GetMessage() == nil {
 			resp.Message = &sphinxplugin.UnsignedMessage{}
 		}
-		resp.Message.Nonce = nonce
+
+		resp.Message.RecentBhash = rhash.Value.Blockhash.String()
 	case sphinxproxy.TransactionType_Broadcast:
-		cid, err := fil.MpoolPush(ctx, req.GetMessage(), req.GetSignature())
+		cid, err := sol.SendTransaction(ctx, req.GetMessage(), req.GetSignature())
 		if err != nil {
 			return err
 		}
-		resp.CID = cid
+		resp.CID = cid.String()
 	case sphinxproxy.TransactionType_SyncMsgState:
-		// TODO 1: find replace cid 2: restry
-		msgInfo, err := fil.StateSearchMsg(ctx, req)
+		cid, err := solana.SignatureFromBase58(req.CID)
 		if err != nil {
-			if msgInfo != nil {
-				// return error code
-				resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
-			}
 			return err
 		}
-		resp.ExitCode = int64(msgInfo.Receipt.ExitCode)
+		_, err = sol.StateSearchMsg(cid)
+
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

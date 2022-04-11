@@ -1,6 +1,7 @@
 package sol
 
 import (
+	"errors"
 	"math/big"
 
 	solana "github.com/gagliardetto/solana-go"
@@ -13,6 +14,11 @@ type Larmport uint64
 type Sol struct {
 	Value big.Float
 }
+
+var (
+	SolErrBlockNotFound = errors.New("not found confirmed block in solana chain")
+	SolSignatureErr     = errors.New("solana signature is wrong or failed")
+)
 
 func (larm Larmport) ToSol() Sol {
 	lamports := new(big.Float).SetUint64(uint64(larm))

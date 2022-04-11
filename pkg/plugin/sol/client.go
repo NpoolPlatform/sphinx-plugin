@@ -7,6 +7,7 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
+// TODO:Now is a compromise, consider the way of using the pool of clients.
 var rpcClent *rpc.Client
 
 func NewClient() (*rpc.Client, error) {
