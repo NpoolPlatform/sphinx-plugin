@@ -17,7 +17,11 @@ func NewClient() (*rpc.Client, error) {
 	}
 	client := rpc.New(addr)
 
-	client.GetHealth(context.Background())
+	_, err := client.GetHealth(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
 	return client, nil
 }
 

@@ -8,16 +8,18 @@ import (
 )
 
 var EmptyWalletL = Larmport(0)
+
 var EmptyWalletS = Sol{Value: *new(big.Float).SetFloat64(0)}
 
 type Larmport uint64
+
 type Sol struct {
 	Value big.Float
 }
 
 var (
-	SolErrBlockNotFound = errors.New("not found confirmed block in solana chain")
-	SolSignatureErr     = errors.New("solana signature is wrong or failed")
+	ErrSolBlockNotFound  = errors.New("not found confirmed block in solana chain")
+	ErrSolSignatureWrong = errors.New("solana signature is wrong or failed")
 )
 
 func (larm Larmport) ToSol() Sol {

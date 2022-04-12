@@ -14,18 +14,16 @@ import (
 )
 
 func WalletBalance(ctx context.Context, wallet string) (balance Larmport, err error) {
-
 	if wallet == "" {
 		return EmptyWalletL, env.ErrAddressInvalid
 	}
 
 	pubKey, err := solana.PublicKeyFromBase58(wallet)
-
 	if err != nil {
 		return EmptyWalletL, err
 	}
-	api, err := client()
 
+	api, err := client()
 	if err != nil {
 		return EmptyWalletL, err
 	}
@@ -45,7 +43,6 @@ func GetRecentBlock(ctx context.Context) (*rpc.GetRecentBlockhashResult, error) 
 }
 
 func SendTransaction(ctx context.Context, inMsg *sphinxplugin.UnsignedMessage, inSign *sphinxplugin.Signature) (*solana.Signature, error) {
-
 	from, err := solana.PublicKeyFromBase58(inMsg.From)
 	if err != nil {
 		return nil, err
@@ -77,7 +74,7 @@ func SendTransaction(ctx context.Context, inMsg *sphinxplugin.UnsignedMessage, i
 	tx.Signatures = append(tx.Signatures, solana.SignatureFromBytes(inSign.Data))
 	err = tx.VerifySignatures()
 	if err != nil {
-		return nil, SolSignatureErr
+		return nil, ErrSolSignatureWrong
 	}
 	api, err := client()
 	if err != nil {
@@ -106,7 +103,7 @@ func StateSearchMsg(signature solana.Signature) (*rpc.TransactionWithMeta, error
 				return chainMsg, nil
 			}
 			if err != nil {
-				return chainMsg, SolErrBlockNotFound
+				return chainMsg, ErrSolBlockNotFound
 			}
 		}
 	}
