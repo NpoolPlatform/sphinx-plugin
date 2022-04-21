@@ -2,6 +2,7 @@ package sol
 
 import (
 	"context"
+	"math/big"
 	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -13,7 +14,7 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
-func WalletBalance(ctx context.Context, wallet string) (balance Larmport, err error) {
+func WalletBalance(ctx context.Context, wallet string) (balance big.Int, err error) {
 	if wallet == "" {
 		return EmptyWalletL, env.ErrAddressInvalid
 	}
@@ -31,7 +32,7 @@ func WalletBalance(ctx context.Context, wallet string) (balance Larmport, err er
 	if err != nil {
 		return EmptyWalletL, err
 	}
-	return Larmport(out.Value), nil
+	return *new(big.Int).SetUint64(out.Value), nil
 }
 
 func GetRecentBlock(ctx context.Context) (*rpc.GetRecentBlockhashResult, error) {

@@ -521,9 +521,9 @@ func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if err != nil {
 			return err
 		}
-		balance := bl.ToSol()
+		balance := sol.ToSol(&bl)
 
-		f, exact := balance.Value.Float64()
+		f, exact := balance.Float64()
 		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 		}

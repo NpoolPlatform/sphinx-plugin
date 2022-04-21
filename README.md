@@ -75,6 +75,36 @@
    2. 上述的命令会返回合约的**ID**,设置到配置文件**contract_id**的值
    3. 部署支持 ethereum/usdterc20 的 plugin
 
+### solana 部署
+
+这个示例中用编译好的二进制文件直接跑，如果用docker或者systemd跑设置好相应环境变量即可
+
+准备配置文件，配置文件可能需要配置proxy地址
+```
+mkdir -p /etc/SphinxPlugin
+cp cmd/sphinx-plugin/SphinxPlugin.viper.yaml /etc/SphinxPlugin/
+cat /etc/SphinxPlugin/SphinxPlugin.viper.yaml
+```
+
+设置环境变量
+plugin-solana 环境变量
+可以设置到systemctl的service文件中
+```
+export ENV_COIN_NET=test
+export ENV_COIN_TYPE=solana
+# 开发网
+export ENV_COIN_API=https://api.devnet.solana.com
+# 测试网
+#export ENV_COIN_API=https://api.testnet.solana.com
+# 主网
+#export ENV_COIN_API=https://api.mainnet-beta.solana.com
+```
+
+运行plugin
+```
+/opt/sphinx-plugin/sphinx-plugin run
+```
+
 ### 部署
 
 ```
