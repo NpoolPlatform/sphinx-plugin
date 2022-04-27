@@ -6,7 +6,7 @@ set -o pipefail
 
 PLATFORMS=(
     linux/amd64
-    darwin/amd64
+    # darwin/amd64
 )
 OUTPUT=./output
 
