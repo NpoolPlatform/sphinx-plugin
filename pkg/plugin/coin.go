@@ -72,8 +72,8 @@ var (
 		sphinxplugin.CoinType_CoinTypeethereum:  "ETH",
 		sphinxplugin.CoinType_CoinTypetethereum: "ETH",
 
-		sphinxplugin.CoinType_CoinTypeusdterc20:  "USD",
-		sphinxplugin.CoinType_CoinTypetusdterc20: "USD",
+		sphinxplugin.CoinType_CoinTypeusdterc20:  "USDT",
+		sphinxplugin.CoinType_CoinTypetusdterc20: "USDT",
 
 		sphinxplugin.CoinType_CoinTypesolana:  "SOL",
 		sphinxplugin.CoinType_CoinTypetsolana: "SOL",
