@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"encoding/json"
+
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -23,8 +25,11 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth/usdt"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/tron/trc20"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
+	"github.com/fbsobreira/gotron-sdk/pkg/common"
+	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 	"github.com/filecoin-project/lotus/build"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -228,6 +233,9 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 
 	sphinxplugin.CoinType_CoinTypeusdterc20:  pluginUSDT,
 	sphinxplugin.CoinType_CoinTypetusdterc20: pluginUSDT,
+
+	sphinxplugin.CoinType_CoinTypeusdttrc20:  pluginTRC20,
+	sphinxplugin.CoinType_CoinTypetusdttrc20: pluginTRC20,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
@@ -501,6 +509,62 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		}
 		if !pending {
 			return eth.ErrWaitMessageOnChain
+		}
+	}
+	return nil
+}
+
+func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		bl, err := trc20.WalletBalance(ctx, req.GetAddress())
+		if err != nil {
+			return err
+		}
+
+		f := trc20.ToFloat(bl)
+		resp.Balance, _ = f.Float64()
+		resp.BalanceStr = f.Text('f', 10)
+	case sphinxproxy.TransactionType_PreSign:
+		txExtension, err := trc20.TransactionSend(ctx, req)
+		if err != nil {
+			return err
+		}
+
+		txData, err := json.Marshal(txExtension)
+		if err != nil {
+			return err
+		}
+
+		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
+		resp.Message.TxData = txData
+	case sphinxproxy.TransactionType_Broadcast:
+		tx := &api.TransactionExtention{}
+		txData := req.GetMessage().GetTxData()
+		err := json.Unmarshal(txData, tx)
+		if err != nil {
+			return err
+		}
+
+		err = trc20.BroadcastTransaction(ctx, tx.Transaction)
+		if err != nil {
+			return err
+		}
+
+		resp.CID = common.BytesToHexString(tx.GetTxid())
+	case sphinxproxy.TransactionType_SyncMsgState:
+		pending, err := trc20.SyncTxState(ctx, req.GetCID())
+		if err != nil {
+			return err
+		}
+		if !pending {
+			return trc20.ErrWaitMessageOnChain
 		}
 	}
 	return nil
