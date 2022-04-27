@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220120091626-4e8035637592
+	github.com/NpoolPlatform/message v0.0.0-20220427090353-cb0b92bc7c27
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
@@ -24,7 +25,6 @@ require (
 require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4 // indirect
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
-	github.com/NpoolPlatform/message v0.0.0-20220427090353-cb0b92bc7c27 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/aybabtme/rgbterm v0.0.0-20170906152045-cc83f3b3ce59 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
