@@ -8,7 +8,7 @@ import (
 )
 
 // TODO:Now is a compromise, consider the way of using the pool of clients.
-var rpcClent *rpc.Client
+var rpcClient *rpc.Client
 
 func NewClient() (*rpc.Client, error) {
 	addr, ok := env.LookupEnv(env.ENVCOINAPI)
@@ -26,9 +26,10 @@ func NewClient() (*rpc.Client, error) {
 }
 
 func client() (*rpc.Client, error) {
-	if rpcClent == nil {
-		rpcClient, err := NewClient()
+	var err error
+	if rpcClient == nil {
+		rpcClient, err = NewClient()
 		return rpcClient, err
 	}
-	return rpcClent, nil
+	return rpcClient, err
 }
