@@ -23,9 +23,11 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth/usdt"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/sol"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/filecoin-project/lotus/build"
+	"github.com/gagliardetto/solana-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -228,6 +230,9 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 
 	sphinxplugin.CoinType_CoinTypeusdterc20:  pluginUSDT,
 	sphinxplugin.CoinType_CoinTypetusdterc20: pluginUSDT,
+
+	sphinxplugin.CoinType_CoinTypesolana:  pluginSOL,
+	sphinxplugin.CoinType_CoinTypetsolana: pluginSOL,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
@@ -501,6 +506,55 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		}
 		if !pending {
 			return eth.ErrWaitMessageOnChain
+		}
+	}
+	return nil
+}
+
+func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		bl, err := sol.WalletBalance(ctx, req.GetAddress())
+		if err != nil {
+			return err
+		}
+		balance := sol.ToSol(&bl)
+
+		f, exact := balance.Float64()
+		if exact != big.Exact {
+			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		}
+		resp.Balance = f
+		resp.BalanceStr = balance.String()
+	case sphinxproxy.TransactionType_PreSign:
+		rhash, err := sol.GetRecentBlock(ctx)
+		if err != nil {
+			return err
+		}
+		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
+
+		resp.Message.RecentBhash = rhash.Value.Blockhash.String()
+	case sphinxproxy.TransactionType_Broadcast:
+		cid, err := sol.SendTransaction(ctx, req.GetMessage(), req.GetSignature())
+		if err != nil {
+			return err
+		}
+		resp.CID = cid.String()
+	case sphinxproxy.TransactionType_SyncMsgState:
+		cid, err := solana.SignatureFromBase58(req.CID)
+		if err != nil {
+			return err
+		}
+		_, err = sol.StateSearchMsg(cid)
+
+		if err != nil {
+			return err
 		}
 	}
 	return nil
