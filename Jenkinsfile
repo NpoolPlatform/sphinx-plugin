@@ -15,12 +15,6 @@ pipeline {
 
     stage('Prepare') {
       steps {
-        // Get linter and other build tools.
-        sh '''
-          go install golang.org/x/lint/golint@latest
-          go install github.com/tebeka/go2xunit@latest
-          go install github.com/t-yuki/gocover-cobertura@latest
-        '''
         sh 'make deps'
       }
     }
@@ -34,23 +28,16 @@ pipeline {
       }
     }
 
-    stage('Compile') {
+    stage('Switch to current cluster') {
       when {
-        expression { BUILD_TARGET == 'true' }
+        anyOf{
+          expression { BUILD_TARGET == 'true' }
+          expression { DEPLOY_TARGET == 'true' }
+        }
       }
       steps {
-        sh (returnStdout: false, script: '''
-          make -C tools/grpc install
-          PATH=$PATH:/usr/go/bin:$HOME/go/bin make -C message clean proto
-          make verify-build
-        '''.stripIndent())
+        sh 'cd /etc/kubeasz; ./ezctl checkout $TARGET_ENV'
       }
-    }
-
-    stage('Switch to current cluster') {
-        steps {
-            sh 'cd /etc/kubeasz; ./ezctl checkout $TARGET_ENV'
-        }
     }
 
     stage('Unit Tests') {
@@ -58,97 +45,204 @@ pipeline {
         expression { BUILD_TARGET == 'true' }
       }
       steps {
-        sh 'rm .apollo-base-config -rf'
-        sh 'git clone https://github.com/NpoolPlatform/apollo-base-config.git .apollo-base-config'
         sh (returnStdout: false, script: '''
           devboxpod=`kubectl get pods -A | grep development-box | awk '{print $2}'`
-          servicename="sample-service"
-
-          PASSWORD=`kubectl get secret --namespace "kube-system" mysql-password-secret -o jsonpath="{.data.rootpassword}" | base64 --decode`
-          kubectl -n kube-system exec mysql-0 -- mysql -h 127.0.0.1 -uroot -p$PASSWORD -P3306 -e "create database if not exists service_sample;"
+          servicename="sphinx-plugin"
 
           kubectl exec --namespace kube-system $devboxpod -- make -C /tmp/$servicename after-test || true
           kubectl exec --namespace kube-system $devboxpod -- rm -rf /tmp/$servicename || true
           kubectl cp ./ kube-system/$devboxpod:/tmp/$servicename
 
-          username=`helm status rabbitmq --namespace kube-system | grep Username | awk -F ' : ' '{print $2}' | sed 's/"//g'`
-          for vhost in `cat cmd/*/*.viper.yaml | grep hostname | awk '{print $2}' | sed 's/"//g' | sed 's/\\./-/g'`; do
-            kubectl exec --namespace kube-system rabbitmq-0 -- rabbitmqctl add_vhost $vhost
-            kubectl exec --namespace kube-system rabbitmq-0 -- rabbitmqctl set_permissions -p $vhost $username ".*" ".*" ".*"
-
-            cd .apollo-base-config
-            ./apollo-base-config.sh $APP_ID $TARGET_ENV $vhost
-            ./apollo-item-config.sh $APP_ID $TARGET_ENV $vhost database_name service_sample
-            cd -
-          done
-
           kubectl exec --namespace kube-system $devboxpod -- make -C /tmp/$servicename deps before-test test after-test
           kubectl exec --namespace kube-system $devboxpod -- rm -rf /tmp/$servicename
-
-          swaggeruipod=`kubectl get pods -A | grep swagger | awk '{print $2}'`
-          kubectl cp message/npool/*.swagger.json kube-system/$swaggeruipod:/usr/share/nginx/html || true
         '''.stripIndent())
       }
     }
 
-    stage('Generate docker image') {
+    stage('Generate docker image for development') {
+      when {
+        expression { BUILD_TARGET == 'true' }
+      }
+      steps {
+        sh 'make verify-build'
+        sh 'DEVELOPMENT=development DOCKER_REGISTRY=$DOCKER_REGISTRY make generate-docker-images'
+      }
+    }
+
+    stage('Tag patch') {
+      when {
+        expression { TAG_PATCH == 'true' }
+      }
+      steps {
+        sh(returnStdout: true, script: '''
+          set +e
+          revlist=`git rev-list --tags --max-count=1`
+          rc=$?
+          set -e
+          if [ 0 -eq $rc ]; then
+            tag=`git describe --tags $revlist`
+            major=`echo $tag | awk -F '.' '{ print $1 }'`
+            minor=`echo $tag | awk -F '.' '{ print $2 }'`
+            patch=`echo $tag | awk -F '.' '{ print $3 }'`
+            case $TAG_FOR in
+              testing)
+                patch=$(( $patch + $patch % 2 + 1 ))
+                ;;
+              production)
+                patch=$(( $patch + 1 ))
+                git reset --hard
+                git checkout $tag
+                ;;
+            esac
+            tag=$major.$minor.$patch
+          else
+            tag=0.1.1
+          fi
+          git tag -a $tag -m "Bump version to $tag"
+        '''.stripIndent())
+
+        withCredentials([gitUsernamePassword(credentialsId: 'KK-github-key', gitToolName: 'git-tool')]) {
+          sh 'git push --tag'
+        }
+      }
+    }
+
+    stage('Tag minor') {
+      when {
+        expression { TAG_MINOR == 'true' }
+      }
+      steps {
+        sh(returnStdout: true, script: '''
+          set +e
+          revlist=`git rev-list --tags --max-count=1`
+          rc=$?
+          set -e
+          if [ 0 -eq $rc ]; then
+            tag=`git describe --tags $revlist`
+            major=`echo $tag | awk -F '.' '{ print $1 }'`
+            minor=`echo $tag | awk -F '.' '{ print $2 }'`
+            patch=`echo $tag | awk -F '.' '{ print $3 }'`
+            minor=$(( $minor + 1 ))
+            patch=1
+            tag=$major.$minor.$patch
+          else
+            tag=0.1.1
+          fi
+          git tag -a $tag -m "Bump version to $tag"
+        '''.stripIndent())
+
+        withCredentials([gitUsernamePassword(credentialsId: 'KK-github-key', gitToolName: 'git-tool')]) {
+          sh 'git push --tag'
+        }
+      }
+    }
+
+    stage('Tag major') {
+      when {
+        expression { TAG_MAJOR == 'true' }
+      }
+      steps {
+        sh(returnStdout: true, script: '''
+          set +e
+          revlist=`git rev-list --tags --max-count=1`
+          rc=$?
+          set -e
+          if [ 0 -eq $rc ]; then
+            tag=`git describe --tags $revlist`
+            major=`echo $tag | awk -F '.' '{ print $1 }'`
+            minor=`echo $tag | awk -F '.' '{ print $2 }'`
+            patch=`echo $tag | awk -F '.' '{ print $3 }'`
+            major=$(( $major + 1 ))
+            minor=0
+            patch=1
+            tag=$major.$minor.$patch
+          else
+            tag=0.1.1
+          fi
+          git tag -a $tag -m "Bump version to $tag"
+        '''.stripIndent())
+
+        withCredentials([gitUsernamePassword(credentialsId: 'KK-github-key', gitToolName: 'git-tool')]) {
+          sh 'git push --tag'
+        }
+      }
+    }
+
+    stage('Generate docker image for testing or production') {
       when {
         expression { BUILD_TARGET == 'true' }
       }
       steps {
         sh(returnStdout: true, script: '''
-          images=`docker images | grep entropypool | grep service-sample | awk '{ print $3 }'`
-          for image in $images; do
-            docker rmi $image
-          done
+          revlist=`git rev-list --tags --max-count=1`
+          tag=`git describe --tags $revlist`
+          git reset --hard
+          git checkout $tag
         '''.stripIndent())
-        sh 'make generate-docker-images'
+        sh 'make verify-build'
+        sh 'DEVELOPMENT=other DOCKER_REGISTRY=$DOCKER_REGISTRY make generate-docker-images'
       }
     }
 
-    stage('Release docker image') {
+    stage('Release docker image for development') {
       when {
         expression { RELEASE_TARGET == 'true' }
       }
       steps {
-        sh 'make release-docker-images'
-      }
-    }
-
-    stage('Deploy') {
-      when {
-        expression { DEPLOY_TARGET == 'true' }
-      }
-      steps {
-        sh 'rm .apollo-base-config -rf'
-        sh 'git clone https://github.com/NpoolPlatform/apollo-base-config.git .apollo-base-config'
-        sh 'make deploy-to-k8s-cluster'
-        sh (returnStdout: false, script: '''
-          PASSWORD=`kubectl get secret --namespace "kube-system" mysql-password-secret -o jsonpath="{.data.rootpassword}" | base64 --decode`
-          kubectl -n kube-system exec mysql-0 -- mysql -h 127.0.0.1 -uroot -p$PASSWORD -P3306 -e "create database if not exists service_sample;"
-          username=`helm status rabbitmq --namespace kube-system | grep Username | awk -F ' : ' '{print $2}' | sed 's/"//g'`
-          for vhost in `cat cmd/*/*.viper.yaml | grep hostname | awk '{print $2}' | sed 's/"//g' | sed 's/\\./-/g'`; do
-            kubectl exec --namespace kube-system rabbitmq-0 -- rabbitmqctl add_vhost $vhost
-            kubectl exec --namespace kube-system rabbitmq-0 -- rabbitmqctl set_permissions -p $vhost $username ".*" ".*" ".*"
-            cd .apollo-base-config
-            ./apollo-base-config.sh $APP_ID $TARGET_ENV $vhost
-            ./apollo-item-config.sh $APP_ID $TARGET_ENV $vhost database_name service_sample
+        sh 'TAG=latest DOCKER_REGISTRY=$DOCKER_REGISTRY make release-docker-images'
+        sh(returnStdout: true, script: '''
+          images=`docker images | grep entropypool | grep sphinx-plugin | grep none | awk '{ print $3 }'`
+          for image in $images; do
+            docker rmi $image -f
           done
         '''.stripIndent())
       }
     }
 
-    stage('Post') {
+    stage('Release docker image for testing') {
+      when {
+        expression { RELEASE_TARGET == 'true' }
+      }
       steps {
-        // Assemble vet and lint info.
-        // warnings parserConfigurations: [
-        //   [pattern: 'govet.txt', parserName: 'Go Vet'],
-        //   [pattern: 'golint.txt', parserName: 'Go Lint']
-        // ]
+        sh(returnStdout: false, script: '''
+          revlist=`git rev-list --tags --max-count=1`
+          tag=`git describe --tags $revlist`
 
-        // sh 'go2xunit -fail -input gotest.txt -output gotest.xml'
-        // junit "gotest.xml"
-        sh 'echo Posting'
+          set +e
+          docker images | grep sphinx-plugin | grep $tag
+          rc=$?
+          set -e
+          if [ 0 -eq $rc ]; then
+            TAG=$tag DOCKER_REGISTRY=$DOCKER_REGISTRY make release-docker-images
+          fi
+        '''.stripIndent())
+      }
+    }
+
+    stage('Release docker image for production') {
+      when {
+        expression { RELEASE_TARGET == 'true' }
+      }
+      steps {
+        sh(returnStdout: false, script: '''
+          revlist=`git rev-list --tags --max-count=1`
+          tag=`git describe --tags $revlist`
+
+          major=`echo $tag | awk -F '.' '{ print $1 }'`
+          minor=`echo $tag | awk -F '.' '{ print $2 }'`
+          patch=`echo $tag | awk -F '.' '{ print $3 }'`
+
+          patch=$(( $patch - $patch % 2 ))
+          tag=$major.$minor.$patch
+
+          set +e
+          docker images | grep sphinx-plugin | grep $tag
+          rc=$?
+          set -e
+          if [ 0 -eq $rc ]; then
+            TAG=$tag DOCKER_REGISTRY=$DOCKER_REGISTRY make release-docker-images
+          fi
+        '''.stripIndent())
       }
     }
   }

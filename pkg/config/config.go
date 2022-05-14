@@ -55,3 +55,20 @@ func GetString(key string) string {
 func GetInt(key string) int {
 	return viper.GetStringMap(rootConfig)[key].(int)
 }
+
+var global ENVInfo
+
+type ENVInfo struct {
+	Proxy      string
+	ContractID string
+	LogPath    string
+	LogLevel   string
+}
+
+func SetENV(info ENVInfo) {
+	global = info
+}
+
+func GetENV() ENVInfo {
+	return global
+}
