@@ -29,7 +29,7 @@ echo "Release docker image for $PLATFORM -- $version"
 
 user=`whoami`
 if [ "$user" == "root" ]; then
-    docker push entropypool/$service_name:$version
+    docker push uhub.service.ucloud.cn/entropypool/$service_name:$version
 else
-    sudo docker push entropypool/$service_name:$version
+    sudo docker push uhub.service.ucloud.cn/entropypool/$service_name:$version
 fi
