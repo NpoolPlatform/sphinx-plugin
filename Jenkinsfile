@@ -32,7 +32,6 @@ pipeline {
       when {
         anyOf{
           expression { BUILD_TARGET == 'true' }
-          expression { DEPLOY_TARGET == 'true' }
         }
       }
       steps {
