@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/version"
@@ -17,6 +17,13 @@ import (
 const (
 	serviceName = "Sphinx Plugin"
 	usageText   = "Sphinx Plugin Service"
+)
+
+var (
+	proxyAddress = ""
+	contractID   = ""
+	logPath      = ""
+	logLevel     = ""
 )
 
 func main() {
@@ -38,18 +45,61 @@ func main() {
 		Name:        serviceName,
 		Version:     ver,
 		Description: description,
-		ArgsUsage:   "",
 		Usage:       usageText,
-		Flags:       nil,
-		Commands:    commands,
+		Before: func(ctx *cli.Context) error {
+			config.SetENV(config.ENVInfo{
+				Proxy:      proxyAddress,
+				ContractID: contractID,
+				LogPath:    logPath,
+				LogLevel:   logLevel,
+			})
+			return nil
+		},
+		Flags: []cli.Flag{
+			// proxy address
+			&cli.StringFlag{
+				Name:        "proxy",
+				Aliases:     []string{"p"},
+				Usage:       "address of sphinx proxy",
+				EnvVars:     []string{"PROXY"},
+				Required:    true,
+				Value:       "",
+				Destination: &proxyAddress,
+			},
+			// contract id
+			&cli.StringFlag{
+				Name:        "contract",
+				Aliases:     []string{"c"},
+				Usage:       "id of contract",
+				EnvVars:     []string{"CONTRACT"},
+				Value:       "",
+				Destination: &contractID,
+			},
+			// log level
+			&cli.StringFlag{
+				Name:        "level",
+				Aliases:     []string{"L"},
+				Usage:       "level support debug|info|warning|error",
+				EnvVars:     []string{"LEVEL"},
+				Value:       "debug",
+				DefaultText: "debug",
+				Destination: &logLevel,
+			},
+			// log path
+			&cli.StringFlag{
+				Name:        "log",
+				Aliases:     []string{"l"},
+				Usage:       "log path",
+				EnvVars:     []string{"LOG"},
+				Value:       "/var/log",
+				DefaultText: "/var/log",
+				Destination: &logPath,
+			},
+		},
+		Commands: commands,
 	}
 
-	err = config.Init("./", strings.ReplaceAll(serviceName, " ", ""))
-	if err != nil {
-		panic(xerrors.Errorf("Fail to create configuration: %v", err))
-	}
-
-	err = logger.Init(logger.DebugLevel, fmt.Sprintf("%v/%v.log", config.GetString(config.KeyLogDir), strings.ReplaceAll(serviceName, " ", "")))
+	err = logger.Init(logger.DebugLevel, filepath.Join(config.GetENV().LogPath, "sphinx-plugin.log"))
 	if err != nil {
 		panic(xerrors.Errorf("Fail to init logger: %v", err))
 	}

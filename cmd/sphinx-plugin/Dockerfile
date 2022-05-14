@@ -1,6 +1,11 @@
 FROM jrei/systemd-centos:7
 
-COPY sphinxplugin.viper.yaml /etc/sphinxplugin/sphinxplugin.viper.yaml
 COPY sphinx-plugin /usr/local/bin/sphinx-plugin
 
-CMD ["sphinx-plugin", "run"]
+ENV PROXY
+ENV CONTRACT
+ENV LOG /var/log
+ENV LEVEL debug
+
+ENTRYPOINT ["sphinx-plugin"]
+CMD ["help"]

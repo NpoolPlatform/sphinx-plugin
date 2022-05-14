@@ -100,7 +100,7 @@ func (c *pluginClient) closeProxyClient() {
 
 func (c *pluginClient) newProxyClient() (*grpc.ClientConn, sphinxproxy.SphinxProxy_ProxyPluginClient, error) {
 	logger.Sugar().Info("start new plugin client")
-	conn, err := client.GetGRPCConn(config.GetString(config.KeySphinxProxyAddr))
+	conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 	if err != nil {
 		logger.Sugar().Errorf("call GetGRPCConn error: %v", err)
 		return nil, nil, err
