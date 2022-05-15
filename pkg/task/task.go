@@ -236,14 +236,9 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 	sphinxplugin.CoinType_CoinTypeusdterc20:  pluginUSDT,
 	sphinxplugin.CoinType_CoinTypetusdterc20: pluginUSDT,
 
-<<<<<<< HEAD
 	sphinxplugin.CoinType_CoinTypesolana:  pluginSOL,
 	sphinxplugin.CoinType_CoinTypetsolana: pluginSOL,
 
-=======
-	sphinxplugin.CoinType_CoinTypesolana:     pluginSOL,
-	sphinxplugin.CoinType_CoinTypetsolana:    pluginSOL,
->>>>>>> suport trc20-tx
 	sphinxplugin.CoinType_CoinTypeusdttrc20:  pluginTRC20,
 	sphinxplugin.CoinType_CoinTypetusdttrc20: pluginTRC20,
 }

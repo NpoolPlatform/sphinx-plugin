@@ -45,6 +45,9 @@ func Client() (*tronclent.GrpcClient, error) {
 			return tronClient, nil
 		}
 		tronClient.Conn.Close()
+		if err != nil {
+			return nil, err
+		}
 	}
 	tronClient, err := client()
 	if err != nil {
