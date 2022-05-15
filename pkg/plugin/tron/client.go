@@ -40,7 +40,15 @@ func keepConnect(tronClient *tronclent.GrpcClient) error {
 
 func Client() (*tronclent.GrpcClient, error) {
 	if tronClient != nil {
-		return tronClient, keepConnect(tronClient)
+		err := keepConnect(tronClient)
+		if err == nil {
+			return tronClient, nil
+		}
+		tronClient.Conn.Close()
 	}
-	return client()
+	tronClient, err := client()
+	if err != nil {
+		return nil, err
+	}
+	return tronClient, nil
 }
