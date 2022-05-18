@@ -5,20 +5,20 @@ import (
 	"strings"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
-	tronclent "github.com/fbsobreira/gotron-sdk/pkg/client"
+	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"google.golang.org/grpc"
 )
 
-var tronClient *tronclent.GrpcClient
+var tronClient *tronclient.GrpcClient
 
 // TODO main init env and check, use conn pool
-func client() (*tronclent.GrpcClient, error) {
+func client() (*tronclient.GrpcClient, error) {
 	// TODO all env use cache
 	endpoint, ok := env.LookupEnv(env.ENVCOINAPI)
 	if !ok {
 		return nil, env.ErrENVCoinAPINotFound
 	}
-	client := tronclent.NewGrpcClient(endpoint)
+	client := tronclient.NewGrpcClient(endpoint)
 	err := client.Start(grpc.WithInsecure())
 	if err != nil {
 		return nil, fmt.Errorf("grpc client start error: %v", err)
@@ -27,7 +27,7 @@ func client() (*tronclent.GrpcClient, error) {
 	return client, nil
 }
 
-func keepConnect(tronClient *tronclent.GrpcClient) error {
+func keepConnect(tronClient *tronclient.GrpcClient) error {
 	_, err := tronClient.GetNodeInfo()
 	if err != nil {
 		if strings.Contains(err.Error(), "no such host") {
@@ -38,13 +38,13 @@ func keepConnect(tronClient *tronclent.GrpcClient) error {
 	return nil
 }
 
-func Client() (*tronclent.GrpcClient, error) {
+func Client() (*tronclient.GrpcClient, error) {
 	if tronClient != nil {
 		err := keepConnect(tronClient)
 		if err == nil {
 			return tronClient, nil
 		}
-		tronClient.Conn.Close()
+		err = tronClient.Conn.Close()
 		if err != nil {
 			return nil, err
 		}
