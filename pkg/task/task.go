@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,8 +11,6 @@ import (
 	"os"
 	"sync"
 	"time"
-
-	"encoding/json"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -518,6 +517,7 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 	}
 	return nil
 }
+
 func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
 	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
 	defer cancel()

@@ -31,5 +31,10 @@ func client() (*rpc.Client, error) {
 		rpcClient, err = NewClient()
 		return rpcClient, err
 	}
+	_, err = rpcClient.GetHealth(context.Background())
+	if err != nil {
+		rpcClient, err = NewClient()
+		return rpcClient, err
+	}
 	return rpcClient, err
 }

@@ -2,55 +2,12 @@ package tron
 
 import (
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 	"google.golang.org/grpc"
 )
-
-const MIN_NODE_NUM = 1
-
-type TronClientI interface {
-	TRC20ContractBalance(addr, contractAddress string) (*big.Int, error)
-	TRC20Send(from string, to string, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error)
-	Broadcast(tx *core.Transaction) (*api.Return, error)
-	GetTransactionInfoByID(id string) (*core.TransactionInfo, error)
-	OnFailed(*tronclient.GrpcClient)
-}
-
-type TClient struct {
-	GrpcClient *tronclient.GrpcClient
-	FailedNum  int
-}
-
-type TronClient struct {
-	TClientList []*TClient
-	RetryNum    uint
-	TronClientI
-}
-
-func NewTronClient(retryNum uint, addrList []string) (*TronClient, error) {
-	tronClient := &TronClient{}
-	tronClient.RetryNum = retryNum
-	for _, addr := range addrList {
-		client := &TClient{}
-		client.GrpcClient = tronclient.NewGrpcClient(addr)
-		err := client.GrpcClient.Start(grpc.WithInsecure())
-		if err != nil {
-			continue
-		}
-		tronClient.TClientList = append(tronClient.TClientList, client)
-	}
-	if len(tronClient.TClientList) < MIN_NODE_NUM {
-		return tronClient, fmt.Errorf("too few nodes have been successfully connected,just %v nodes",
-			len(tronClient.TClientList))
-	}
-	return tronClient, nil
-}
 
 var tronClient *tronclient.GrpcClient
 
