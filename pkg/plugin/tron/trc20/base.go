@@ -6,7 +6,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var TRC20ACCURACY = big.NewInt(10 * 18)
+var TRC20ACCURACY = big.NewInt(10 * 6)
 
 var EmptyInt = big.NewInt(0)
 
