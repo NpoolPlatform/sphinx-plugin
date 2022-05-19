@@ -31,7 +31,7 @@ func WalletBalance(ctx context.Context, wallet string) (balance *big.Int, err er
 	if err != nil {
 		return EmptyInt, err
 	}
-	return client.TRC20ContractBalance(wallet, contractID)
+	return client.TRC20ContractBalanceS(wallet, contractID)
 }
 
 func TransactionSend(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
@@ -49,7 +49,7 @@ func TransactionSend(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (
 	if err != nil {
 		return nil, err
 	}
-	return client.TRC20Send(from, to, contractID, ToInt(amount), fee)
+	return client.TRC20SendS(from, to, contractID, ToInt(amount), fee)
 }
 
 func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (err error) {
@@ -58,7 +58,7 @@ func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (e
 		return err
 	}
 
-	result, err := client.Broadcast(transaction)
+	result, err := client.BroadcastS(transaction)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func SyncTxState(ctx context.Context, cid string) (bool, error) {
 		return false, err
 	}
 
-	txInfo, err := client.GetTransactionInfoByID(cid)
+	txInfo, err := client.GetTransactionInfoByIDS(cid)
 	if err != nil {
 		return false, err
 	}

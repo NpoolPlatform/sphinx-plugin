@@ -608,7 +608,6 @@ func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 		if err != nil {
 			return err
 		}
-
 		resp.CID = common.BytesToHexString(tx.GetTxid())
 	case sphinxproxy.TransactionType_SyncMsgState:
 		pending, err := trc20.SyncTxState(ctx, req.GetCID())
