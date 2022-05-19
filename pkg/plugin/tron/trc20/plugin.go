@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math/big"
+	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
@@ -58,6 +59,7 @@ func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (e
 		return err
 	}
 
+	client.SetTimeout(10 * time.Second)
 	result, err := client.Broadcast(transaction)
 	if err != nil {
 		return err
