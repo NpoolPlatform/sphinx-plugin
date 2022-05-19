@@ -19,7 +19,6 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/viper v1.10.0
 	github.com/urfave/cli/v2 v2.3.0
-	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f
 	google.golang.org/grpc v1.46.0
 )
 
@@ -57,6 +56,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.3.0 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 )
 
