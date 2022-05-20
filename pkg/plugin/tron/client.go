@@ -14,19 +14,19 @@ import (
 	"google.golang.org/grpc"
 )
 
+func Init() {
+	rand.Seed(time.Now().Unix())
+}
+
 const (
 	MinNodeNum  = 1
 	MaxRetryNum = 2
 )
 
 type ClientI interface {
-	TRC20ContractBalance(addr, contractAddress string) (*big.Int, error)
 	TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error)
-	TRC20Send(from string, to string, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error)
 	TRC20SendS(from string, to string, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error)
-	Broadcast(tx *core.Transaction) (*api.Return, error)
 	BroadcastS(tx *core.Transaction) (*api.Return, error)
-	GetTransactionInfoByID(id string) (*core.TransactionInfo, error)
 	GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error)
 	GetNode() *tronclient.GrpcClient
 }
@@ -34,10 +34,9 @@ type ClientI interface {
 type TClients struct {
 	EndList  []string
 	RetryNum uint
-	ClientI
 }
 
-func NewTClients(retryNum uint, addrList []string) (*TClients, error) {
+func newTClients(retryNum uint, addrList []string) (*TClients, error) {
 	tronClient := &TClients{}
 	tronClient.RetryNum = retryNum
 	for _, addr := range addrList {
@@ -57,7 +56,6 @@ func NewTClients(retryNum uint, addrList []string) (*TClients, error) {
 }
 
 func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
-	rand.Seed(time.Now().Unix())
 	rIndex := rand.Intn(len(tClients.EndList))
 	addr := tClients.EndList[rIndex]
 	ntc := tronclient.NewGrpcClientWithTimeout(addr, 10*time.Second)
@@ -69,19 +67,23 @@ func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
 	return ntc, nil
 }
 
-func (tClients *TClients) TRC20ContractBalance(addr, contractAddress string) (*big.Int, error) {
+func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) error) error {
 	client, err := tClients.GetNode()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer client.Stop()
-
-	return client.TRC20ContractBalance(addr, contractAddress)
+	return fn(client)
 }
 
 func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error) {
+	var ret *big.Int
+	var err error
 	for i := 0; i < int(tClients.RetryNum); i++ {
-		ret, err := tClients.TRC20ContractBalance(addr, contractAddress)
+		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
+			ret, err = client.TRC20ContractBalance(addr, contractAddress)
+			return err
+		})
 		if err == nil {
 			return ret, nil
 		}
@@ -89,19 +91,14 @@ func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*
 	return nil, fmt.Errorf("fail TRC20ContractBalanceS")
 }
 
-func (tClients *TClients) TRC20Send(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
-	client, err := tClients.GetNode()
-	if err != nil {
-		return nil, err
-	}
-	defer client.Stop()
-
-	return client.TRC20Send(from, to, contract, amount, feeLimit)
-}
-
 func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
+	var ret *api.TransactionExtention
+	var err error
 	for i := 0; i < int(tClients.RetryNum); i++ {
-		ret, err := tClients.TRC20Send(from, to, contract, amount, feeLimit)
+		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
+			ret, err = client.TRC20Send(from, to, contract, amount, feeLimit)
+			return err
+		})
 		if err == nil {
 			return ret, nil
 		}
@@ -109,39 +106,32 @@ func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int,
 	return nil, fmt.Errorf("fail TRC20SendS")
 }
 
-func (tClients *TClients) Broadcast(tx *core.Transaction) (*api.Return, error) {
-	client, err := tClients.GetNode()
-	if err != nil {
-		return nil, err
-	}
-	defer client.Stop()
-
-	return client.Broadcast(tx)
-}
-
 func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) {
+	var ret *api.Return
+	var err error
 	for i := 0; i < int(tClients.RetryNum); i++ {
-		ret, err := tClients.Broadcast(tx)
+		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
+			ret, err = client.Broadcast(tx)
+			return err
+		})
 		if err == nil {
 			return ret, nil
+		}
+		if err != nil && ret.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
+			return ret, err
 		}
 	}
 	return nil, fmt.Errorf("fail BroadcastS")
 }
 
-func (tClients *TClients) GetTransactionInfoByID(id string) (*core.TransactionInfo, error) {
-	client, err := tClients.GetNode()
-	if err != nil {
-		return nil, err
-	}
-	defer client.Stop()
-
-	return client.GetTransactionInfoByID(id)
-}
-
 func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error) {
+	var ret *core.TransactionInfo
+	var err error
 	for i := 0; i < int(tClients.RetryNum); i++ {
-		ret, err := tClients.GetTransactionInfoByID(id)
+		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
+			ret, err = client.GetTransactionInfoByID(id)
+			return err
+		})
 		if err == nil {
 			return ret, nil
 		}
@@ -160,7 +150,5 @@ func Client() (*TClients, error) {
 		return nil, env.ErrENVCoinAPINotFound
 	}
 	addrList := strings.Split(addrs, ",")
-	var err error
-	tClients, err = NewTClients(MaxRetryNum, addrList)
-	return tClients, err
+	return newTClients(MaxRetryNum, addrList)
 }
