@@ -20,8 +20,8 @@ const (
 
 var (
 	proxyAddress = ""
-	contractID   = ""
-	logPath      = ""
+	contract     = ""
+	logDir       = ""
 	logLevel     = ""
 )
 
@@ -47,10 +47,10 @@ func main() {
 		Usage:       usageText,
 		Before: func(ctx *cli.Context) error {
 			config.SetENV(config.ENVInfo{
-				Proxy:      proxyAddress,
-				ContractID: contractID,
-				LogPath:    logPath,
-				LogLevel:   logLevel,
+				Proxy:    proxyAddress,
+				Contract: contract,
+				LogDir:   logDir,
+				LogLevel: logLevel,
 			})
 			return nil
 		},
@@ -60,7 +60,7 @@ func main() {
 				Name:        "proxy",
 				Aliases:     []string{"p"},
 				Usage:       "address of sphinx proxy",
-				EnvVars:     []string{"PROXY"},
+				EnvVars:     []string{"ENV_PROXY"},
 				Required:    true,
 				Value:       "",
 				Destination: &proxyAddress,
@@ -70,16 +70,16 @@ func main() {
 				Name:        "contract",
 				Aliases:     []string{"c"},
 				Usage:       "id of contract",
-				EnvVars:     []string{"CONTRACT"},
+				EnvVars:     []string{"ENV_CONTRACT"},
 				Value:       "",
-				Destination: &contractID,
+				Destination: &contract,
 			},
 			// log level
 			&cli.StringFlag{
 				Name:        "level",
 				Aliases:     []string{"L"},
 				Usage:       "level support debug|info|warning|error",
-				EnvVars:     []string{"LEVEL"},
+				EnvVars:     []string{"ENV_LOG_LEVEL"},
 				Value:       "debug",
 				DefaultText: "debug",
 				Destination: &logLevel,
@@ -88,17 +88,17 @@ func main() {
 			&cli.StringFlag{
 				Name:        "log",
 				Aliases:     []string{"l"},
-				Usage:       "log path",
-				EnvVars:     []string{"LOG"},
+				Usage:       "log dir",
+				EnvVars:     []string{"ENV_LOG_DIR"},
 				Value:       "/var/log",
 				DefaultText: "/var/log",
-				Destination: &logPath,
+				Destination: &logDir,
 			},
 		},
 		Commands: commands,
 	}
 
-	err = logger.Init(logger.DebugLevel, filepath.Join(config.GetENV().LogPath, "sphinx-plugin.log"))
+	err = logger.Init(logger.DebugLevel, filepath.Join(config.GetENV().LogDir, "sphinx-plugin.log"))
 	if err != nil {
 		panic(fmt.Errorf("fail to init logger: %v", err))
 	}

@@ -13,7 +13,7 @@ const (
 	KeyGRPCPort        = "grpc_port"
 	KeyPrometheusPort  = "prometheus_port"
 	KeySphinxProxyAddr = "sphinx_proxy_addr"
-	KeyContractID      = "contract_id"
+	KeyContract        = "contract"
 	rootConfig         = "config"
 )
 
@@ -58,10 +58,10 @@ func GetInt(key string) int {
 var global ENVInfo
 
 type ENVInfo struct {
-	Proxy      string
-	ContractID string
-	LogPath    string
-	LogLevel   string
+	Proxy    string
+	Contract string
+	LogDir   string
+	LogLevel string
 }
 
 func SetENV(info ENVInfo) {

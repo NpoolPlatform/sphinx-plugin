@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/tron"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
@@ -22,23 +22,17 @@ var (
 )
 
 func WalletBalance(ctx context.Context, wallet string) (balance *big.Int, err error) {
-	contractID, ok := env.LookupEnv(env.ENVCONTRACTID)
-	if !ok {
-		return EmptyInt, env.ErrENVContractIDNotFound
-	}
+	contract := config.GetENV().Contract
 
 	client, err := tron.Client()
 	if err != nil {
 		return EmptyInt, err
 	}
-	return client.TRC20ContractBalanceS(wallet, contractID)
+	return client.TRC20ContractBalanceS(wallet, contract)
 }
 
 func TransactionSend(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
-	contractID, ok := env.LookupEnv(env.ENVCONTRACTID)
-	if !ok {
-		return nil, env.ErrENVContractIDNotFound
-	}
+	contract := config.GetENV().Contract
 
 	from := req.GetMessage().GetFrom()
 	to := req.GetMessage().GetTo()
@@ -49,7 +43,7 @@ func TransactionSend(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (
 	if err != nil {
 		return nil, err
 	}
-	return client.TRC20SendS(from, to, contractID, ToInt(amount), fee)
+	return client.TRC20SendS(from, to, contract, ToInt(amount), fee)
 }
 
 func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (err error) {

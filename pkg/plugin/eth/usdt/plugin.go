@@ -32,7 +32,7 @@ func WalletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 		return nil, eth.ErrAddrNotValid
 	}
 
-	tetherERC20Token, err := NewTetherToken(common.HexToAddress(plugin.USDTContractID(chainID.Int64())), client)
+	tetherERC20Token, err := NewTetherToken(common.HexToAddress(plugin.USDTContract(chainID.Int64())), client)
 	if err != nil {
 		return nil, err
 	}
