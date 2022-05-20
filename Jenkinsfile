@@ -61,6 +61,7 @@ pipeline {
     stage('Generate docker image for development') {
       when {
         expression { BUILD_TARGET == 'true' }
+        expression { BRANCH_NAME == 'master' }
       }
       steps {
         sh 'make verify-build'
@@ -68,6 +69,17 @@ pipeline {
       }
     }
 
+    stage('Generate docker image for feature test') {
+      when {
+        expression { BUILD_TARGET == 'true' }
+        expression { BRANCH_NAME != 'master' }
+      }
+      steps {
+        sh 'make verify-build'
+        sh 'DEVELOPMENT=feature DOCKER_REGISTRY=$DOCKER_REGISTRY make generate-docker-images'
+      }
+    }
+    
     stage('Tag patch') {
       when {
         expression { TAG_PATCH == 'true' }

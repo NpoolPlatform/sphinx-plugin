@@ -11,7 +11,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	banner "github.com/common-nighthawk/go-figure"
 	cli "github.com/urfave/cli/v2"
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -38,7 +37,7 @@ func main() {
 	banner.NewColorFigure(serviceName, "", "green", true).Print()
 	ver, err := version.GetVersion()
 	if err != nil {
-		panic(xerrors.Errorf("Fail to get version: %v", err))
+		panic(fmt.Errorf("fail to get version: %v", err))
 	}
 
 	app := &cli.App{
@@ -101,7 +100,7 @@ func main() {
 
 	err = logger.Init(logger.DebugLevel, filepath.Join(config.GetENV().LogPath, "sphinx-plugin.log"))
 	if err != nil {
-		panic(xerrors.Errorf("Fail to init logger: %v", err))
+		panic(fmt.Errorf("fail to init logger: %v", err))
 	}
 
 	err = app.Run(os.Args)

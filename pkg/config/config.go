@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/viper"
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -37,7 +36,7 @@ func Init(configPath, appName string) error {
 	//   logdir: "/var/log"
 	//
 	if err := viper.ReadInConfig(); err != nil {
-		return xerrors.Errorf("fail to init config: %v", err)
+		return fmt.Errorf("fail to init config: %v", err)
 	}
 
 	appID := viper.GetStringMap(rootConfig)[KeyAppID].(string)   //nolint

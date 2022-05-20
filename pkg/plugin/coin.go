@@ -29,6 +29,7 @@ var (
 			"usdterc20": sphinxplugin.CoinType_CoinTypeusdterc20,
 			"spacemesh": sphinxplugin.CoinType_CoinTypespacemesh,
 			"solana":    sphinxplugin.CoinType_CoinTypesolana,
+			"usdttrc20": sphinxplugin.CoinType_CoinTypeusdttrc20,
 		},
 		CoinNetTest: {
 			"filecoin":  sphinxplugin.CoinType_CoinTypetfilecoin,
@@ -37,6 +38,7 @@ var (
 			"usdterc20": sphinxplugin.CoinType_CoinTypetusdterc20,
 			"spacemesh": sphinxplugin.CoinType_CoinTypetspacemesh,
 			"solana":    sphinxplugin.CoinType_CoinTypetsolana,
+			"usdttrc20": sphinxplugin.CoinType_CoinTypetusdttrc20,
 		},
 	}
 
@@ -49,6 +51,7 @@ var (
 		sphinxplugin.CoinType_CoinTypeusdterc20: CoinNetMain,
 		sphinxplugin.CoinType_CoinTypespacemesh: CoinNetMain,
 		sphinxplugin.CoinType_CoinTypesolana:    CoinNetMain,
+		sphinxplugin.CoinType_CoinTypeusdttrc20: CoinNetMain,
 
 		// test
 		sphinxplugin.CoinType_CoinTypetfilecoin:  CoinNetTest,
@@ -57,6 +60,7 @@ var (
 		sphinxplugin.CoinType_CoinTypetusdterc20: CoinNetTest,
 		sphinxplugin.CoinType_CoinTypetspacemesh: CoinNetTest,
 		sphinxplugin.CoinType_CoinTypetsolana:    CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetusdttrc20: CoinNetTest,
 	}
 
 	// CoinNet will filled value in app run
@@ -72,11 +76,14 @@ var (
 		sphinxplugin.CoinType_CoinTypeethereum:  "ETH",
 		sphinxplugin.CoinType_CoinTypetethereum: "ETH",
 
-		sphinxplugin.CoinType_CoinTypeusdterc20:  "USDT",
-		sphinxplugin.CoinType_CoinTypetusdterc20: "USDT",
+		sphinxplugin.CoinType_CoinTypeusdterc20:  "USD",
+		sphinxplugin.CoinType_CoinTypetusdterc20: "USD",
 
 		sphinxplugin.CoinType_CoinTypesolana:  "SOL",
 		sphinxplugin.CoinType_CoinTypetsolana: "SOL",
+
+		sphinxplugin.CoinType_CoinTypeusdttrc20:  "USD",
+		sphinxplugin.CoinType_CoinTypetusdttrc20: "USD",
 	}
 
 	// BTCNetMap btc net map

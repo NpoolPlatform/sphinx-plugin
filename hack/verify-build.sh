@@ -6,7 +6,7 @@ set -o pipefail
 
 PLATFORMS=(
     linux/amd64
-    darwin/amd64
+    # darwin/amd64   ## github.com/rjeczalik/notify Not supported to compile to darwin-platform
 )
 OUTPUT=./output
 
