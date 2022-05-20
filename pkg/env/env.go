@@ -23,7 +23,7 @@ const (
 	ENVCOINTOKEN = "ENV_COIN_TOKEN"
 
 	// for eth/usdt
-	ENVCONTRACTID = "ENV_CONTRACT_ID"
+	ENVCONTRACT = "ENV_CONTRACT"
 )
 
 var (
@@ -45,7 +45,7 @@ var (
 	ErrCIDInvalid           = errors.New("cid invalid")
 
 	// eth/usdt
-	ErrENVContractIDNotFound = errors.New("env ENV_CONTRACT_ID not found")
+	ErrENVContractNotFound = errors.New("env ENV_CONTRACT not found")
 )
 
 func LookupEnv(key string) (string, bool) {
