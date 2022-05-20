@@ -107,8 +107,8 @@ github.com/Masterminds/semver v1.4.2/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF0
 github.com/Masterminds/vcs v1.13.0/go.mod h1:N09YCmOQr6RLxC6UNHzuVwAdodYbbnycGHSmwVJjcKA=
 github.com/NpoolPlatform/go-service-framework v0.0.0-20220404143809-82c40930388a h1:bOI01dIwb2Okkc9tmuzBzxUfI/EtWN4ziQHPUT25BYI=
 github.com/NpoolPlatform/go-service-framework v0.0.0-20220404143809-82c40930388a/go.mod h1:G5SKpcIWWkyxeNtgI8c0iY8py6DY2xHZFGKPJpTEon0=
-github.com/NpoolPlatform/message v0.0.0-20220428075350-a617f58af629 h1:5XB5/maeUfBc2b8CbXAYdfLjroeBKzKvwEW8pLQCIvY=
-github.com/NpoolPlatform/message v0.0.0-20220428075350-a617f58af629/go.mod h1:htV3g9akwOHL52O1/gOJUiR5P236GojY8CuJkSES9Jk=
+github.com/NpoolPlatform/message v0.0.0-20220520115554-2c9bbb3dbe95 h1:epmEV4YTOWad76brvaf92culjeioD7pae1WJ96PUzSM=
+github.com/NpoolPlatform/message v0.0.0-20220520115554-2c9bbb3dbe95/go.mod h1:htV3g9akwOHL52O1/gOJUiR5P236GojY8CuJkSES9Jk=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
