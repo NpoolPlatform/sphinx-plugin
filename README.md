@@ -11,6 +11,7 @@
   - [环境变量](#环境变量)
   - [新增币种的开发步骤](#新增币种的开发步骤)
   - [ethereum 部署](#ethereum-部署)
+  - [solana 部署](#solana-部署)
   - [部署](#部署)
   - [升级说明](#升级说明)
   - [推荐](#推荐)
@@ -61,13 +62,11 @@
 ### [新增币种的开发步骤](./newcoin.md)
 
 1. 必须要实现的接口
-   
    ```go
    func main(){
    
    }
    ```
-
 2. 注册新币种
 
 ------
@@ -168,8 +167,8 @@ WantedBy=multi-user.target
 + **失败可以重试, 成功操作不可重试**
 + **注意 SQL 只更新了 filecoin 和 bitcoin 币种，其余可参考 filecoin 和 bitcoin, tfilecoin 和 tbitcoin 上报完成才可以执行**
 
-| 条件      | 升级 SQL                       |
-|:------- |:---------------------------- |
+| 条件    | 升级 SQL                     |
+|:--------|:-----------------------------|
 | mainnet | DO NOTHING                   |
 | testnet | [upgrade](./sql/upgrade.sql) |
 

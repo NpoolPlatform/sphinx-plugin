@@ -13,7 +13,7 @@ func client() (*ethclient.Client, error) {
 		return nil, env.ErrENVCoinAPINotFound
 	}
 
-	return ethclient.Dial("http://" + endpoint)
+	return ethclient.Dial(endpoint)
 }
 
 func Client() (*ethclient.Client, error) {
