@@ -43,16 +43,16 @@
 
 ### 环境变量
 
-| 币种                 | 变量名称            | 支持的值                                                    | 说明                      |
-|:------------------ |:--------------- |:------------------------------------------------------- |:----------------------- |
-| common             | ENV_COIN_NET    | main or test                                            |                         |
-|                    | ENV_COIN_TYPE   | filecoin bitcoin ethereum/usdterc20 spacemesh usdttrc20 | 如果此**plugin**支持多币种使用,分割 |
-|                    | ENV_COIN_API    | ip:port                                                 |                         |
-| ethereum/usdterc20 |                 |                                                         |                         |
-| filecoin           | ENV_COIN_TOKEN  |                                                         |                         |
-| bitcoin            | ENV_COIN_USER   |                                                         |                         |
-|                    | ENV_COIN_PASS   |                                                         |                         |
-| usdttrc20          | ENV_CONTRACT_ID |                                                         | 填写trc20的合约地址            |
+| 币种                 | 变量名称           | 支持的值                                                    | 说明                      |
+|:------------------ |:-------------- |:------------------------------------------------------- |:----------------------- |
+| common             | ENV_COIN_NET   | main or test                                            |                         |
+|                    | ENV_COIN_TYPE  | filecoin bitcoin ethereum/usdterc20 spacemesh usdttrc20 | 如果此**plugin**支持多币种使用,分割 |
+|                    | ENV_COIN_API   | ip:port                                                 |                         |
+| ethereum/usdterc20 |                |                                                         |                         |
+| filecoin           | ENV_COIN_TOKEN |                                                         |                         |
+| bitcoin            | ENV_COIN_USER  |                                                         |                         |
+|                    | ENV_COIN_PASS  |                                                         |                         |
+| usdttrc20          | ENV_CONTRACT   |                                                         | 填写trc20的合约地址            |
 
 1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**
@@ -62,11 +62,13 @@
 ### [新增币种的开发步骤](./newcoin.md)
 
 1. 必须要实现的接口
+   
    ```go
    func main(){
    
    }
    ```
+
 2. 注册新币种
 
 ------
@@ -74,14 +76,40 @@
 ### ethereum 部署
 
 1. 启动测试网
+
 2. 部署智能合约
+   
    1. 部署合约
       
       ```
       sphinx-plugin usdterc20 -addr 127.0.0.1 -port 8545
       ```
-   2. 上述的命令会返回合约的**ID**,设置到配置文件**contract_id**的值
+   
+   2. 上述的命令会返回合约的**ID**,设置到配置文件**ENV_CONTRACT**的值
+   
    3. 部署支持 ethereum/usdterc20 的 plugin
+
+### TRC20部署
+
+环境变量示例（例子中为波场neil的测试环境）
+
+```
+export ENV_COIN_NET=test  # main | test
+export ENV_COIN_TYPE=usdttrc20  # usdttrc20
+export ENV_CONTRACT=TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj
+export ENV_COIN_API=47.252.19.181:50051,grpc.nile.trongrid.io:50051  
+export ENV_PROXY='10.107.172.251:50001'
+export ENV_LOG_DIR=/var/log 
+export ENV_LOG_LEVEL=debug 
+```
+
+主网trc20合约
+
+TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t
+
+资源文档（官方endpoint、水龙头、测试网信息等）
+
+https://cn.developers.tron.network/docs/networks
 
 ### solana 部署
 
@@ -167,8 +195,8 @@ WantedBy=multi-user.target
 + **失败可以重试, 成功操作不可重试**
 + **注意 SQL 只更新了 filecoin 和 bitcoin 币种，其余可参考 filecoin 和 bitcoin, tfilecoin 和 tbitcoin 上报完成才可以执行**
 
-| 条件    | 升级 SQL                     |
-|:--------|:-----------------------------|
+| 条件      | 升级 SQL                       |
+|:------- |:---------------------------- |
 | mainnet | DO NOTHING                   |
 | testnet | [upgrade](./sql/upgrade.sql) |
 
