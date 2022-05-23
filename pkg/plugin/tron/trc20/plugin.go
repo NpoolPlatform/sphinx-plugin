@@ -88,12 +88,11 @@ func SyncTxState(ctx context.Context, cid string) (pending bool, exitcode int64,
 	logger.Sugar().Infof("transaction info {CID: %v ,ChainResult: %v ,ContractResult: %v ,Fee: %v }", cid, txInfo.GetResult(), txInfo.GetReceipt().GetResult(), txInfo.GetFee())
 
 	if txInfo.GetResult() != TransactionInfoSUCCESS {
-		return true, TransactionInfoFAILED, fmt.Errorf(txInfo.GetResult().String())
+		return true, TransactionInfoFAILED, fmt.Errorf("trc20 trasction fail ,%v , %v", txInfo.GetResult(), txInfo.GetReceipt().GetResult())
 	}
 
-	// receipt.resultcode = 0 is default value,1 is success
 	if txInfo.Receipt.GetResult() != core.Transaction_Result_SUCCESS {
-		return true, TransactionInfoFAILED, fmt.Errorf(txInfo.GetReceipt().GetResult().String())
+		return true, TransactionInfoFAILED, fmt.Errorf("trc20 trasction fail , %v", txInfo.GetReceipt().GetResult())
 	}
 
 	return true, 0, nil
