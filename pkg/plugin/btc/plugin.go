@@ -11,8 +11,8 @@ import (
 	"github.com/btcsuite/btcutil"
 )
 
-// BTCGas 0.001BTC
-const BTCGas = 0.001
+// BTCGas 0.00028BTC
+const BTCGas = 0.00028
 
 // ErrWaitMessageOnChainMinConfirms ..
 var ErrWaitMessageOnChainMinConfirms = errors.New("wait message on chain min confirms")

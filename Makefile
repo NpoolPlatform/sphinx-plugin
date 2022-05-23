@@ -21,7 +21,7 @@ go.mod:
 	go mod tidy
 
 deps:
-	go get ./...
+	go get -d ./...
 	go mod tidy
 
 ##@ Verify
@@ -51,10 +51,6 @@ verify-shellcheck: ## Runs shellcheck
 
 verify-spelling: ## Verifies spelling.
 	${REPO_ROOT}/hack/verify-spelling.sh
-
-gen-ent:
-	go get entgo.io/ent/cmd/ent
-	go run entgo.io/ent/cmd/ent generate --feature sql/upsert ./pkg/db/ent/schema
 
 all: verify-build
 
