@@ -3,8 +3,10 @@ package trc20
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/tron"
@@ -19,6 +21,12 @@ var (
 	ErrAddrNotValid = errors.New("invalid address")
 	// ErrTransactionFail ..
 	ErrTransactionFail = errors.New("transaction fail")
+)
+
+// redefine Code ,because github.com/fbsobreira/gotron-sdk/pkg/proto/core/Tron.pb.go line 564 spelling err
+const (
+	TransactionInfoSUCCESS = 0
+	TransactionInfoFAILED  = 1
 )
 
 func WalletBalance(ctx context.Context, wallet string) (balance *big.Int, err error) {
@@ -51,7 +59,6 @@ func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (e
 	if err != nil {
 		return err
 	}
-
 	result, err := client.BroadcastS(transaction)
 	if err != nil {
 		return err
@@ -66,26 +73,28 @@ func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (e
 }
 
 // done(on chain) => true
-func SyncTxState(ctx context.Context, cid string) (bool, error) {
+func SyncTxState(ctx context.Context, cid string) (pending bool, exitcode int64, err error) {
 	client, err := tron.Client()
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
 	txInfo, err := client.GetTransactionInfoByIDS(cid)
-	if err != nil {
-		return false, err
-	}
-	if txInfo == nil {
-		return false, ErrWaitMessageOnChain
+
+	if txInfo == nil || err != nil {
+		return false, 0, ErrWaitMessageOnChain
 	}
 
-	if txInfo.GetResult() != 0 {
-		return false, ErrTransactionFail
+	logger.Sugar().Infof("transaction info {CID: %v ,ChainResult: %v ,ContractResult: %v ,Fee: %v }", cid, txInfo.GetResult(), txInfo.GetReceipt().GetResult(), txInfo.GetFee())
+
+	if txInfo.GetResult() != TransactionInfoSUCCESS {
+		return true, TransactionInfoFAILED, fmt.Errorf(txInfo.GetResult().String())
 	}
 
-	if txInfo.Receipt.GetResult() == 1 {
-		return true, nil
+	// receipt.resultcode = 0 is default value,1 is success
+	if txInfo.Receipt.GetResult() != core.Transaction_Result_SUCCESS {
+		return true, TransactionInfoFAILED, fmt.Errorf(txInfo.GetReceipt().GetResult().String())
 	}
-	return false, ErrTransactionFail
+
+	return true, 0, nil
 }
