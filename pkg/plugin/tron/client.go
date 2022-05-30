@@ -19,8 +19,8 @@ func Init() {
 }
 
 const (
-	MinNodeNum  = 1
-	MaxRetryNum = 3
+	MinNodeNum = 1
+	MaxRetries = 3
 )
 
 type ClientI interface {
@@ -32,13 +32,13 @@ type ClientI interface {
 }
 
 type TClients struct {
-	EndPoints []string
-	RetryNum  uint
+	Endpoints []string
+	Retries   uint
 }
 
-func newTClients(retryNum uint, addrList []string) (*TClients, error) {
+func newTClients(retries uint, addrList []string) (*TClients, error) {
 	tronClient := &TClients{}
-	tronClient.RetryNum = retryNum
+	tronClient.Retries = retries
 	for _, addr := range addrList {
 		client := tronclient.NewGrpcClient(addr)
 		err := client.Start(grpc.WithInsecure())
@@ -46,18 +46,18 @@ func newTClients(retryNum uint, addrList []string) (*TClients, error) {
 			continue
 		}
 		client.Stop()
-		tronClient.EndPoints = append(tronClient.EndPoints, addr)
+		tronClient.Endpoints = append(tronClient.Endpoints, addr)
 	}
-	if len(tronClient.EndPoints) < MinNodeNum {
+	if len(tronClient.Endpoints) < MinNodeNum {
 		return tronClient, fmt.Errorf("too few nodes have been successfully connected,just %v nodes",
-			len(tronClient.EndPoints))
+			len(tronClient.Endpoints))
 	}
 	return tronClient, nil
 }
 
 func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
-	rIndex := rand.Intn(len(tClients.EndPoints))
-	addr := tClients.EndPoints[rIndex]
+	rIndex := rand.Intn(len(tClients.Endpoints))
+	addr := tClients.Endpoints[rIndex]
 	ntc := tronclient.NewGrpcClientWithTimeout(addr, 10*time.Second)
 	err := ntc.Start(grpc.WithInsecure())
 	if err != nil {
@@ -79,7 +79,7 @@ func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) error) erro
 func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error) {
 	var ret *big.Int
 	var err error
-	for i := 0; i < int(tClients.RetryNum); i++ {
+	for i := 0; i < int(tClients.Retries); i++ {
 		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
 			ret, err = client.TRC20ContractBalance(addr, contractAddress)
 			return err
@@ -94,7 +94,7 @@ func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*
 func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
 	var ret *api.TransactionExtention
 	var err error
-	for i := 0; i < int(tClients.RetryNum); i++ {
+	for i := 0; i < int(tClients.Retries); i++ {
 		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
 			ret, err = client.TRC20Send(from, to, contract, amount, feeLimit)
 			return err
@@ -109,7 +109,7 @@ func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int,
 func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) {
 	var ret *api.Return
 	var err error
-	for i := 0; i < int(tClients.RetryNum); i++ {
+	for i := 0; i < int(tClients.Retries); i++ {
 		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
 			ret, err = client.Broadcast(tx)
 			return err
@@ -127,7 +127,7 @@ func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) 
 func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error) {
 	var ret *core.TransactionInfo
 	var err error
-	for i := 0; i < int(tClients.RetryNum); i++ {
+	for i := 0; i < int(tClients.Retries); i++ {
 		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
 			ret, err = client.GetTransactionInfoByID(id)
 			return err
@@ -152,7 +152,10 @@ func Client() (*TClients, error) {
 
 	addrList := strings.Split(addrs, ",")
 
-	var err error
-	tClients, err = newTClients(MaxRetryNum, addrList)
-	return tClients, err
+	_tClients, err := newTClients(MaxRetries, addrList)
+	if err != nil {
+		return nil, err
+	}
+	tClients = _tClients
+	return tClients, nil
 }
