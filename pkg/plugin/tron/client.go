@@ -20,7 +20,7 @@ func Init() {
 
 const (
 	MinNodeNum  = 1
-	MaxRetryNum = 2
+	MaxRetryNum = 3
 )
 
 type ClientI interface {
@@ -32,8 +32,8 @@ type ClientI interface {
 }
 
 type TClients struct {
-	EndList  []string
-	RetryNum uint
+	EndPoints []string
+	RetryNum  uint
 }
 
 func newTClients(retryNum uint, addrList []string) (*TClients, error) {
@@ -46,18 +46,18 @@ func newTClients(retryNum uint, addrList []string) (*TClients, error) {
 			continue
 		}
 		client.Stop()
-		tronClient.EndList = append(tronClient.EndList, addr)
+		tronClient.EndPoints = append(tronClient.EndPoints, addr)
 	}
-	if len(tronClient.EndList) < MinNodeNum {
+	if len(tronClient.EndPoints) < MinNodeNum {
 		return tronClient, fmt.Errorf("too few nodes have been successfully connected,just %v nodes",
-			len(tronClient.EndList))
+			len(tronClient.EndPoints))
 	}
 	return tronClient, nil
 }
 
 func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
-	rIndex := rand.Intn(len(tClients.EndList))
-	addr := tClients.EndList[rIndex]
+	rIndex := rand.Intn(len(tClients.EndPoints))
+	addr := tClients.EndPoints[rIndex]
 	ntc := tronclient.NewGrpcClientWithTimeout(addr, 10*time.Second)
 	err := ntc.Start(grpc.WithInsecure())
 	if err != nil {
@@ -88,7 +88,7 @@ func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*
 			return ret, nil
 		}
 	}
-	return nil, fmt.Errorf("fail TRC20ContractBalanceS")
+	return nil, fmt.Errorf("fail TRC20ContractBalanceS, %v", err)
 }
 
 func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
@@ -103,7 +103,7 @@ func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int,
 			return ret, nil
 		}
 	}
-	return nil, fmt.Errorf("fail TRC20SendS")
+	return nil, fmt.Errorf("fail TRC20SendS, %v", err)
 }
 
 func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) {
@@ -121,7 +121,7 @@ func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) 
 			return ret, err
 		}
 	}
-	return nil, fmt.Errorf("fail BroadcastS")
+	return nil, fmt.Errorf("fail BroadcastS, %v", err)
 }
 
 func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error) {
@@ -136,7 +136,7 @@ func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionI
 			return ret, nil
 		}
 	}
-	return nil, fmt.Errorf("fail GetTransactionInfoByIDS")
+	return nil, fmt.Errorf("fail GetTransactionInfoByIDS, %v", err)
 }
 
 var tClients *TClients
@@ -149,6 +149,10 @@ func Client() (*TClients, error) {
 	if !ok {
 		return nil, env.ErrENVCoinAPINotFound
 	}
+
 	addrList := strings.Split(addrs, ",")
-	return newTClients(MaxRetryNum, addrList)
+
+	var err error
+	tClients, err = newTClients(MaxRetryNum, addrList)
+	return tClients, err
 }
