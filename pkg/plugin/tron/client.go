@@ -48,30 +48,37 @@ func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
 	return ntc, nil
 }
 
-func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) error) error {
-	client, err := tClients.GetNode()
-	if err != nil {
-		return err
+func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
+	localEndpoint := true
+	for i := 0; i < MaxRetries; i++ {
+		client, err := tClients.Peek(localEndpoint)
+		if err != nil {
+			return err
+		}
+		retry, err := fn(client)
+		if err != nil {
+			if !retry {
+				client.Stop()
+				return fmt.Errorf("fail run action: %v", err)
+			}
+		}
+		client.Stop()
+		localEndpoint = false
 	}
-	defer client.Stop()
-	return fn(client)
 }
 
 func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error) {
 	var ret *big.Int
 	var err error
 
-	tClients.localEndpoint = true
-	for i := 0; i < MaxRetries; i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.TRC20ContractBalance(addr, contractAddress)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-		tClients.localEndpoint = false
+	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
+		ret, err = client.TRC20ContractBalance(addr, contractAddress)
+		return false, err
+	})
+	if err == nil {
+		return ret, nil
 	}
+	
 	return nil, fmt.Errorf("fail TRC20ContractBalanceS, %v", err)
 }
 
