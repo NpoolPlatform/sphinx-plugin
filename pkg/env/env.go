@@ -13,6 +13,10 @@ const (
 	ENVCOINTYPE = "ENV_COIN_TYPE"
 
 	// fil btc ip:port
+<<<<<<< HEAD
+=======
+	ENVCOINAPI       = "ENV_COIN_API"
+>>>>>>> suport mutple-endpoints for tron
 	ENVCOINLOCALAPI  = "ENV_COIN_LOCAL_API"
 	ENVCOINPUBLICAPI = "ENV_COIN_PUBLIC_API"
 

@@ -31,7 +31,9 @@ type TClientI interface {
 	GetGRPCClient(localEndpoint bool) (*tronclient.GrpcClient, error)
 }
 
-type TClients struct{}
+type TClients struct {
+	localEndpoint bool
+}
 
 var jsonAPIMap map[string]string
 
