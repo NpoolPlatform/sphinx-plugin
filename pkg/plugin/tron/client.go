@@ -174,6 +174,7 @@ func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
 func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
 	var ret *api.TransactionExtention
 	var err error
+
 	for i := 0; i < int(tClients.Retries); i++ {
 		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
 			ret, err = client.Transfer(from, to, amount)
