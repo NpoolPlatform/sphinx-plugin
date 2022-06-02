@@ -6,14 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 )
 
 var (
-	thridAddrList []string
-	priAddrList   []string
-	allAddrList   []string
+	publicAddrList []string
+	localAddrList  []string
 )
 
 const (
@@ -21,55 +19,31 @@ const (
 	AddrMinLen    = 2
 )
 
-func Init() {
+func init() {
 	// read endpoints from env
-	_thridAddrs, _ := env.LookupEnv(env.ENVCOINAPI)
-	if len(_thridAddrs) < AddrMinLen {
-		thridAddrList = strings.Split(_thridAddrs, AddrDelimiter)
+	_publicAddrs, _ := env.LookupEnv(env.ENVCOINPUBLICAPI)
+	if len(_publicAddrs) > AddrMinLen {
+		publicAddrList = strings.Split(_publicAddrs, AddrDelimiter)
 	}
 
-	_priAddrs, _ := env.LookupEnv(env.ENVCOINPRIAPI)
-	if len(_priAddrs) < AddrMinLen {
-		priAddrList = strings.Split(_priAddrs, AddrDelimiter)
-	}
-
-	allAddrList = append(allAddrList, thridAddrList...)
-	allAddrList = append(allAddrList, priAddrList...)
-	if len(allAddrList) < 1 {
-		logger.Sugar().Errorf("fail to read any endpoints from env")
+	_localAddrs, _ := env.LookupEnv(env.ENVCOINLOCALAPI)
+	if len(_localAddrs) > AddrMinLen {
+		localAddrList = strings.Split(_localAddrs, AddrDelimiter)
 	}
 
 	rand.Seed(time.Now().Unix())
 }
 
-func peek(addrs []string) (string, error) {
-	if len(addrs) < 1 {
-		return "", fmt.Errorf("have no endpoints")
+func Peek(localEndpoint bool) (string, error) {
+	var allEndpoints []string
+	allEndpoints = append(allEndpoints, localAddrList...)
+	if !localEndpoint {
+		allEndpoints = append(allEndpoints, publicAddrList...)
 	}
-	randIndex := rand.Intn(len(addrs))
-	return addrs[randIndex], nil
-}
 
-func PeekPri() (string, error) {
-	ret, err := peek(priAddrList)
-	if err != nil {
-		return "", fmt.Errorf("have no private endpoints")
-	}
-	return ret, nil
-}
-
-func PeekThird() (string, error) {
-	ret, err := peek(thridAddrList)
-	if err != nil {
-		return "", fmt.Errorf("have no third endpoints")
-	}
-	return ret, nil
-}
-
-func Peek() (string, error) {
-	ret, err := peek(allAddrList)
-	if err != nil {
+	if len(allEndpoints) < 1 {
 		return "", fmt.Errorf("have no any endpoints")
 	}
-	return ret, nil
+	randIndex := rand.Intn(len(allEndpoints))
+	return allEndpoints[randIndex], nil
 }
