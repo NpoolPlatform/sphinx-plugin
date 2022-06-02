@@ -40,10 +40,12 @@ var jsonAPIMap map[string]string
 func init() {
 	jsonAPIMap = make(map[string]string)
 	var jsonApis []string
+
 	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCLOCALPORT); ok {
 		strs := strings.Split(v, endpoints.AddrSplitter)
 		jsonApis = append(jsonApis, strs...)
 	}
+
 	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCPUBLICPORT); ok {
 		strs := strings.Split(v, endpoints.AddrSplitter)
 		jsonApis = append(jsonApis, strs...)
