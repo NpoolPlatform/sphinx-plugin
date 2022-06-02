@@ -45,6 +45,7 @@ func Peek(mustLocalEndpoint bool) (endpoint string, isLocal bool, err error) {
 	if len(allEndpoints) < 1 {
 		return "", isLocalEndpoint, fmt.Errorf("have no any endpoints")
 	}
+
 	randIndex := rand.Intn(len(allEndpoints))
 	if randIndex < len(localAddrs) {
 		isLocalEndpoint = true
