@@ -1,206 +1,149 @@
 package eth
 
 import (
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"context"
+	"math/big"
+	"strings"
+
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-// TODO main init env and check, use conn pool
-func client() (*ethclient.Client, error) {
-	// TODO all env use cache
-	endpoint, ok := env.LookupEnv(env.ENVCOINAPI)
-	if !ok {
-		return nil, env.ErrENVCoinAPINotFound
+const (
+	MinNodeNum = 1
+	MaxRetries = 3
+)
+
+var (
+	ErrGasToLow   = "intrinsic gas too low"
+	ErrFundsToLow = "insufficient funds for gas * price + value"
+)
+
+type EClientI interface {
+	BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
+	PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error)
+	NetworkIDS(ctx context.Context) (*big.Int, error)
+	SuggestGasPriceS(ctx context.Context) (*big.Int, error)
+	SendTransactionS(ctx context.Context, tx *types.Transaction) error
+	TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error)
+	TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
+	GetNode(localEndpoint bool) (*ethclient.Client, error)
+}
+
+type EClients struct{}
+
+func (eClients EClients) GetNode(localEndpoint bool) (*ethclient.Client, error) {
+	addr, err := endpoints.Peek(localEndpoint)
+	if err != nil {
+		return nil, err
 	}
-
-	return ethclient.Dial(endpoint)
+	logger.Sugar().Infof("peek %v server", addr)
+	return ethclient.Dial(addr)
 }
 
-func Client() (*ethclient.Client, error) {
-	return client()
+func (eClients *EClients) withClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
+	var client *ethclient.Client
+	var err error
+	var retry bool
+	localEndpoint := true
+	for i := 0; i < MaxRetries; i++ {
+		client, err = eClients.GetNode(localEndpoint)
+		localEndpoint = false
+		if err != nil {
+			continue
+		}
+
+		retry, err = fn(ctx, client)
+		if err == nil || !retry {
+			return err
+		}
+	}
+	return err
 }
 
-// func Init() {
-// 	rand.Seed(time.Now().Unix())
-// }
+func (eClients EClients) BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
+	var ret *big.Int
+	var err error
 
-// const (
-// 	MinNodeNum  = 1
-// 	MaxRetryNum = 3
-// )
+	err = eClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.BalanceAt(ctx, account, blockNumber)
+		return true, err
+	})
 
-// var (
-// 	ErrGasToLow   = "intrinsic gas too low"
-// 	ErrFundsToLow = "insufficient funds for gas * price + value"
-// )
+	return ret, err
+}
 
-// type BClientI interface {
-// 	BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
-// 	PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error)
-// 	NetworkIDS(ctx context.Context) (*big.Int, error)
-// 	SuggestGasPriceS(ctx context.Context) (*big.Int, error)
-// 	SendTransactionS(ctx context.Context, tx *types.Transaction) error
-// 	TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error)
-// 	TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
-// 	GetNode() (*ethclient.Client, error)
-// }
+func (eClients EClients) PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error) {
+	var ret uint64
+	var err error
 
-// type BClients struct {
-// 	EndPoints []string
-// 	RetryNum  int
-// }
+	err = eClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.PendingNonceAt(ctx, account)
+		return true, err
+	})
 
-// func (bClients BClients) GetNode() (*ethclient.Client, error) {
-// 	randI := rand.Intn(len(bClients.EndPoints))
-// 	addr := bClients.EndPoints[randI]
-// 	return ethclient.Dial(addr)
-// }
+	return ret, err
+}
 
-// func (bClients *BClients) withClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) error) error {
-// 	client, err := bClients.GetNode()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer client.Close()
+func (eClients EClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
+	var ret *big.Int
+	var err error
 
-// 	return fn(ctx, client)
-// }
+	err = eClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.NetworkID(ctx)
+		return true, err
+	})
 
-// func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
-// 	var ret *big.Int
-// 	var err error
-// 	for i := 0; i < bClients.RetryNum; i++ {
-// 		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-// 			ret, err = c.BalanceAt(ctx, account, blockNumber)
-// 			return err
-// 		})
-// 		if err == nil {
-// 			return ret, nil
-// 		}
-// 	}
-// 	return ret, fmt.Errorf("fail BlanceAtS, %v", err)
-// }
+	return ret, err
+}
 
-// func (bClients BClients) PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error) {
-// 	var ret uint64
-// 	var err error
-// 	for i := 0; i < bClients.RetryNum; i++ {
-// 		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-// 			ret, err = c.PendingNonceAt(ctx, account)
-// 			return err
-// 		})
-// 		if err == nil {
-// 			return ret, nil
-// 		}
-// 	}
-// 	return ret, fmt.Errorf("fail PendingNonceAtS, %v", err)
-// }
+func (eClients EClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error) {
+	var ret *big.Int
+	var err error
 
-// func (bClients BClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
-// 	var ret *big.Int
-// 	var err error
-// 	for i := 0; i < bClients.RetryNum; i++ {
-// 		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-// 			ret, err = c.NetworkID(ctx)
-// 			return err
-// 		})
-// 		if err == nil {
-// 			return ret, nil
-// 		}
-// 	}
-// 	return ret, fmt.Errorf("fail NetworkIDS, %v", err)
-// }
+	err = eClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.SuggestGasPrice(ctx)
+		return true, err
+	})
 
-// func (bClients BClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error) {
-// 	var ret *big.Int
-// 	var err error
-// 	for i := 0; i < bClients.RetryNum; i++ {
-// 		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-// 			ret, err = c.SuggestGasPrice(ctx)
-// 			return err
-// 		})
-// 		if err == nil {
-// 			return ret, nil
-// 		}
-// 	}
-// 	return ret, fmt.Errorf("fail SuggestGasPriceS, %v", err)
-// }
+	return ret, err
+}
 
-// func (bClients BClients) SendTransactionS(ctx context.Context, tx *types.Transaction) error {
-// 	var err error
-// 	for i := 0; i < bClients.RetryNum; i++ {
-// 		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-// 			err = c.SendTransaction(ctx, tx)
-// 			return err
-// 		})
-// 		if err == nil {
-// 			return nil
-// 		}
-// 		if strings.Contains(err.Error(), ErrFundsToLow) || strings.Contains(err.Error(), ErrGasToLow) {
-// 			break
-// 		}
-// 	}
-// 	return fmt.Errorf("fail SendTransactionS, %v", err)
-// }
+func (eClients EClients) SendTransactionS(ctx context.Context, tx *types.Transaction) error {
+	var err error
 
-// func (bClients BClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
-// 	for i := 0; i < bClients.RetryNum; i++ {
-// 		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-// 			tx, isPending, err = c.TransactionByHash(ctx, hash)
-// 			return err
-// 		})
-// 		if err == nil {
-// 			return tx, isPending, nil
-// 		}
-// 	}
-// 	return tx, isPending, fmt.Errorf("fail TransactionByHashS, %v", err)
-// }
+	err = eClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		err = c.SendTransaction(ctx, tx)
+		if strings.Contains(err.Error(), ErrFundsToLow) || strings.Contains(err.Error(), ErrGasToLow) {
+			return false, err
+		}
+		return true, err
+	})
 
-// func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
-// 	var ret *types.Receipt
-// 	var err error
-// 	for i := 0; i < bClients.RetryNum; i++ {
-// 		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-// 			ret, err = c.TransactionReceipt(ctx, txHash)
-// 			return err
-// 		})
-// 		if err == nil {
-// 			return ret, nil
-// 		}
-// 	}
-// 	return ret, fmt.Errorf("fail TransactionReceiptS, %v", err)
-// }
+	return err
+}
 
-// func newBSCClients(retryNum int, endpoints []string) (*BClients, error) {
-// 	bscClients := &BClients{}
-// 	bscClients.RetryNum = retryNum
-// 	for _, endpoint := range endpoints {
-// 		client, err := ethclient.Dial(endpoint)
-// 		if err != nil {
-// 			continue
-// 		}
-// 		client.Close()
-// 		bscClients.EndPoints = append(bscClients.EndPoints, endpoint)
-// 	}
-// 	if len(bscClients.EndPoints) < MinNodeNum {
-// 		return bscClients, fmt.Errorf("too few nodes have been successfully connected,just %v nodes",
-// 			len(bscClients.EndPoints))
-// 	}
-// 	return bscClients, nil
-// }
+func (eClients EClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
+	err = eClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		tx, isPending, err = c.TransactionByHash(ctx, hash)
+		return true, err
+	})
+	return tx, isPending, err
+}
 
-// var bscClients *BClients
+func (eClients EClients) TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+	var ret *types.Receipt
+	var err error
+	err = eClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.TransactionReceipt(ctx, txHash)
+		return true, err
+	})
+	return ret, err
+}
 
-// func Client() (*BClients, error) {
-// 	if bscClients != nil {
-// 		return bscClients, nil
-// 	}
-// 	addrs, ok := env.LookupEnv(env.ENVCOINAPI)
-// 	if !ok {
-// 		return nil, env.ErrENVCoinAPINotFound
-// 	}
-// 	endpoints := strings.Split(addrs, ",")
-// 	var err error
-// 	bscClients, err = newBSCClients(MaxRetryNum, endpoints)
-// 	return bscClients, err
-// }
+func Client() EClientI {
+	return &EClients{}
+}
