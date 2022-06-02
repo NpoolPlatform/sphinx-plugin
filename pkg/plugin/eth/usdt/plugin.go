@@ -8,6 +8,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type BigUSDT struct {
@@ -15,14 +16,7 @@ type BigUSDT struct {
 	Balance *big.Int
 }
 
-// WalletBalance ..
-func WalletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
-	client, err := eth.Client()
-	if err != nil {
-		return nil, err
-	}
-	defer client.Close()
-
+func ERC20Balance(ctx context.Context, addr string, client *ethclient.Client) (*BigUSDT, error) {
 	chainID, err := client.NetworkID(ctx)
 	if err != nil {
 		return nil, err
@@ -60,4 +54,26 @@ func WalletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 		Decimal: decimal,
 		Balance: balance,
 	}, nil
+}
+
+// WalletBalance ..
+func WalletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
+	eClient := eth.Client()
+	var client *ethclient.Client
+	var err error
+	var ret *BigUSDT
+	localEndpoint := true
+	for i := 0; i < eth.MaxRetries; i++ {
+		client, err = eClient.GetNode(localEndpoint)
+		localEndpoint = false
+		if err != nil {
+			continue
+		}
+
+		ret, err = ERC20Balance(ctx, addr, client)
+		if err == nil {
+			break
+		}
+	}
+	return ret, err
 }

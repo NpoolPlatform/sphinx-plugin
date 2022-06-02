@@ -2,7 +2,6 @@ package tron
 
 import (
 	"math/big"
-	"math/rand"
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
@@ -13,31 +12,28 @@ import (
 	"google.golang.org/grpc"
 )
 
-func init() {
-	rand.Seed(time.Now().Unix())
-}
-
 const (
 	MinNodeNum = 1
 	MaxRetries = 3
 )
 
-type ClientI interface {
+type TClientI interface {
 	TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error)
 	TRC20SendS(from string, to string, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error)
 	BroadcastS(tx *core.Transaction) (*api.Return, error)
 	GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error)
-	GetNode() *tronclient.GrpcClient
+	GetNode(localEndpoint bool) (*tronclient.GrpcClient, error)
 }
 
 type TClients struct{}
 
 func (tClients *TClients) GetNode(localEndpoint bool) (*tronclient.GrpcClient, error) {
 	addr, err := endpoints.Peek(localEndpoint)
-	logger.Sugar().Info(addr)
 	if err != nil {
 		return nil, err
 	}
+	logger.Sugar().Infof("peek %v server", addr)
+
 	ntc := tronclient.NewGrpcClientWithTimeout(addr, 10*time.Second)
 	err = ntc.Start(grpc.WithInsecure())
 	if err != nil {
@@ -56,18 +52,14 @@ func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) (bool, erro
 
 	for i := 0; i < MaxRetries; i++ {
 		client, err = tClients.GetNode(localEndpoint)
-		if err != nil {
-			return err
-		}
 		localEndpoint = false
+		if err != nil {
+			continue
+		}
 		retry, err = fn(client)
 		client.Stop()
 
-		if err == nil {
-			return nil
-		}
-
-		if !retry {
+		if err == nil || !retry {
 			return err
 		}
 	}
@@ -125,13 +117,6 @@ func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionI
 	return ret, err
 }
 
-var tClients *TClients
-
-func Client() (*TClients, error) {
-	if tClients != nil {
-		return tClients, nil
-	}
-
-	tClients = &TClients{}
-	return tClients, nil
+func Client() TClientI {
+	return &TClients{}
 }
