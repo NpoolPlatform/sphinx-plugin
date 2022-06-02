@@ -10,25 +10,25 @@ import (
 )
 
 var (
-	publicAddrList []string
-	localAddrList  []string
+	publicAddrs []string
+	localAddrs  []string
 )
 
 const (
-	AddrDelimiter = ","
-	AddrMinLen    = 2
+	AddrSplitter = ","
+	AddrMinLen   = 2
 )
 
 func init() {
 	// read endpoints from env
 	_publicAddrs, _ := env.LookupEnv(env.ENVCOINPUBLICAPI)
 	if len(_publicAddrs) > AddrMinLen {
-		publicAddrList = strings.Split(_publicAddrs, AddrDelimiter)
+		publicAddrs = strings.Split(_publicAddrs, AddrSplitter)
 	}
 
 	_localAddrs, _ := env.LookupEnv(env.ENVCOINLOCALAPI)
 	if len(_localAddrs) > AddrMinLen {
-		localAddrList = strings.Split(_localAddrs, AddrDelimiter)
+		localAddrs = strings.Split(_localAddrs, AddrSplitter)
 	}
 
 	rand.Seed(time.Now().Unix())
@@ -36,9 +36,9 @@ func init() {
 
 func Peek(localEndpoint bool) (string, error) {
 	var allEndpoints []string
-	allEndpoints = append(allEndpoints, localAddrList...)
+	allEndpoints = append(allEndpoints, localAddrs...)
 	if !localEndpoint {
-		allEndpoints = append(allEndpoints, publicAddrList...)
+		allEndpoints = append(allEndpoints, publicAddrs...)
 	}
 
 	if len(allEndpoints) < 1 {

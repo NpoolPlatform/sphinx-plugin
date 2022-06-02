@@ -1,11 +1,11 @@
 package tron
 
 import (
-	"fmt"
 	"math/big"
 	"math/rand"
 	"time"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
@@ -30,12 +30,11 @@ type ClientI interface {
 	GetNode() *tronclient.GrpcClient
 }
 
-type TClients struct {
-	localEndpoint bool
-}
+type TClients struct{}
 
-func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
-	addr, err := endpoints.Peek(tClients.localEndpoint)
+func (tClients *TClients) GetNode(localEndpoint bool) (*tronclient.GrpcClient, error) {
+	addr, err := endpoints.Peek(localEndpoint)
+	logger.Sugar().Info(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -50,21 +49,29 @@ func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
 
 func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
 	localEndpoint := true
+
+	var err error
+	var retry bool
+	var client *tronclient.GrpcClient
+
 	for i := 0; i < MaxRetries; i++ {
-		client, err := tClients.Peek(localEndpoint)
+		client, err = tClients.GetNode(localEndpoint)
 		if err != nil {
 			return err
 		}
-		retry, err := fn(client)
-		if err != nil {
-			if !retry {
-				client.Stop()
-				return fmt.Errorf("fail run action: %v", err)
-			}
-		}
-		client.Stop()
 		localEndpoint = false
+		retry, err = fn(client)
+		client.Stop()
+
+		if err == nil {
+			return nil
+		}
+
+		if !retry {
+			return err
+		}
 	}
+	return err
 }
 
 func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
@@ -107,70 +114,49 @@ func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*
 
 	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
 		ret, err = client.TRC20ContractBalance(addr, contractAddress)
-		return false, err
+		return true, err
 	})
-	if err == nil {
-		return ret, nil
-	}
-	
-	return nil, fmt.Errorf("fail TRC20ContractBalanceS, %v", err)
+
+	return ret, err
 }
 
 func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
 	var ret *api.TransactionExtention
 	var err error
 
-	tClients.localEndpoint = true
-	for i := 0; i < MaxRetries; i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.TRC20Send(from, to, contract, amount, feeLimit)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-		tClients.localEndpoint = false
-	}
-	return nil, fmt.Errorf("fail TRC20SendS, %v", err)
+	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
+		ret, err = client.TRC20Send(from, to, contract, amount, feeLimit)
+		return true, err
+	})
+
+	return ret, err
 }
 
 func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) {
 	var ret *api.Return
 	var err error
 
-	tClients.localEndpoint = true
-	for i := 0; i < MaxRetries; i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.Broadcast(tx)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
+	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
+		ret, err = client.Broadcast(tx)
 		if err != nil && ret.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
-			return ret, err
+			return false, err
 		}
-		tClients.localEndpoint = false
-	}
-	return nil, fmt.Errorf("fail BroadcastS, %v", err)
+		return true, err
+	})
+
+	return ret, err
 }
 
 func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error) {
 	var ret *core.TransactionInfo
 	var err error
 
-	tClients.localEndpoint = true
-	for i := 0; i < MaxRetries; i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.GetTransactionInfoByID(id)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-		tClients.localEndpoint = false
-	}
-	return nil, fmt.Errorf("fail GetTransactionInfoByIDS, %v", err)
+	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
+		ret, err = client.GetTransactionInfoByID(id)
+		return true, err
+	})
+
+	return ret, err
 }
 
 var tClients *TClients
