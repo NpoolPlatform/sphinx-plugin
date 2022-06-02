@@ -27,6 +27,7 @@ func NewClient() (*rpc.Client, error) {
 
 func client() (*rpc.Client, error) {
 	var err error
+
 	if rpcClient == nil {
 		rpcClient, err = NewClient()
 		return rpcClient, err
