@@ -26,6 +26,10 @@ const (
 
 	// for eth/usdt
 	ENVCONTRACT = "ENV_CONTRACT"
+
+	// for tron
+	ENVCOINJSONRPCPORT = "ENV_COIN_JSONRPC_PORT"
+	ENVCOINGRPCPORT    = "ENV_COIN_GRPC_PORT"
 )
 
 var (
@@ -48,6 +52,10 @@ var (
 
 	// eth/usdt
 	ErrENVContractNotFound = errors.New("env ENV_CONTRACT not found")
+
+	// tron
+	ErrENVCOINJSONRPCPortFound = errors.New("env ENV_COIN_JSONRPC_PORT not found")
+	ErrENVCOINGRPCPortFound    = errors.New("env ENV_COIN_GRPC_PORT not found")
 )
 
 func LookupEnv(key string) (string, bool) {
