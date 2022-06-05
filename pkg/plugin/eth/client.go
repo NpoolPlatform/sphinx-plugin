@@ -2,6 +2,7 @@ package eth
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -54,6 +55,17 @@ func (eClients *EClients) withClient(ctx context.Context, fn func(ctx context.Co
 		localEndpoint = false
 		if err != nil {
 			continue
+		}
+
+		syncRet, _err := client.SyncProgress(ctx)
+		if _err != nil {
+			return _err
+		}
+		if syncRet != nil {
+			return fmt.Errorf(
+				"node is syncing ,current block %v ,highest block %v ",
+				syncRet.CurrentBlock, syncRet.HighestBlock,
+			)
 		}
 
 		retry, err = fn(ctx, client)
