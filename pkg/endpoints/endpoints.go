@@ -16,7 +16,7 @@ var (
 
 const (
 	AddrSplitter = ","
-	AddrMinLen   = 2
+	AddrMinLen   = 3
 )
 
 func init() {
