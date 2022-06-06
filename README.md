@@ -102,10 +102,17 @@ export ENV_COIN_NET=test  # main | test
 export ENV_COIN_TYPE=usdttrc20  # usdttrc20
 export ENV_CONTRACT=TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj
 # 地址和其他币种不同，不用加端口，端口值在其他环境变量中
+<<<<<<< HEAD
 export ENV_COIN_PUBLIC_API=grpc.nile.trongrid.io:50051,grpc.nile.trongrid.io:50051 # 提供grpc-api的地址
 export ENV_COIN_LOCAL_API=47.252.19.181:50051
 export ENV_COIN_JSONRPC_LOCAL_API=47.252.19.181:50545
 export ENV_COIN_JSONRPC_PUBLIC_API=
+=======
+export ENV_COIN_PUBLIC_API=grpc.nile.trongrid.io,grpc.nile.trongrid.io # 提供grpc-api的地址
+export ENV_COIN_LOCAL_API=47.252.19.181
+export ENV_COIN_GRPC_PORT=50051  # 官方节点默认端口
+export ENV_COIN_JSONRPC_PORT=50545 # 官方节点默认端口
+>>>>>>> add a description about multiple-endpoints to readme
 export ENV_PROXY='10.107.172.251:50001'
 export ENV_LOG_DIR=/var/log 
 export ENV_LOG_LEVEL=debug 
