@@ -23,9 +23,9 @@ func client() (*rpcclient.Client, error) {
 	*/
 
 	// TODO all env use cache
-	host, ok := env.LookupEnv(env.ENVCOINAPI)
+	host, ok := env.LookupEnv(env.ENVCOINLOCALAPI)
 	if !ok {
-		return nil, env.ErrENVCoinAPINotFound
+		return nil, env.ErrENVCoinLocalAPINotFound
 	}
 	user, ok := env.LookupEnv(env.ENVCOINUSER)
 	if !ok {
@@ -45,5 +45,14 @@ func client() (*rpcclient.Client, error) {
 		DisableTLS:   true,
 	}
 
-	return rpcclient.New(connCfg, nil)
+	cli, err := rpcclient.New(connCfg, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if synced, err := WalletIsSync(cli); !synced {
+		return nil, err
+	}
+
+	return cli, nil
 }

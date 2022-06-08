@@ -33,38 +33,53 @@ type TClientI interface {
 
 type TClients struct{}
 
+var jsonAPIMap map[string]string
+
+func init() {
+	jsonAPIMap = make(map[string]string)
+	var jsonApis []string
+	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCLOCALPORT); ok {
+		strs := strings.Split(v, endpoints.AddrSplitter)
+		jsonApis = append(jsonApis, strs...)
+	}
+	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCPUBLICPORT); ok {
+		strs := strings.Split(v, endpoints.AddrSplitter)
+		jsonApis = append(jsonApis, strs...)
+	}
+
+	for _, v := range jsonApis {
+		strs := strings.Split(v, ":")
+		if len(strs) < 2 {
+			continue
+		}
+		jsonAPIMap[strs[0]] = strs[1]
+	}
+}
+
 func (tClients *TClients) GetGRPCClient(localEndpoint bool) (*tronclient.GrpcClient, error) {
-	grpcport, ok := env.LookupEnv(env.ENVCOINGRPCPORT)
-	if !ok {
-		return nil, env.ErrENVCOINGRPCPortFound
-	}
-
-	jsonrpcport, ok := env.LookupEnv(env.ENVCOINJSONRPCPORT)
-	if !ok {
-		return nil, env.ErrENVCOINJSONRPCPortFound
-	}
-
-	addr, err := endpoints.Peek(localEndpoint)
+	addr, isLocal, err := endpoints.Peek(localEndpoint)
 	if err != nil {
 		return nil, err
 	}
-	syncRet, _err := tClients.SyncProgress(addr, jsonrpcport)
+	strs := strings.Split(addr, ":")
 
-	if _err != nil {
-		logger.Sugar().Error(_err)
-		return nil, _err
+	if isLocal {
+		port := jsonAPIMap[strs[0]]
+		syncRet, _err := tClients.SyncProgress(strs[0], port)
+		if _err != nil {
+			logger.Sugar().Error(_err)
+			return nil, _err
+		}
+
+		if syncRet != nil {
+			return nil, fmt.Errorf(
+				"node is syncing ,current block %v ,highest block %v ",
+				syncRet.Result.CurrentBlock, syncRet.Result.HighestBlock,
+			)
+		}
 	}
-	if syncRet != nil {
-		return nil, fmt.Errorf(
-			"node is syncing ,current block %v ,highest block %v ",
-			syncRet.Result.CurrentBlock, syncRet.Result.HighestBlock,
-		)
-	}
 
-	endpoint := fmt.Sprintf("%v:%v", addr, grpcport)
-	logger.Sugar().Infof("peek %v server", endpoint)
-
-	ntc := tronclient.NewGrpcClientWithTimeout(endpoint, 10*time.Second)
+	ntc := tronclient.NewGrpcClientWithTimeout(addr, 10*time.Second)
 	err = ntc.Start(grpc.WithInsecure())
 	if err != nil {
 		return nil, err
