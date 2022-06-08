@@ -17,9 +17,9 @@ func client() (v0api.FullNode, jsonrpc.ClientCloser, error) {
 	}
 	headers := http.Header{"Authorization": []string{"Bearer " + authToken}}
 
-	addr, ok := env.LookupEnv(env.ENVCOINAPI)
+	addr, ok := env.LookupEnv(env.ENVCOINLOCALAPI)
 	if !ok {
-		return nil, nil, env.ErrENVCoinAPINotFound
+		return nil, nil, env.ErrENVCoinLocalAPINotFound
 	}
 
 	var api v0api.FullNodeStruct

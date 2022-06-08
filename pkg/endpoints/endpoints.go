@@ -34,16 +34,21 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-func Peek(localEndpoint bool) (string, error) {
+func Peek(mustLocalEndpoint bool) (endpoint string, isLocal bool, err error) {
 	var allEndpoints []string
+	var isLocalEndpoint bool
 	allEndpoints = append(allEndpoints, localAddrs...)
-	if !localEndpoint {
+	if !mustLocalEndpoint {
 		allEndpoints = append(allEndpoints, publicAddrs...)
 	}
 
 	if len(allEndpoints) < 1 {
-		return "", fmt.Errorf("have no any endpoints")
+		return "", isLocalEndpoint, fmt.Errorf("have no any endpoints")
 	}
 	randIndex := rand.Intn(len(allEndpoints))
-	return allEndpoints[randIndex], nil
+	if randIndex < len(localAddrs) {
+		isLocalEndpoint = true
+	}
+
+	return allEndpoints[randIndex], isLocalEndpoint, nil
 }
