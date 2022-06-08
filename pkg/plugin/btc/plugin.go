@@ -3,10 +3,12 @@ package btc
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 )
@@ -16,6 +18,21 @@ const BTCGas = 0.00028
 
 // ErrWaitMessageOnChainMinConfirms ..
 var ErrWaitMessageOnChainMinConfirms = errors.New("wait message on chain min confirms")
+
+func WalletIsSync(cli *rpcclient.Client) (bool, error) {
+	rets, err := cli.GetBlockChainInfo()
+	if err != nil {
+		return false, err
+	}
+
+	if rets.Headers < rets.Blocks {
+		return false, fmt.Errorf(
+			"wallet is not completed synchronization, current height %v, heightest height %v",
+			rets.Headers, rets.Blocks)
+	}
+
+	return true, nil
+}
 
 // WalletBalance ..
 func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {

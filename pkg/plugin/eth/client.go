@@ -37,7 +37,7 @@ type EClientI interface {
 type EClients struct{}
 
 func (eClients EClients) GetNode(localEndpoint bool) (*ethclient.Client, error) {
-	addr, err := endpoints.Peek(localEndpoint)
+	addr, _, err := endpoints.Peek(localEndpoint)
 	if err != nil {
 		return nil, err
 	}

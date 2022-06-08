@@ -11,9 +11,9 @@ import (
 var rpcClient *rpc.Client
 
 func NewClient() (*rpc.Client, error) {
-	addr, ok := env.LookupEnv(env.ENVCOINAPI)
+	addr, ok := env.LookupEnv(env.ENVCOINLOCALAPI)
 	if !ok {
-		return nil, env.ErrENVCoinAPINotFound
+		return nil, env.ErrENVCoinLocalAPINotFound
 	}
 	client := rpc.New(addr)
 
