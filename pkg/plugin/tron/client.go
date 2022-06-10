@@ -76,6 +76,40 @@ func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) error) erro
 	return fn(client)
 }
 
+func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
+	var ret int64
+	var err error
+	for i := 0; i < int(tClients.Retries); i++ {
+		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
+			acc, err := client.GetAccount(addr)
+			if err != nil {
+				return err
+			}
+			ret = acc.GetBalance()
+			return nil
+		})
+		if err == nil {
+			return ret, nil
+		}
+	}
+	return ret, fmt.Errorf("fail TRC20ContractBalanceS, %v", err)
+}
+
+func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
+	var ret *api.TransactionExtention
+	var err error
+	for i := 0; i < int(tClients.Retries); i++ {
+		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
+			ret, err = client.Transfer(from, to, amount)
+			return err
+		})
+		if err == nil {
+			return ret, nil
+		}
+	}
+	return nil, fmt.Errorf("fail TransferS, %v", err)
+}
+
 func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error) {
 	var ret *big.Int
 	var err error

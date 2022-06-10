@@ -25,6 +25,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth/usdt"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/fil"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/sol"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/tron"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/tron/trc20"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
@@ -240,6 +241,9 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 
 	sphinxplugin.CoinType_CoinTypeusdttrc20:  pluginTRC20,
 	sphinxplugin.CoinType_CoinTypetusdttrc20: pluginTRC20,
+
+	sphinxplugin.CoinType_CoinTypetron:  pluginTRX,
+	sphinxplugin.CoinType_CoinTypettron: pluginTRX,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
@@ -566,6 +570,7 @@ func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	return nil
 }
 
+// nolint
 func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
 	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
 	defer cancel()
@@ -577,7 +582,7 @@ func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 			return err
 		}
 
-		f := trc20.ToFloat(bl)
+		f := tron.TRC20ToBigFloat(bl)
 		resp.Balance, _ = f.Float64()
 		resp.BalanceStr = f.Text('f', 10)
 	case sphinxproxy.TransactionType_PreSign:
@@ -604,14 +609,14 @@ func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 			return err
 		}
 
-		err = trc20.BroadcastTransaction(ctx, tx.Transaction)
+		err = tron.BroadcastTransaction(ctx, tx.Transaction)
 		if err != nil {
 			return err
 		}
 		resp.CID = common.BytesToHexString(tx.GetTxid())
 	case sphinxproxy.TransactionType_SyncMsgState:
-		pending, exitcode, err := trc20.SyncTxState(ctx, req.GetCID())
-		if exitcode == trc20.TransactionInfoFAILED {
+		pending, exitcode, err := tron.SyncTxState(ctx, req.GetCID())
+		if exitcode == tron.TransactionInfoFAILED {
 			resp.ExitCode = exitcode
 			return nil
 		}
@@ -620,7 +625,68 @@ func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 			return err
 		}
 		if !pending {
-			return trc20.ErrWaitMessageOnChain
+			return tron.ErrWaitMessageOnChain
+		}
+	}
+	return nil
+}
+
+// nolint
+func pluginTRX(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		bl, err := tron.WalletBalance(ctx, req.GetAddress())
+		if err != nil {
+			return err
+		}
+
+		f := tron.TRXToBigFloat(bl)
+		resp.Balance, _ = f.Float64()
+		resp.BalanceStr = f.Text('f', 10)
+	case sphinxproxy.TransactionType_PreSign:
+		txExtension, err := tron.Transfer(ctx, req)
+		if err != nil {
+			return err
+		}
+
+		txData, err := json.Marshal(txExtension)
+		if err != nil {
+			return err
+		}
+
+		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
+		resp.Message.TxData = txData
+	case sphinxproxy.TransactionType_Broadcast:
+		tx := &api.TransactionExtention{}
+		txData := req.GetMessage().GetTxData()
+		err := json.Unmarshal(txData, tx)
+		if err != nil {
+			return err
+		}
+
+		err = tron.BroadcastTransaction(ctx, tx.Transaction)
+		if err != nil {
+			return err
+		}
+		resp.CID = common.BytesToHexString(tx.GetTxid())
+	case sphinxproxy.TransactionType_SyncMsgState:
+		pending, exitcode, err := tron.SyncTxState(ctx, req.GetCID())
+		if exitcode == tron.TransactionInfoFAILED {
+			resp.ExitCode = exitcode
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+		if !pending {
+			return tron.ErrWaitMessageOnChain
 		}
 	}
 	return nil
