@@ -29,7 +29,7 @@ const (
 func WalletBalance(ctx context.Context, wallet string) (balance int64, err error) {
 	client, err := Client()
 	if err != nil {
-		return int64(0), err
+		return EmptyTRX, err
 	}
 	return client.TRXBalanceS(wallet)
 }

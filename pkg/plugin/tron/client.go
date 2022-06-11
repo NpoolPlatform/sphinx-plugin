@@ -92,7 +92,7 @@ func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
 			return ret, nil
 		}
 	}
-	return ret, fmt.Errorf("fail TRC20ContractBalanceS, %v", err)
+	return ret, fmt.Errorf("fail TRXBalanceS, %v", err)
 }
 
 func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
@@ -107,7 +107,7 @@ func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.Tran
 			return ret, nil
 		}
 	}
-	return nil, fmt.Errorf("fail TransferS, %v", err)
+	return nil, fmt.Errorf("fail TRXTransferS, %v", err)
 }
 
 func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error) {
