@@ -584,7 +584,7 @@ func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 
 		f := tron.TRC20ToBigFloat(bl)
 		resp.Balance, _ = f.Float64()
-		resp.BalanceStr = f.Text('f', 10)
+		resp.BalanceStr = f.Text('f', tron.TRC20ACCURACY)
 	case sphinxproxy.TransactionType_PreSign:
 		txExtension, err := trc20.TransactionSend(ctx, req)
 		if err != nil {
@@ -645,7 +645,7 @@ func pluginTRX(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 
 		f := tron.TRXToBigFloat(bl)
 		resp.Balance, _ = f.Float64()
-		resp.BalanceStr = f.Text('f', 10)
+		resp.BalanceStr = f.Text('f', tron.TRXACCURACY)
 	case sphinxproxy.TransactionType_PreSign:
 		txExtension, err := tron.Transfer(ctx, req)
 		if err != nil {
