@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220404143809-82c40930388a
-	github.com/NpoolPlatform/message v0.0.0-20220520115554-2c9bbb3dbe95
+	github.com/NpoolPlatform/message v0.0.0-20220610033203-71cfcc899eda
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
@@ -19,7 +19,7 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/viper v1.10.0
 	github.com/urfave/cli/v2 v2.3.0
-	google.golang.org/grpc v1.46.0
+	google.golang.org/grpc v1.46.2
 )
 
 require (
