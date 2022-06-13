@@ -8,7 +8,7 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
@@ -75,7 +75,7 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 
 	return &PreSignInfo{
 		ChainID:    chainID.Int64(),
-		ContractID: plugin.USDTContract(chainID.Int64()),
+		ContractID: coins.USDTContractID(chainID.Int64()),
 		Nonce:      nonce,
 		GasPrice:   gasPrice.Int64(),
 		GasLimit:   gasLimit,
