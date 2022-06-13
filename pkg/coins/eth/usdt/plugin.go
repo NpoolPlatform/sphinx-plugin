@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -32,7 +32,7 @@ func WalletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 		return nil, eth.ErrAddrNotValid
 	}
 
-	tetherERC20Token, err := NewTetherToken(common.HexToAddress(plugin.USDTContractID(chainID.Int64())), client)
+	tetherERC20Token, err := NewTetherToken(common.HexToAddress(coins.USDTContractID(chainID.Int64())), client)
 	if err != nil {
 		return nil, err
 	}
