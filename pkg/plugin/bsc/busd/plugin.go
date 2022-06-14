@@ -3,6 +3,7 @@ package busd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
@@ -48,6 +49,16 @@ func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
 	}
 	for i := 0; i < bsc.MaxRetryNum; i++ {
 		err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+			syncRet, err := c.SyncProgress(ctx)
+			if err != nil {
+				return err
+			}
+			if syncRet.CurrentBlock < syncRet.HighestBlock {
+				return fmt.Errorf(
+					"node is syncing ,current block %v ,highest block %v ",
+					syncRet.CurrentBlock, syncRet.HighestBlock,
+				)
+			}
 			ret, err = Bep20Balance(ctx, addr, c)
 			return err
 		})
