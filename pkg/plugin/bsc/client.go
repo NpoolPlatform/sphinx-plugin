@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -47,7 +46,6 @@ type BClients struct {
 
 func (bClients BClients) GetNode() (*ethclient.Client, error) {
 	randI := rand.Intn(len(bClients.EndPoints))
-	logger.Sugar().Error(randI)
 	addr := bClients.EndPoints[randI]
 	return ethclient.Dial(addr)
 }
@@ -58,17 +56,6 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 	defer client.Close()
-	syncRet, err := client.SyncProgress(ctx)
-	if err != nil {
-		return err
-	}
-	logger.Sugar().Errorf("sssss %v ssssssssss%v %v", syncRet.CurrentBlock, syncRet.HighestBlock)
-	if syncRet.CurrentBlock < syncRet.HighestBlock {
-		return fmt.Errorf(
-			"node is syncing ,current block %v ,highest block %v ",
-			syncRet.CurrentBlock, syncRet.HighestBlock,
-		)
-	}
 
 	return fn(ctx, client)
 }
@@ -78,7 +65,18 @@ func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address,
 	var err error
 	for i := 0; i < bClients.RetryNum; i++ {
 		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+			syncRet, err := c.SyncProgress(ctx)
+			if err != nil {
+				return err
+			}
+			if syncRet.CurrentBlock < syncRet.HighestBlock {
+				return fmt.Errorf(
+					"node is syncing ,current block %v ,highest block %v ",
+					syncRet.CurrentBlock, syncRet.HighestBlock,
+				)
+			}
 			ret, err = c.BalanceAt(ctx, account, blockNumber)
+
 			return err
 		})
 		if err == nil {
