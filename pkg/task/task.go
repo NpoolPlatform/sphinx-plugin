@@ -752,61 +752,6 @@ func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	return nil
 }
 
-// nolint
-func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
-	defer cancel()
-
-	switch req.GetTransactionType() {
-	case sphinxproxy.TransactionType_Balance:
-		bl, err := bsc.WalletBalance(ctx, req.GetAddress())
-		if err != nil {
-			return err
-		}
-
-		balance, ok := big.NewFloat(0).SetString(bl.String())
-		if !ok {
-			return errors.New("convert balance string to float64 error")
-		}
-		balance.Quo(balance, big.NewFloat(math.Pow10(18)))
-		f, exact := balance.Float64()
-		if exact != big.Exact {
-			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
-		}
-
-		resp.Balance = f
-		resp.BalanceStr = balance.String()
-	case sphinxproxy.TransactionType_PreSign:
-		preSignInfo, err := bsc.PreSign(ctx, req.GetCoinType(), req.GetAddress())
-		if err != nil {
-			return err
-		}
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		resp.Message.ChainID = preSignInfo.ChainID
-		resp.Message.Nonce = preSignInfo.Nonce
-		resp.Message.GasPrice = preSignInfo.GasPrice
-		resp.Message.GasLimit = preSignInfo.GasLimit
-	case sphinxproxy.TransactionType_Broadcast:
-		txHash, err := bsc.SendRawTransaction(ctx, req.GetSignedRawTxHex())
-		if err != nil {
-			return err
-		}
-		resp.CID = txHash
-	case sphinxproxy.TransactionType_SyncMsgState:
-		pending, err := bsc.SyncTxState(ctx, req.GetCID())
-		if err != nil {
-			return err
-		}
-		if !pending {
-			return bsc.ErrWaitMessageOnChain
-		}
-	}
-	return nil
-}
-
 func checkCode(err error) bool {
 	if err == io.EOF ||
 		status.Code(err) == codes.Unavailable ||

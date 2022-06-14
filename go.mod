@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220404143809-82c40930388a
-	github.com/NpoolPlatform/message v0.0.0-20220610033203-71cfcc899eda
+	github.com/NpoolPlatform/message v0.0.0-20220614090435-1c97b1765963
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
