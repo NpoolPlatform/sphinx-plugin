@@ -53,7 +53,7 @@ func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
 			if err != nil {
 				return err
 			}
-			if syncRet.CurrentBlock < syncRet.HighestBlock {
+			if syncRet != nil && syncRet.CurrentBlock < syncRet.HighestBlock {
 				return fmt.Errorf(
 					"node is syncing ,current block %v ,highest block %v ",
 					syncRet.CurrentBlock, syncRet.HighestBlock,
