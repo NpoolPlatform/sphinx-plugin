@@ -82,9 +82,7 @@ func newClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 }
 
 func delayNewClient(exitSig chan os.Signal, cleanChan chan struct{}) {
-	logger.Sugar().Info("start try to create new plugin client")
 	time.Sleep(delayDuration)
-	logger.Sugar().Info("start try to create new plugin client end")
 	go newClient(exitSig, cleanChan)
 }
 
@@ -644,6 +642,7 @@ func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	case sphinxproxy.TransactionType_Balance:
 		bl, err := bsc.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
+			logger.Sugar().Errorf("get balance fail: %v", err)
 			return err
 		}
 

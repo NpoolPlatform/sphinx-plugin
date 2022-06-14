@@ -69,7 +69,7 @@ func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address,
 			if err != nil {
 				return err
 			}
-			if syncRet.CurrentBlock < syncRet.HighestBlock {
+			if syncRet != nil && syncRet.CurrentBlock < syncRet.HighestBlock {
 				return fmt.Errorf(
 					"node is syncing ,current block %v ,highest block %v ",
 					syncRet.CurrentBlock, syncRet.HighestBlock,
