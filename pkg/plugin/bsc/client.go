@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -46,16 +47,28 @@ type BClients struct {
 
 func (bClients BClients) GetNode() (*ethclient.Client, error) {
 	randI := rand.Intn(len(bClients.EndPoints))
+	logger.Sugar().Error(randI)
 	addr := bClients.EndPoints[randI]
 	return ethclient.Dial(addr)
 }
 
-func (bClients *BClients) withClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) error) error {
+func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) error) error {
 	client, err := bClients.GetNode()
 	if err != nil {
 		return err
 	}
 	defer client.Close()
+	syncRet, err := client.SyncProgress(ctx)
+	if err != nil {
+		return err
+	}
+	logger.Sugar().Errorf("sssss %v ssssssssss%v %v", syncRet.CurrentBlock, syncRet.HighestBlock)
+	if syncRet.CurrentBlock < syncRet.HighestBlock {
+		return fmt.Errorf(
+			"node is syncing ,current block %v ,highest block %v ",
+			syncRet.CurrentBlock, syncRet.HighestBlock,
+		)
+	}
 
 	return fn(ctx, client)
 }
@@ -64,7 +77,7 @@ func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address,
 	var ret *big.Int
 	var err error
 	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
 			ret, err = c.BalanceAt(ctx, account, blockNumber)
 			return err
 		})
@@ -79,7 +92,7 @@ func (bClients BClients) PendingNonceAtS(ctx context.Context, account common.Add
 	var ret uint64
 	var err error
 	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
 			ret, err = c.PendingNonceAt(ctx, account)
 			return err
 		})
@@ -94,7 +107,7 @@ func (bClients BClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
 	var ret *big.Int
 	var err error
 	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
 			ret, err = c.NetworkID(ctx)
 			return err
 		})
@@ -109,7 +122,7 @@ func (bClients BClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error)
 	var ret *big.Int
 	var err error
 	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
 			ret, err = c.SuggestGasPrice(ctx)
 			return err
 		})
@@ -123,7 +136,7 @@ func (bClients BClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error)
 func (bClients BClients) SendTransactionS(ctx context.Context, tx *types.Transaction) error {
 	var err error
 	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
 			err = c.SendTransaction(ctx, tx)
 			return err
 		})
@@ -139,7 +152,7 @@ func (bClients BClients) SendTransactionS(ctx context.Context, tx *types.Transac
 
 func (bClients BClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
 	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
 			tx, isPending, err = c.TransactionByHash(ctx, hash)
 			return err
 		})
@@ -154,7 +167,7 @@ func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.
 	var ret *types.Receipt
 	var err error
 	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.withClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
+		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
 			ret, err = c.TransactionReceipt(ctx, txHash)
 			return err
 		})

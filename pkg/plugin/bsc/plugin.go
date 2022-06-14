@@ -9,6 +9,7 @@ import (
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
@@ -69,14 +70,21 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 		return nil, err
 	}
 
-	gasLimit := int64(21_000)
-
-	return &PreSignInfo{
+	info := &PreSignInfo{
 		ChainID:  chainID.Int64(),
 		Nonce:    nonce,
 		GasPrice: gasPrice.Int64(),
-		GasLimit: gasLimit,
-	}, nil
+	}
+
+	switch coinType {
+	case sphinxplugin.CoinType_CoinTypeethereum, sphinxplugin.CoinType_CoinTypetethereum:
+		info.GasLimit = 21_000
+	case sphinxplugin.CoinType_CoinTypeusdterc20, sphinxplugin.CoinType_CoinTypetusdterc20:
+		info.ContractID = config.GetENV().Contract
+		info.GasLimit = 300_000
+	}
+
+	return info, nil
 }
 
 // SendRawTransaction bsc
