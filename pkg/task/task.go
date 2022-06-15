@@ -20,6 +20,8 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/bsc"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/bsc/busd"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/btc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/eth/usdt"
@@ -81,9 +83,7 @@ func newClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 }
 
 func delayNewClient(exitSig chan os.Signal, cleanChan chan struct{}) {
-	logger.Sugar().Info("start try to create new plugin client")
 	time.Sleep(delayDuration)
-	logger.Sugar().Info("start try to create new plugin client end")
 	go newClient(exitSig, cleanChan)
 }
 
@@ -244,6 +244,12 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 
 	sphinxplugin.CoinType_CoinTypetron:  pluginTRX,
 	sphinxplugin.CoinType_CoinTypettron: pluginTRX,
+
+	sphinxplugin.CoinType_CoinTypebinancecoin:  pluginBSC,
+	sphinxplugin.CoinType_CoinTypetbinancecoin: pluginBSC,
+
+	sphinxplugin.CoinType_CoinTypebinanceusd:  pluginBEP20,
+	sphinxplugin.CoinType_CoinTypetbinanceusd: pluginBEP20,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
@@ -413,6 +419,7 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	return nil
 }
 
+// nolint
 func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
 	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
 	defer cancel()
@@ -687,6 +694,118 @@ func pluginTRX(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		}
 		if !pending {
 			return tron.ErrWaitMessageOnChain
+		}
+	}
+	return nil
+}
+
+// nolint
+func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		bl, err := bsc.WalletBalance(ctx, req.GetAddress())
+		if err != nil {
+			logger.Sugar().Errorf("get balance fail: %v", err)
+			return err
+		}
+
+		balance, ok := big.NewFloat(0).SetString(bl.String())
+		if !ok {
+			return errors.New("convert balance string to float64 error")
+		}
+		balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
+		f, exact := balance.Float64()
+		if exact != big.Exact {
+			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		}
+
+		resp.Balance = f
+		resp.BalanceStr = balance.String()
+	case sphinxproxy.TransactionType_PreSign:
+		preSignInfo, err := bsc.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		if err != nil {
+			return err
+		}
+		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
+		resp.Message.ChainID = preSignInfo.ChainID
+		resp.Message.Nonce = preSignInfo.Nonce
+		resp.Message.GasPrice = preSignInfo.GasPrice
+		resp.Message.GasLimit = preSignInfo.GasLimit
+	case sphinxproxy.TransactionType_Broadcast:
+		txHash, err := bsc.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		if err != nil {
+			return err
+		}
+		resp.CID = txHash
+	case sphinxproxy.TransactionType_SyncMsgState:
+		pending, err := bsc.SyncTxState(ctx, req.GetCID())
+		if err != nil {
+			return err
+		}
+		if !pending {
+			return bsc.ErrWaitMessageOnChain
+		}
+	}
+	return nil
+}
+
+// nolint
+func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
+	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	defer cancel()
+
+	switch req.GetTransactionType() {
+	case sphinxproxy.TransactionType_Balance:
+		bl, err := busd.WalletBalance(ctx, req.GetAddress())
+		if err != nil {
+			return err
+		}
+
+		balance, ok := big.NewFloat(0).SetString(bl.String())
+		if !ok {
+			return errors.New("convert balance string to float64 error")
+		}
+		balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BEP20ACCURACY)))
+		f, exact := balance.Float64()
+		if exact != big.Exact {
+			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		}
+
+		resp.Balance = f
+		resp.BalanceStr = balance.String()
+	case sphinxproxy.TransactionType_PreSign:
+		preSignInfo, err := bsc.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		if err != nil {
+			return err
+		}
+		resp.Message = req.GetMessage()
+		if resp.GetMessage() == nil {
+			resp.Message = &sphinxplugin.UnsignedMessage{}
+		}
+		resp.Message.ChainID = preSignInfo.ChainID
+		resp.Message.Nonce = preSignInfo.Nonce
+		resp.Message.ContractID = preSignInfo.ContractID
+		resp.Message.GasPrice = preSignInfo.GasPrice
+		resp.Message.GasLimit = preSignInfo.GasLimit
+	case sphinxproxy.TransactionType_Broadcast:
+		txHash, err := bsc.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		if err != nil {
+			return err
+		}
+		resp.CID = txHash
+	case sphinxproxy.TransactionType_SyncMsgState:
+		pending, err := bsc.SyncTxState(ctx, req.GetCID())
+		if err != nil {
+			return err
+		}
+		if !pending {
+			return bsc.ErrWaitMessageOnChain
 		}
 	}
 	return nil
