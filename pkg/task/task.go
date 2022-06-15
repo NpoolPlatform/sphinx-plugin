@@ -650,7 +650,7 @@ func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if !ok {
 			return errors.New("convert balance string to float64 error")
 		}
-		balance.Quo(balance, big.NewFloat(math.Pow10(18)))
+		balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
@@ -705,7 +705,7 @@ func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 		if !ok {
 			return errors.New("convert balance string to float64 error")
 		}
-		balance.Quo(balance, big.NewFloat(math.Pow10(18)))
+		balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BEP20ACCURACY)))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
