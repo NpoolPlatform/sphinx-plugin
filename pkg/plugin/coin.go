@@ -23,52 +23,52 @@ var (
 	// not export
 	netCoinMap = map[string]map[string]sphinxplugin.CoinType{
 		CoinNetMain: {
-			"filecoin":  sphinxplugin.CoinType_CoinTypefilecoin,
-			"bitcoin":   sphinxplugin.CoinType_CoinTypebitcoin,
-			"ethereum":  sphinxplugin.CoinType_CoinTypeethereum,
-			"usdterc20": sphinxplugin.CoinType_CoinTypeusdterc20,
-			"spacemesh": sphinxplugin.CoinType_CoinTypespacemesh,
-			"solana":    sphinxplugin.CoinType_CoinTypesolana,
-			"usdttrc20": sphinxplugin.CoinType_CoinTypeusdttrc20,
-			"bsc":       sphinxplugin.CoinType_CoinTypebsc,
-			"busdbep20": sphinxplugin.CoinType_CoinTypebusdbep20,
+			"filecoin":    sphinxplugin.CoinType_CoinTypefilecoin,
+			"bitcoin":     sphinxplugin.CoinType_CoinTypebitcoin,
+			"ethereum":    sphinxplugin.CoinType_CoinTypeethereum,
+			"usdterc20":   sphinxplugin.CoinType_CoinTypeusdterc20,
+			"spacemesh":   sphinxplugin.CoinType_CoinTypespacemesh,
+			"solana":      sphinxplugin.CoinType_CoinTypesolana,
+			"usdttrc20":   sphinxplugin.CoinType_CoinTypeusdttrc20,
+			"binancecoin": sphinxplugin.CoinType_CoinTypebinancecoin,
+			"binanceusd":  sphinxplugin.CoinType_CoinTypebinanceusd,
 		},
 		CoinNetTest: {
-			"filecoin":  sphinxplugin.CoinType_CoinTypetfilecoin,
-			"bitcoin":   sphinxplugin.CoinType_CoinTypetbitcoin,
-			"ethereum":  sphinxplugin.CoinType_CoinTypetethereum,
-			"usdterc20": sphinxplugin.CoinType_CoinTypetusdterc20,
-			"spacemesh": sphinxplugin.CoinType_CoinTypetspacemesh,
-			"solana":    sphinxplugin.CoinType_CoinTypetsolana,
-			"usdttrc20": sphinxplugin.CoinType_CoinTypetusdttrc20,
-			"bsc":       sphinxplugin.CoinType_CoinTypetbsc,
-			"busdbep20": sphinxplugin.CoinType_CoinTypetbusdbep20,
+			"filecoin":    sphinxplugin.CoinType_CoinTypetfilecoin,
+			"bitcoin":     sphinxplugin.CoinType_CoinTypetbitcoin,
+			"ethereum":    sphinxplugin.CoinType_CoinTypetethereum,
+			"usdterc20":   sphinxplugin.CoinType_CoinTypetusdterc20,
+			"spacemesh":   sphinxplugin.CoinType_CoinTypetspacemesh,
+			"solana":      sphinxplugin.CoinType_CoinTypetsolana,
+			"usdttrc20":   sphinxplugin.CoinType_CoinTypetusdttrc20,
+			"binancecoin": sphinxplugin.CoinType_CoinTypetbinancecoin,
+			"binanceusd":  sphinxplugin.CoinType_CoinTypetbinanceusd,
 		},
 	}
 
 	// not export
 	coinNetMap = map[sphinxplugin.CoinType]string{
 		// main
-		sphinxplugin.CoinType_CoinTypefilecoin:  CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebitcoin:   CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeethereum:  CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdterc20: CoinNetMain,
-		sphinxplugin.CoinType_CoinTypespacemesh: CoinNetMain,
-		sphinxplugin.CoinType_CoinTypesolana:    CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdttrc20: CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebsc:       CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebusdbep20: CoinNetMain,
+		sphinxplugin.CoinType_CoinTypefilecoin:    CoinNetMain,
+		sphinxplugin.CoinType_CoinTypebitcoin:     CoinNetMain,
+		sphinxplugin.CoinType_CoinTypeethereum:    CoinNetMain,
+		sphinxplugin.CoinType_CoinTypeusdterc20:   CoinNetMain,
+		sphinxplugin.CoinType_CoinTypespacemesh:   CoinNetMain,
+		sphinxplugin.CoinType_CoinTypesolana:      CoinNetMain,
+		sphinxplugin.CoinType_CoinTypeusdttrc20:   CoinNetMain,
+		sphinxplugin.CoinType_CoinTypebinancecoin: CoinNetMain,
+		sphinxplugin.CoinType_CoinTypebinanceusd:  CoinNetMain,
 
 		// test
-		sphinxplugin.CoinType_CoinTypetfilecoin:  CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbitcoin:   CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetethereum:  CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdterc20: CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetspacemesh: CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetsolana:    CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdttrc20: CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbsc:       CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbusdbep20: CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetfilecoin:    CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetbitcoin:     CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetethereum:    CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetusdterc20:   CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetspacemesh:   CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetsolana:      CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetusdttrc20:   CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetbinancecoin: CoinNetTest,
+		sphinxplugin.CoinType_CoinTypetbinanceusd:  CoinNetTest,
 	}
 
 	// CoinNet will filled value in app run
@@ -93,11 +93,11 @@ var (
 		sphinxplugin.CoinType_CoinTypeusdttrc20:  "USDT",
 		sphinxplugin.CoinType_CoinTypetusdttrc20: "USDT",
 
-		sphinxplugin.CoinType_CoinTypebsc:  "BNB",
-		sphinxplugin.CoinType_CoinTypetbsc: "BNB",
+		sphinxplugin.CoinType_CoinTypebinancecoin:  "BNB",
+		sphinxplugin.CoinType_CoinTypetbinancecoin: "BNB",
 
-		sphinxplugin.CoinType_CoinTypebusdbep20:  "BUSD",
-		sphinxplugin.CoinType_CoinTypetbusdbep20: "BUSD",
+		sphinxplugin.CoinType_CoinTypebinanceusd:  "BUSD",
+		sphinxplugin.CoinType_CoinTypetbinanceusd: "BUSD",
 	}
 
 	// BTCNetMap btc net map

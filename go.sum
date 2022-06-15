@@ -111,8 +111,8 @@ github.com/Masterminds/sprig v2.22.0+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuN
 github.com/Masterminds/vcs v1.13.0/go.mod h1:N09YCmOQr6RLxC6UNHzuVwAdodYbbnycGHSmwVJjcKA=
 github.com/NpoolPlatform/go-service-framework v0.0.0-20220404143809-82c40930388a h1:bOI01dIwb2Okkc9tmuzBzxUfI/EtWN4ziQHPUT25BYI=
 github.com/NpoolPlatform/go-service-framework v0.0.0-20220404143809-82c40930388a/go.mod h1:G5SKpcIWWkyxeNtgI8c0iY8py6DY2xHZFGKPJpTEon0=
-github.com/NpoolPlatform/message v0.0.0-20220614090435-1c97b1765963 h1:YSDq6m40jgQTCPIM21nDtokwjsTkluq7lKpWuvJWXAw=
-github.com/NpoolPlatform/message v0.0.0-20220614090435-1c97b1765963/go.mod h1:3Enb49K3JrhlSwA+6bcsBuTdTzVxVKhdkllDGgv0n3M=
+github.com/NpoolPlatform/message v0.0.0-20220615043307-04f7bd392d6e h1:nYFPFFzBkGBTGDqD5mmyQHHXdN1+KxqFMRVy+C9ZCXM=
+github.com/NpoolPlatform/message v0.0.0-20220615043307-04f7bd392d6e/go.mod h1:3Enb49K3JrhlSwA+6bcsBuTdTzVxVKhdkllDGgv0n3M=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
