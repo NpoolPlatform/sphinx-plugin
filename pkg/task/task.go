@@ -245,11 +245,11 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 	sphinxplugin.CoinType_CoinTypetron:  pluginTRX,
 	sphinxplugin.CoinType_CoinTypettron: pluginTRX,
 
-	sphinxplugin.CoinType_CoinTypebsc:  pluginBSC,
-	sphinxplugin.CoinType_CoinTypetbsc: pluginBSC,
+	sphinxplugin.CoinType_CoinTypebinancecoin:  pluginBSC,
+	sphinxplugin.CoinType_CoinTypetbinancecoin: pluginBSC,
 
-	sphinxplugin.CoinType_CoinTypebusdbep20:  pluginBEP20,
-	sphinxplugin.CoinType_CoinTypetbusdbep20: pluginBEP20,
+	sphinxplugin.CoinType_CoinTypebinanceusd:  pluginBEP20,
+	sphinxplugin.CoinType_CoinTypetbinanceusd: pluginBEP20,
 }
 
 func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
