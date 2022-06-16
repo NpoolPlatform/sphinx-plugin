@@ -42,29 +42,23 @@ func Bep20Balance(ctx context.Context, addr string, client bind.ContractBackend)
 func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
 	var ret *big.Int
 	var err error
-	var client *bsc.BClients
-	client, err = bsc.Client()
-	if err != nil {
-		return nil, err
-	}
-	for i := 0; i < bsc.MaxRetryNum; i++ {
-		err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-			syncRet, err := c.SyncProgress(ctx)
-			if err != nil {
-				return err
-			}
-			if syncRet != nil && syncRet.CurrentBlock < syncRet.HighestBlock {
-				return fmt.Errorf(
-					"node is syncing ,current block %v ,highest block %v ",
-					syncRet.CurrentBlock, syncRet.HighestBlock,
-				)
-			}
-			ret, err = Bep20Balance(ctx, addr, c)
-			return err
-		})
-		if err == nil {
-			return ret, nil
+	client := bsc.Client()
+	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		syncRet, err := c.SyncProgress(ctx)
+		if err != nil {
+			return true, err
 		}
+		if syncRet != nil && syncRet.CurrentBlock < syncRet.HighestBlock {
+			return true, fmt.Errorf(
+				"node is syncing ,current block %v ,highest block %v ",
+				syncRet.CurrentBlock, syncRet.HighestBlock,
+			)
+		}
+		ret, err = Bep20Balance(ctx, addr, c)
+		return true, err
+	})
+	if err == nil {
+		return ret, nil
 	}
 	return ret, err
 }
