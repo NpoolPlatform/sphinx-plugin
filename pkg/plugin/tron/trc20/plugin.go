@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/tron"
+	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 )
@@ -17,12 +19,10 @@ import (
 func WalletBalance(ctx context.Context, wallet string) (balance *big.Int, err error) {
 	contract := config.GetENV().Contract
 
-	client := tron.Client()
-
-	return client.TRC20ContractBalanceS(wallet, contract)
+	return BalanceS(wallet, contract)
 }
 
-func TransactionSend(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
+func BuildTransaciton(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
 	contract := config.GetENV().Contract
 
 	from := req.GetMessage().GetFrom()
@@ -72,4 +72,33 @@ func SyncTxState(ctx context.Context, cid string) (pending bool, exitcode int64,
 	}
 
 	return true, 0, nil
+}
+
+func BalanceS(addr, contractAddress string) (*big.Int, error) {
+	var err error
+	ret := tron.EmptyTRC20
+	if err := tron.ValidAddress(addr); err != nil {
+		return ret, err
+	}
+
+	client := tron.Client()
+	err = client.WithClient(func(c *tronclient.GrpcClient) (bool, error) {
+		ret, err = c.TRC20ContractBalance(addr, contractAddress)
+		return true, err
+	})
+	if err != nil && strings.Contains(err.Error(), tron.ErrAccountNotFound.Error()) {
+		return tron.EmptyTRC20, nil
+	}
+	return ret, err
+}
+
+func BuildTransacitonS(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
+	var ret *api.TransactionExtention
+	var err error
+	client := tron.Client()
+	err = client.WithClient(func(c *tronclient.GrpcClient) (bool, error) {
+		ret, err = c.TRC20Send(from, to, contract, amount, feeLimit)
+		return true, err
+	})
+	return ret, err
 }

@@ -27,8 +27,8 @@ const (
 	ENVCONTRACT = "ENV_CONTRACT"
 
 	// for tron
-	ENVCOINJSONRPCLOCALPORT  = "ENV_COIN_JSONRPC_LOCAL_API"
-	ENVCOINJSONRPCPUBLICPORT = "ENV_COIN_JSONRPC_PUBLIC_API"
+	ENVCOINJSONRPCLOCALAPI  = "ENV_COIN_JSONRPC_LOCAL_API"
+	ENVCOINJSONRPCPUBLICAPI = "ENV_COIN_JSONRPC_PUBLIC_API"
 )
 
 var (
@@ -54,8 +54,8 @@ var (
 	ErrENVContractNotFound = errors.New("env ENV_CONTRACT not found")
 
 	// tron
-	ErrENVCOINJSONRPCPortNotFound = errors.New("env ENV_COIN_JSONRPC_PORT not found")
-	ErrENVCOINGRPCPortNotFound    = errors.New("env ENV_COIN_GRPC_PORT not found")
+	ErrENVCOINJSONRPCAPINotFound = errors.New("env ENV_COIN_JSONRPC_API not found")
+	ErrENVCOINGRPCAPINotFound    = errors.New("env ENV_COIN_GRPC_API not found")
 )
 
 func LookupEnv(key string) (string, bool) {

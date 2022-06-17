@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/big"
 	"net/http"
 	"strings"
 	"time"
@@ -24,11 +23,17 @@ const (
 )
 
 type TClientI interface {
+<<<<<<< HEAD
 	TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error)
 	TRC20SendS(from string, to string, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error)
+=======
+	TRXBalanceS(addr string) (int64, error)
+	TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error)
+>>>>>>> current err of nil and support check tron-account
 	BroadcastS(tx *core.Transaction) (*api.Return, error)
 	GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error)
 	GetGRPCClient(localEndpoint bool) (*tronclient.GrpcClient, error)
+	WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error
 }
 
 type TClients struct{}
@@ -38,6 +43,7 @@ var jsonAPIMap map[string]string
 func init() {
 	jsonAPIMap = make(map[string]string)
 	var jsonApis []string
+<<<<<<< HEAD
 
 	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCLOCALPORT); ok {
 		strs := strings.Split(v, endpoints.AddrSplitter)
@@ -45,6 +51,13 @@ func init() {
 	}
 
 	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCPUBLICPORT); ok {
+=======
+	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCLOCALAPI); ok {
+		strs := strings.Split(v, endpoints.AddrSplitter)
+		jsonApis = append(jsonApis, strs...)
+	}
+	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCPUBLICAPI); ok {
+>>>>>>> current err of nil and support check tron-account
 		strs := strings.Split(v, endpoints.AddrSplitter)
 		jsonApis = append(jsonApis, strs...)
 	}
@@ -81,7 +94,7 @@ func (tClients *TClients) GetGRPCClient(localEndpoint bool) (*tronclient.GrpcCli
 		}
 	}
 
-	ntc := tronclient.NewGrpcClientWithTimeout(addr, 10*time.Second)
+	ntc := tronclient.NewGrpcClientWithTimeout(addr, 6*time.Second)
 	err = ntc.Start(grpc.WithInsecure())
 	if err != nil {
 		return nil, err
@@ -105,6 +118,7 @@ type SyncingResponse struct {
 // no sync currently running, it returns nil.
 func (tClients *TClients) SyncProgress(ip, port string) (*SyncingResponse, error) {
 	addr := fmt.Sprintf("http://%v:%v/jsonrpc", ip, port)
+
 	contentType := "application/json"
 	body := strings.NewReader(`{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":64}`)
 
@@ -131,7 +145,7 @@ func (tClients *TClients) SyncProgress(ip, port string) (*SyncingResponse, error
 	return &syncRes, nil
 }
 
-func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
+func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
 	localEndpoint := true
 
 	var err error
@@ -170,8 +184,6 @@ func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
 			return ret, nil
 		}
 	}
-	return ret, fmt.Errorf("fail TRXBalanceS, %v", err)
-}
 
 func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
 	var ret *api.TransactionExtention
@@ -185,28 +197,20 @@ func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.Tran
 		if err == nil {
 			return ret, nil
 		}
-	}
-	return nil, fmt.Errorf("fail TRXTransferS, %v", err)
-}
-
-func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error) {
-	var ret *big.Int
-	var err error
-
-	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
-		ret, err = client.TRC20ContractBalance(addr, contractAddress)
-		return true, err
+		ret = acc.GetBalance()
+		return false, nil
 	})
-
-	return ret, err
+	if err != nil && strings.Contains(err.Error(), ErrAccountNotFound.Error()) {
+		return EmptyTRX, nil
+	}
+	return ret, nil
 }
 
-func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
+func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
 	var ret *api.TransactionExtention
 	var err error
-
-	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
-		ret, err = client.TRC20Send(from, to, contract, amount, feeLimit)
+	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
+		ret, err = client.Transfer(from, to, amount)
 		return true, err
 	})
 
@@ -217,7 +221,7 @@ func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) 
 	var ret *api.Return
 	var err error
 
-	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
+	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
 		ret, err = client.Broadcast(tx)
 		if err != nil && ret.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
 			return false, err
@@ -232,7 +236,7 @@ func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionI
 	var ret *core.TransactionInfo
 	var err error
 
-	err = tClients.withClient(func(client *tronclient.GrpcClient) (bool, error) {
+	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
 		ret, err = client.GetTransactionInfoByID(id)
 		return true, err
 	})

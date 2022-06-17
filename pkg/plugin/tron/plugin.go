@@ -34,7 +34,7 @@ func WalletBalance(ctx context.Context, wallet string) (balance int64, err error
 	return client.TRXBalanceS(wallet)
 }
 
-func Transfer(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
+func BuildTransaciton(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
 	from := req.GetMessage().GetFrom()
 	to := req.GetMessage().GetTo()
 	amount := req.GetMessage().GetValue()

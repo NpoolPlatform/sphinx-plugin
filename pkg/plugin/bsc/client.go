@@ -89,91 +89,67 @@ func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address,
 func (bClients BClients) PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error) {
 	var ret uint64
 	var err error
-	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-			ret, err = c.PendingNonceAt(ctx, account)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-	}
-	return ret, fmt.Errorf("fail PendingNonceAtS, %v", err)
+
+	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.PendingNonceAt(ctx, account)
+		return true, err
+	})
+	return ret, err
 }
 
 func (bClients BClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
 	var ret *big.Int
 	var err error
-	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-			ret, err = c.NetworkID(ctx)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-	}
-	return ret, fmt.Errorf("fail NetworkIDS, %v", err)
+	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.NetworkID(ctx)
+		return true, err
+	})
+
+	return ret, err
 }
 
 func (bClients BClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error) {
 	var ret *big.Int
 	var err error
-	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-			ret, err = c.SuggestGasPrice(ctx)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-	}
-	return ret, fmt.Errorf("fail SuggestGasPriceS, %v", err)
+	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.SuggestGasPrice(ctx)
+		return true, err
+	})
+
+	return ret, err
 }
 
 func (bClients BClients) SendTransactionS(ctx context.Context, tx *types.Transaction) error {
 	var err error
-	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-			err = c.SendTransaction(ctx, tx)
-			return err
-		})
-		if err == nil {
-			return nil
+	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		err = c.SendTransaction(ctx, tx)
+		if err != nil && (strings.Contains(err.Error(), ErrFundsToLow) || strings.Contains(err.Error(), ErrGasToLow)) {
+			return false, err
 		}
-		if strings.Contains(err.Error(), ErrFundsToLow) || strings.Contains(err.Error(), ErrGasToLow) {
-			break
-		}
-	}
-	return fmt.Errorf("fail SendTransactionS, %v", err)
+		return true, err
+	})
+
+	return err
 }
 
 func (bClients BClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
-	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-			tx, isPending, err = c.TransactionByHash(ctx, hash)
-			return err
-		})
-		if err == nil {
-			return tx, isPending, nil
-		}
-	}
-	return tx, isPending, fmt.Errorf("fail TransactionByHashS, %v", err)
+	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		tx, isPending, err = c.TransactionByHash(ctx, hash)
+		return true, err
+	})
+
+	return tx, isPending, err
 }
 
 func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
 	var ret *types.Receipt
 	var err error
-	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-			ret, err = c.TransactionReceipt(ctx, txHash)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-	}
-	return ret, fmt.Errorf("fail TransactionReceiptS, %v", err)
+	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		ret, err = c.TransactionReceipt(ctx, txHash)
+		return true, err
+	})
+
+	return ret, err
 }
 
 func newBSCClients(retryNum int, endpoints []string) (*BClients, error) {
