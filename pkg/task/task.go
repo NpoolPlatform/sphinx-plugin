@@ -593,7 +593,7 @@ func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 		resp.Balance, _ = f.Float64()
 		resp.BalanceStr = f.Text('f', tron.TRC20ACCURACY)
 	case sphinxproxy.TransactionType_PreSign:
-		txExtension, err := trc20.TransactionSend(ctx, req)
+		txExtension, err := trc20.BuildTransaciton(ctx, req)
 		if err != nil {
 			return err
 		}
@@ -654,7 +654,7 @@ func pluginTRX(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		resp.Balance, _ = f.Float64()
 		resp.BalanceStr = f.Text('f', tron.TRXACCURACY)
 	case sphinxproxy.TransactionType_PreSign:
-		txExtension, err := tron.Transfer(ctx, req)
+		txExtension, err := tron.BuildTransaciton(ctx, req)
 		if err != nil {
 			return err
 		}
@@ -764,6 +764,7 @@ func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 	case sphinxproxy.TransactionType_Balance:
 		bl, err := busd.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
+			logger.Sugar().Errorf("get balance fail:%v", err)
 			return err
 		}
 

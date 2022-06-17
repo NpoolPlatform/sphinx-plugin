@@ -55,10 +55,8 @@ func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
 			)
 		}
 		ret, err = Bep20Balance(ctx, addr, c)
+
 		return true, err
 	})
-	if err == nil {
-		return ret, nil
-	}
 	return ret, err
 }

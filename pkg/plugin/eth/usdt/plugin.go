@@ -2,6 +2,7 @@ package usdt
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
@@ -59,21 +60,29 @@ func ERC20Balance(ctx context.Context, addr string, client *ethclient.Client) (*
 // WalletBalance ..
 func WalletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 	eClient := eth.Client()
-	var client *ethclient.Client
+
 	var err error
 	var ret *BigUSDT
-	localEndpoint := true
-	for i := 0; i < eth.MaxRetries; i++ {
-		client, err = eClient.GetNode(localEndpoint)
-		localEndpoint = false
-		if err != nil {
-			continue
+	err = eClient.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		syncRet, _err := c.SyncProgress(ctx)
+		if _err != nil {
+			return true, _err
+		}
+		if syncRet != nil {
+			return true, fmt.Errorf(
+				"node is syncing ,current block %v ,highest block %v ",
+				syncRet.CurrentBlock, syncRet.HighestBlock,
+			)
 		}
 
-		ret, err = ERC20Balance(ctx, addr, client)
-		if err == nil {
-			break
+		ret, err = ERC20Balance(ctx, addr, c)
+		if err == nil && ret != nil {
+			return false, nil
 		}
+		return true, err
+	})
+	if ret == nil {
+		return nil, fmt.Errorf("get erc20balance faild,%v", err)
 	}
 	return ret, err
 }

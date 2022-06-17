@@ -88,10 +88,7 @@ func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address,
 		ret, err = c.BalanceAt(ctx, account, blockNumber)
 		return true, err
 	})
-	if err == nil {
-		return ret, nil
-	}
-	return ret, fmt.Errorf("fail BlanceAtS, %v", err)
+	return ret, err
 }
 
 func (bClients BClients) PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error) {
@@ -102,11 +99,7 @@ func (bClients BClients) PendingNonceAtS(ctx context.Context, account common.Add
 		ret, err = c.PendingNonceAt(ctx, account)
 		return true, err
 	})
-
-	if err == nil {
-		return ret, nil
-	}
-	return ret, fmt.Errorf("fail PendingNonceAtS, %v", err)
+	return ret, err
 }
 
 func (bClients BClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
@@ -116,10 +109,8 @@ func (bClients BClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
 		ret, err = c.NetworkID(ctx)
 		return true, err
 	})
-	if err == nil {
-		return ret, nil
-	}
-	return ret, fmt.Errorf("fail NetworkIDS, %v", err)
+
+	return ret, err
 }
 
 func (bClients BClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error) {
@@ -129,23 +120,21 @@ func (bClients BClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error)
 		ret, err = c.SuggestGasPrice(ctx)
 		return true, err
 	})
-	if err == nil {
-		return ret, nil
-	}
-	return ret, fmt.Errorf("fail SuggestGasPriceS, %v", err)
+
+	return ret, err
 }
 
 func (bClients BClients) SendTransactionS(ctx context.Context, tx *types.Transaction) error {
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		err = c.SendTransaction(ctx, tx)
-		if strings.Contains(err.Error(), ErrFundsToLow) || strings.Contains(err.Error(), ErrGasToLow) {
+		if err != nil && (strings.Contains(err.Error(), ErrFundsToLow) || strings.Contains(err.Error(), ErrGasToLow)) {
 			return false, err
 		}
 		return true, err
 	})
 
-	return fmt.Errorf("fail SendTransactionS, %v", err)
+	return err
 }
 
 func (bClients BClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
@@ -153,10 +142,8 @@ func (bClients BClients) TransactionByHashS(ctx context.Context, hash common.Has
 		tx, isPending, err = c.TransactionByHash(ctx, hash)
 		return true, err
 	})
-	if err == nil {
-		return tx, isPending, nil
-	}
-	return tx, isPending, fmt.Errorf("fail TransactionByHashS, %v", err)
+
+	return tx, isPending, err
 }
 
 func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
@@ -166,10 +153,8 @@ func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.
 		ret, err = c.TransactionReceipt(ctx, txHash)
 		return true, err
 	})
-	if err == nil {
-		return ret, nil
-	}
-	return ret, fmt.Errorf("fail TransactionReceiptS, %v", err)
+
+	return ret, err
 }
 
 func Client() BClientI {
