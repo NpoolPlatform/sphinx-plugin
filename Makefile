@@ -22,7 +22,7 @@ go.mod:
 
 deps:
 	go get -d ./...
-	go mod tidy
+	go mod tidy -compat=1.17
 
 ##@ Verify
 
