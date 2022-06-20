@@ -18,7 +18,7 @@ init:
 
 go.mod:
 	go mod init ${GITREPO}
-	go mod tidy
+	go mod tidy -compat=1.17
 
 deps:
 	go get -d ./...
