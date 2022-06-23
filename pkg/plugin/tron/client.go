@@ -23,13 +23,8 @@ const (
 )
 
 type TClientI interface {
-<<<<<<< HEAD
-	TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error)
-	TRC20SendS(from string, to string, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error)
-=======
 	TRXBalanceS(addr string) (int64, error)
 	TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error)
->>>>>>> current err of nil and support check tron-account
 	BroadcastS(tx *core.Transaction) (*api.Return, error)
 	GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error)
 	GetGRPCClient(localEndpoint bool) (*tronclient.GrpcClient, error)
@@ -43,21 +38,12 @@ var jsonAPIMap map[string]string
 func init() {
 	jsonAPIMap = make(map[string]string)
 	var jsonApis []string
-<<<<<<< HEAD
 
-	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCLOCALPORT); ok {
-		strs := strings.Split(v, endpoints.AddrSplitter)
-		jsonApis = append(jsonApis, strs...)
-	}
-
-	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCPUBLICPORT); ok {
-=======
 	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCLOCALAPI); ok {
 		strs := strings.Split(v, endpoints.AddrSplitter)
 		jsonApis = append(jsonApis, strs...)
 	}
 	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCPUBLICAPI); ok {
->>>>>>> current err of nil and support check tron-account
 		strs := strings.Split(v, endpoints.AddrSplitter)
 		jsonApis = append(jsonApis, strs...)
 	}
@@ -169,33 +155,15 @@ func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 }
 
 func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
-	var ret int64
-	var err error
-	for i := 0; i < int(tClients.Retries); i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			acc, err := client.GetAccount(addr)
-			if err != nil {
-				return err
-			}
-			ret = acc.GetBalance()
-			return nil
-		})
-		if err == nil {
-			return ret, nil
-		}
+	ret := EmptyTRX
+	if err := ValidAddress(addr); err != nil {
+		return ret, err
 	}
 
-func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
-	var ret *api.TransactionExtention
-	var err error
-
-	for i := 0; i < int(tClients.Retries); i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.Transfer(from, to, amount)
-			return err
-		})
-		if err == nil {
-			return ret, nil
+	err := tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
+		acc, err := client.GetAccount(addr)
+		if err != nil {
+			return true, err
 		}
 		ret = acc.GetBalance()
 		return false, nil

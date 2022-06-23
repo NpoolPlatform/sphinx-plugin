@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -19,8 +19,8 @@ func Init() {
 }
 
 const (
-	MinNodeNum  = 1
-	MaxRetryNum = 3
+	MinNodeNum = 1
+	MaxRetries = 3
 )
 
 var (
@@ -36,54 +36,59 @@ type BClientI interface {
 	SendTransactionS(ctx context.Context, tx *types.Transaction) error
 	TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error)
 	TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
-	GetNode() (*ethclient.Client, error)
+	GetNode(mustLocalEndpoint bool) (*ethclient.Client, error)
+	WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error
 }
 
-type BClients struct {
-	EndPoints []string
-	RetryNum  int
-}
+type BClients struct{}
 
-func (bClients BClients) GetNode() (*ethclient.Client, error) {
-	randI := rand.Intn(len(bClients.EndPoints))
-	addr := bClients.EndPoints[randI]
+func (bClients BClients) GetNode(mustLocalEndpoint bool) (*ethclient.Client, error) {
+	addr, _, err := endpoints.Peek(mustLocalEndpoint)
+	if err != nil {
+		return nil, err
+	}
 	return ethclient.Dial(addr)
 }
 
-func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) error) error {
-	client, err := bClients.GetNode()
-	if err != nil {
-		return err
+func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
+	var client *ethclient.Client
+	var err error
+	var retry bool
+	mustLocal := true
+	for i := 0; i < MaxRetries; i++ {
+		client, err = bClients.GetNode(mustLocal)
+		mustLocal = false
+		if err != nil {
+			continue
+		}
+		defer client.Close()
+		retry, err = fn(ctx, client)
+		if err == nil || !retry {
+			return err
+		}
 	}
-	defer client.Close()
-
-	return fn(ctx, client)
+	return err
 }
 
 func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
 	var ret *big.Int
 	var err error
-	for i := 0; i < bClients.RetryNum; i++ {
-		err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) error {
-			syncRet, err := c.SyncProgress(ctx)
-			if err != nil {
-				return err
-			}
-			if syncRet != nil && syncRet.CurrentBlock < syncRet.HighestBlock {
-				return fmt.Errorf(
-					"node is syncing ,current block %v ,highest block %v ",
-					syncRet.CurrentBlock, syncRet.HighestBlock,
-				)
-			}
-			ret, err = c.BalanceAt(ctx, account, blockNumber)
 
-			return err
-		})
-		if err == nil {
-			return ret, nil
+	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		syncRet, syncErr := c.SyncProgress(ctx)
+		if syncErr != nil {
+			return true, syncErr
 		}
-	}
-	return ret, fmt.Errorf("fail BlanceAtS, %v", err)
+		if syncRet != nil && syncRet.CurrentBlock < syncRet.HighestBlock {
+			return true, fmt.Errorf(
+				"node is syncing ,current block %v ,highest block %v ",
+				syncRet.CurrentBlock, syncRet.HighestBlock,
+			)
+		}
+		ret, err = c.BalanceAt(ctx, account, blockNumber)
+		return true, err
+	})
+	return ret, err
 }
 
 func (bClients BClients) PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error) {
@@ -152,36 +157,6 @@ func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.
 	return ret, err
 }
 
-func newBSCClients(retryNum int, endpoints []string) (*BClients, error) {
-	bscClients := &BClients{}
-	bscClients.RetryNum = retryNum
-	for _, endpoint := range endpoints {
-		client, err := ethclient.Dial(endpoint)
-		if err != nil {
-			continue
-		}
-		client.Close()
-		bscClients.EndPoints = append(bscClients.EndPoints, endpoint)
-	}
-	if len(bscClients.EndPoints) < MinNodeNum {
-		return bscClients, fmt.Errorf("too few nodes have been successfully connected,just %v nodes",
-			len(bscClients.EndPoints))
-	}
-	return bscClients, nil
-}
-
-var bscClients *BClients
-
-func Client() (*BClients, error) {
-	if bscClients != nil {
-		return bscClients, nil
-	}
-	addrs, ok := env.LookupEnv(env.ENVCOINAPI)
-	if !ok {
-		return nil, env.ErrENVCoinAPINotFound
-	}
-	endpoints := strings.Split(addrs, ",")
-	var err error
-	bscClients, err = newBSCClients(MaxRetryNum, endpoints)
-	return bscClients, err
+func Client() BClientI {
+	return &BClients{}
 }

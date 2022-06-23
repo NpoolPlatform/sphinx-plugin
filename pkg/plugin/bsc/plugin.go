@@ -34,10 +34,7 @@ type PreSignInfo struct {
 }
 
 func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
-	client, err := Client()
-	if err != nil {
-		return nil, err
-	}
+	client := Client()
 
 	if !common.IsHexAddress(addr) {
 		return nil, ErrAddrNotValid
@@ -46,10 +43,7 @@ func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
 }
 
 func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (*PreSignInfo, error) {
-	client, err := Client()
-	if err != nil {
-		return nil, err
-	}
+	client := Client()
 
 	if !common.IsHexAddress(from) {
 		return nil, ErrAddrNotValid
@@ -89,10 +83,7 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 
 // SendRawTransaction bsc
 func SendRawTransaction(ctx context.Context, rawHexTx string) (string, error) {
-	client, err := Client()
-	if err != nil {
-		return "", err
-	}
+	client := Client()
 
 	tx := new(types.Transaction)
 
@@ -114,10 +105,7 @@ func SendRawTransaction(ctx context.Context, rawHexTx string) (string, error) {
 
 // done(on chain) => true
 func SyncTxState(ctx context.Context, txHash string) (bool, error) {
-	client, err := Client()
-	if err != nil {
-		return false, err
-	}
+	client := Client()
 
 	_, isPending, err := client.TransactionByHashS(ctx, common.HexToHash(txHash))
 	if err != nil {

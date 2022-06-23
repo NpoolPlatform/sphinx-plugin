@@ -139,7 +139,6 @@ tron/trc20 在获取balance时检测账户格式，与波场HTTP-API提供的wal
 export ENV_COIN_NET=test  # main | test
 export ENV_COIN_TYPE=usdttrc20  # usdttrc20
 export ENV_CONTRACT=TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj
-
 export ENV_COIN_PUBLIC_API=grpc.nile.trongrid.io:50051,grpc.nile.trongrid.io:50051 # 提供grpc-api的地址
 export ENV_COIN_LOCAL_API=47.252.19.181:50051
 export ENV_COIN_JSONRPC_LOCAL_API=47.252.19.181:50545
