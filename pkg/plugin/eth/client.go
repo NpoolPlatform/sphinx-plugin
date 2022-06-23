@@ -57,6 +57,7 @@ func (eClients *EClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		if err != nil || client == nil {
 			continue
 		}
+		defer client.Close()
 
 		retry, err = fn(ctx, client)
 		if err == nil || !retry {
