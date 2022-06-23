@@ -36,28 +36,27 @@ type BClientI interface {
 	SendTransactionS(ctx context.Context, tx *types.Transaction) error
 	TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error)
 	TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
-	GetNode(mustLocalEndpoint bool) (*ethclient.Client, error)
+	GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error)
 	WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error
 }
 
 type BClients struct{}
 
-func (bClients BClients) GetNode(mustLocalEndpoint bool) (*ethclient.Client, error) {
-	addr, _, err := endpoints.Peek(mustLocalEndpoint)
+func (bClients BClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error) {
+	endpoint, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}
-	return ethclient.Dial(addr)
+	return ethclient.Dial(endpoint.Address)
 }
 
 func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
 	var client *ethclient.Client
 	var err error
 	var retry bool
-	mustLocal := true
+	endpointmgr := endpoints.NewManager()
 	for i := 0; i < MaxRetries; i++ {
-		client, err = bClients.GetNode(mustLocal)
-		mustLocal = false
+		client, err = bClients.GetNode(endpointmgr)
 		if err != nil {
 			continue
 		}

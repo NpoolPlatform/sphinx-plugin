@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -31,29 +30,27 @@ type EClientI interface {
 	SendTransactionS(ctx context.Context, tx *types.Transaction) error
 	TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error)
 	TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
-	GetNode(localEndpoint bool) (*ethclient.Client, error)
+	GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error)
 	WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error
 }
 
 type EClients struct{}
 
-func (eClients EClients) GetNode(localEndpoint bool) (*ethclient.Client, error) {
-	addr, _, err := endpoints.Peek(localEndpoint)
+func (eClients EClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error) {
+	endpoint, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}
-	logger.Sugar().Infof("peek %v server", addr)
-	return ethclient.Dial(addr)
+	return ethclient.Dial(endpoint.Address)
 }
 
 func (eClients *EClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
 	var client *ethclient.Client
 	var err error
 	var retry bool
-	localEndpoint := true
+	endpointmgr := endpoints.NewManager()
 	for i := 0; i < MaxRetries; i++ {
-		client, err = eClients.GetNode(localEndpoint)
-		localEndpoint = false
+		client, err = eClients.GetNode(endpointmgr)
 		if err != nil || client == nil {
 			continue
 		}

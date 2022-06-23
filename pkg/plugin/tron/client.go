@@ -27,7 +27,7 @@ type TClientI interface {
 	TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error)
 	BroadcastS(tx *core.Transaction) (*api.Return, error)
 	GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error)
-	GetGRPCClient(localEndpoint bool) (*tronclient.GrpcClient, error)
+	GetGRPCClient(endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error)
 	WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error
 }
 
@@ -57,14 +57,14 @@ func init() {
 	}
 }
 
-func (tClients *TClients) GetGRPCClient(localEndpoint bool) (*tronclient.GrpcClient, error) {
-	addr, isLocal, err := endpoints.Peek(localEndpoint)
+func (tClients *TClients) GetGRPCClient(endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error) {
+	endpoint, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}
-	strs := strings.Split(addr, ":")
+	strs := strings.Split(endpoint.Address, ":")
 
-	if isLocal {
+	if endpoint.IsLocal {
 		port := jsonAPIMap[strs[0]]
 		syncRet, _err := tClients.SyncProgress(strs[0], port)
 		if _err != nil {
@@ -80,7 +80,7 @@ func (tClients *TClients) GetGRPCClient(localEndpoint bool) (*tronclient.GrpcCli
 		}
 	}
 
-	ntc := tronclient.NewGrpcClientWithTimeout(addr, 6*time.Second)
+	ntc := tronclient.NewGrpcClientWithTimeout(endpoint.Address, 6*time.Second)
 	err = ntc.Start(grpc.WithInsecure())
 	if err != nil {
 		return nil, err
@@ -132,15 +132,13 @@ func (tClients *TClients) SyncProgress(ip, port string) (*SyncingResponse, error
 }
 
 func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
-	localEndpoint := true
-
 	var err error
 	var retry bool
 	var client *tronclient.GrpcClient
 
+	endpointmgr := endpoints.NewManager()
 	for i := 0; i < MaxRetries; i++ {
-		client, err = tClients.GetGRPCClient(localEndpoint)
-		localEndpoint = false
+		client, err = tClients.GetGRPCClient(endpointmgr)
 		if err != nil {
 			continue
 		}
