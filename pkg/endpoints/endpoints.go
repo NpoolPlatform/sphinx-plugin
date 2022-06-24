@@ -20,47 +20,16 @@ const (
 	AddrMinLen   = 3
 )
 
-type Endpoint struct {
-	Address string
-	IsLocal bool
+type endpoint struct {
+	address string
+	peeked  bool
 }
 
 type Manager struct {
-	peekRcd []int
-}
-
-func NewManager() *Manager {
-	if len(localAddrs) > 0 {
-		return &Manager{peekRcd: []int{rand.Intn(len(localAddrs))}}
-	}
-	return &Manager{peekRcd: []int{-rand.Intn(len(publicAddrs)) - 1}}
-}
-
-func (endpointmgr *Manager) Peek() (*Endpoint, error) {
-	if len(localAddrs) < 1 && len(publicAddrs) < 1 {
-		return nil, fmt.Errorf("have no endpoints for plugin")
-	}
-	endpoint := &Endpoint{}
-	currentIdx := endpointmgr.peekRcd[len(endpointmgr.peekRcd)-1]
-
-	if currentIdx >= 0 {
-		endpoint.IsLocal = true
-		endpoint.Address = localAddrs[currentIdx]
-		nextIdx := (currentIdx + 1) % len(localAddrs)
-		if len(publicAddrs) < 1 || nextIdx != endpointmgr.peekRcd[0] {
-			endpointmgr.peekRcd = append(endpointmgr.peekRcd, nextIdx)
-			logger.Sugar().Infof("peek the endpoint: %v", endpoint.Address)
-			return endpoint, nil
-		}
-	} else {
-		endpoint.IsLocal = false
-		endpoint.Address = publicAddrs[-currentIdx-1]
-	}
-
-	nextIdx := rand.Intn(len(publicAddrs))
-	endpointmgr.peekRcd = append(endpointmgr.peekRcd, -nextIdx-1)
-	logger.Sugar().Infof("peek the endpoint: %v", endpoint.Address)
-	return endpoint, nil
+	localEndpoints  []*endpoint
+	publicEndpoints []*endpoint
+	localCursor     int
+	publicCursor    int
 }
 
 func init() {
@@ -76,4 +45,55 @@ func init() {
 	}
 
 	rand.Seed(time.Now().Unix())
+}
+
+func NewManager() (*Manager, error) {
+	m := Manager{}
+
+	if len(localAddrs) == 0 && len(publicAddrs) == 0 {
+		return nil, fmt.Errorf("invalid addresses setting")
+	}
+
+	for _, addr := range localAddrs {
+		m.localEndpoints = append(m.localEndpoints, &endpoint{
+			Address: addr,
+			peeked:  false,
+		})
+	}
+
+	for _, addr := range publicAddrs {
+		m.publicEndpoints = append(m.publicEndpoints, &endpoint{
+			Address: addr,
+			peeked:  false,
+		})
+	}
+
+	m.localCursor = rand.Intn(len(localAddrs))
+	m.publicCursor = rand.Intn(len(publicAddrs))
+
+	return &m
+}
+
+func (mgr *Manager) Peek() (string, error) {
+	for i := 0; i < len(m.localEndpoints); i++ {
+		ep := m.localEndpoints[(i+m.localCursor)%len(m.localEndpoints)]
+		if ep.peeked {
+			continue
+		}
+		ep.peeked = true
+		m.localCursor = i + 1
+		return ep.Address, nil
+	}
+
+	for i := 0; i < len(m.publicEnepoints); i++ {
+		ep := m.publicEndpoints[(i+m.cursor)%len(m.publicEndpoints)]
+		if ep.peeked {
+			continue
+		}
+		ep.peeked = true
+		ep.publicCursor = i + 1
+		return ep.Address, nil
+	}
+
+	return "", fmt.Errorf("invalid endpoint")
 }
