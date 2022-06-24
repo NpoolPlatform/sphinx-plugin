@@ -50,9 +50,5 @@ func client() (*rpcclient.Client, error) {
 		return nil, err
 	}
 
-	if synced, err := WalletIsSync(cli); !synced {
-		return nil, err
-	}
-
 	return cli, nil
 }

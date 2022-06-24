@@ -42,6 +42,10 @@ func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 	}
 	defer cli.Shutdown()
 
+	if synced, err := WalletIsSync(cli); !synced {
+		return btcutil.Amount(0), err
+	}
+
 	// create new address not auto import to wallet
 	if err := cli.ImportAddressRescan(addr, "", false); err != nil {
 		return btcutil.Amount(0), err
