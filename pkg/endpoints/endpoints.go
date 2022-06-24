@@ -53,10 +53,9 @@ func ShuffleOrder(n int) []int {
 		order[i] = i
 	}
 
-	for i := 0; i < n; i++ {
-		j := rand.Intn(n)
+	rand.Shuffle(n, func(i, j int) {
 		order[i], order[j] = order[j], order[i]
-	}
+	})
 
 	return order
 }
@@ -72,7 +71,7 @@ func NewManager() (*Manager, error) {
 		publicOrder[i] = v + len(localAddrs)
 	}
 
-	peekOrder := make([]int, 0)
+	peekOrder := make([]int, 0, len(localOrder)+len(publicOrder))
 	peekOrder = append(peekOrder, localOrder...)
 	peekOrder = append(peekOrder, publicOrder...)
 

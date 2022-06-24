@@ -30,9 +30,9 @@ func client() (v0api.FullNode, error) {
 
 	headers := http.Header{"Authorization": []string{"Bearer " + authToken}}
 
-	addr, ok := env.LookupEnv(env.ENVCOINAPI)
+	addr, ok := env.LookupEnv(env.ENVCOINLOCALAPI)
 	if !ok {
-		return nil, env.ErrENVCoinAPINotFound
+		return nil, env.ErrENVCoinLocalAPINotFound
 	}
 
 	if api != nil {

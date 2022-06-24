@@ -25,6 +25,7 @@ func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionTyp
 }
 
 func GetCoinPlugin(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType) func(ctx context.Context, payload []byte) ([]byte, error) {
+	// TODO: check nested map exist
 	return coinPluginHandles[coinType][opType]
 }
 

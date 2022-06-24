@@ -75,7 +75,7 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 
 	return &PreSignInfo{
 		ChainID:    chainID.Int64(),
-		ContractID: coins.USDTContractID(chainID.Int64()),
+		ContractID: coins.USDTContract(chainID.Int64()),
 		Nonce:      nonce,
 		GasPrice:   gasPrice.Int64(),
 		GasLimit:   gasLimit,

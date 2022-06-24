@@ -206,7 +206,7 @@ func (c *pluginClient) recv() {
 
 			respPayload, err := coins.GetCoinPlugin(coinType, transactionType)(context.Background(), req.GetPayload())
 			if err != nil {
-				logger.Sugar().Errorf("", err)
+				logger.Sugar().Errorf("GetCoinPlugin handle deal transaction error: %v", err)
 			}
 
 			resp := &sphinxproxy.ProxyPluginResponse{
