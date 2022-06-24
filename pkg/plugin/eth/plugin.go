@@ -33,39 +33,32 @@ type PreSignInfo struct {
 }
 
 func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
-	client, err := client()
-	if err != nil {
-		return nil, err
-	}
-	defer client.Close()
+	client := Client()
+
 	if !common.IsHexAddress(addr) {
 		return nil, ErrAddrNotValid
 	}
-	return client.BalanceAt(ctx, common.HexToAddress(addr), nil)
+	return client.BalanceAtS(ctx, common.HexToAddress(addr), nil)
 }
 
 func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (*PreSignInfo, error) {
-	client, err := client()
-	if err != nil {
-		return nil, err
-	}
-	defer client.Close()
+	client := Client()
 
 	if !common.IsHexAddress(from) {
 		return nil, ErrAddrNotValid
 	}
 
-	chainID, err := client.NetworkID(ctx)
+	chainID, err := client.NetworkIDS(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	nonce, err := client.PendingNonceAt(ctx, common.HexToAddress(from))
+	nonce, err := client.PendingNonceAtS(ctx, common.HexToAddress(from))
 	if err != nil {
 		return nil, err
 	}
 
-	gasPrice, err := client.SuggestGasPrice(ctx)
+	gasPrice, err := client.SuggestGasPriceS(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -91,11 +84,7 @@ func PreSign(ctx context.Context, coinType sphinxplugin.CoinType, from string) (
 
 // SendRawTransaction eth/usdt
 func SendRawTransaction(ctx context.Context, rawHexTx string) (string, error) {
-	client, err := client()
-	if err != nil {
-		return "", err
-	}
-	defer client.Close()
+	client := Client()
 
 	tx := new(types.Transaction)
 
@@ -108,7 +97,7 @@ func SendRawTransaction(ctx context.Context, rawHexTx string) (string, error) {
 		return "", err
 	}
 
-	if err := client.SendTransaction(ctx, tx); err != nil {
+	if err := client.SendTransactionS(ctx, tx); err != nil {
 		return "", err
 	}
 
@@ -117,13 +106,9 @@ func SendRawTransaction(ctx context.Context, rawHexTx string) (string, error) {
 
 // done(on chain) => true
 func SyncTxState(ctx context.Context, txHash string) (bool, error) {
-	client, err := client()
-	if err != nil {
-		return false, err
-	}
-	defer client.Close()
+	client := Client()
 
-	_, isPending, err := client.TransactionByHash(ctx, common.HexToHash(txHash))
+	_, isPending, err := client.TransactionByHashS(ctx, common.HexToHash(txHash))
 	if err != nil {
 		return false, err
 	}
@@ -131,7 +116,7 @@ func SyncTxState(ctx context.Context, txHash string) (bool, error) {
 		return false, ErrWaitMessageOnChain
 	}
 
-	receipt, err := client.TransactionReceipt(ctx, common.HexToHash(txHash))
+	receipt, err := client.TransactionReceiptS(ctx, common.HexToHash(txHash))
 	if err != nil {
 		return false, err
 	}

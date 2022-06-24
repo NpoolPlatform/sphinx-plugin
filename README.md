@@ -43,19 +43,61 @@
 
 ### 环境变量
 
-| 币种                 | 变量名称           | 支持的值                                                    | 说明                      |
-|:------------------ |:-------------- |:------------------------------------------------------- |:----------------------- |
-| common             | ENV_COIN_NET   | main or test                                            |                         |
-|                    | ENV_COIN_TYPE  | filecoin bitcoin ethereum/usdterc20 spacemesh usdttrc20 | 如果此**plugin**支持多币种使用,分割 |
-|                    | ENV_COIN_API   | ip:port                                                 |                         |
-| ethereum/usdterc20 |                |                                                         |                         |
-| filecoin           | ENV_COIN_TOKEN |                                                         |                         |
-| bitcoin            | ENV_COIN_USER  |                                                         |                         |
-|                    | ENV_COIN_PASS  |                                                         |                         |
-| usdttrc20          | ENV_CONTRACT   |                                                         | 填写trc20的合约地址            |
+| 币种                               | 变量名称                        | 支持的值                                                    | 说明                                            |
+|:-------------------------------- |:--------------------------- |:------------------------------------------------------- |:--------------------------------------------- |
+| common                           | ENV_COIN_NET                | main or test                                            |                                               |
+|                                  | ENV_COIN_TYPE               | filecoin bitcoin ethereum/usdterc20 spacemesh usdttrc20 | 如果此**plugin**支持多币种使用,分割                       |
+| ~~fil btc sol~~                  | ~~ENV_COIN_API~~            | ~~ip:port~~                                             | 已经废弃，使用ENV_COIN_LOCAL_API及ENV_COIN_PUBLIC_API |
+| fil btc sol eth/erc20 tron/trc20 | ENV_COIN_LOCAL_API          | ip:port                                                 | 多个地址使用,分割                                     |
+| fil btc sol eth/erc20 tron/trc20 | ENV_COIN_PUBLIC_API         | ip:port                                                 | 多个地址使用,分割                                     |
+| tron/trc20                       | ENV_COIN_JSONRPC_LOCAL_API  | ip:port                                                 | 多个地址使用,分割                                     |
+| tron/trc20                       | ENV_COIN_JSONRPC_PUBLIC_API | ip:port                                                 | 多个地址使用,分割                                     |
+| ethereum/usdterc20               |                             |                                                         |                                               |
+| filecoin                         | ENV_COIN_TOKEN              |                                                         |                                               |
+| bitcoin                          | ENV_COIN_USER               |                                                         |                                               |
+|                                  | ENV_COIN_PASS               |                                                         |                                               |
+| usdttrc20                        | ENV_CONTRACT                |                                                         | 填写trc20的合约地址                                  |
 
-1. **ENV_COIN_API** 钱包服务的 **ipv4** 或者 **ipv6** 地址
+1. **ENV_COIN_LOCAL_API/ENV_COIN_PUBLIC_API** 钱包服务的 **ipv4** 、 **ipv6** 地址或是域名
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**
+
+## 
+
+## Plugin Features
+
+由于币种之间差异，会造成plugin在每个币种的功能存在差异
+
+此部分记录当前版本plugin特性对各币种的支持情况
+
+### multiple-endpoints
+
+每个plugin可配置多个节点地址（可提供账户余额、交易状态、链状态等相关API的地址）
+
+相关环境变量：ENV_COIN_LOCAL_API、ENV_COIN_PUBLIC_API
+
+eth/erc20 tron/trc20 bsc/bep20 支持配置多个地址并使用","分割
+
+fil btc sol 只支持配置ENV_COIN_LOCAL_API环境变量，且仅支持配置单节点
+
+### wallet-status-check
+
+钱包状态检查，目前仅检查节点高度是否与链高度一致
+
+eth/erc20 bsc/bep20 仅在查询balance时验证区块高度
+
+tron/trc20 在连接节点时检测区块高度，需要节点开启json-api端口才可检测，目前仅检测ENV_COIN_LOCAL_API，信任ENV_COIN_PUBLIC_API配置的节点地址
+
+其他币种暂无
+
+### account-check
+
+账户验证
+
+tron/trc20 在获取balance时检测账户格式，与波场HTTP-API提供的wallet/validateaddress功能一致
+
+其他币种暂无
+
+
 
 ------
 
@@ -97,7 +139,10 @@
 export ENV_COIN_NET=test  # main | test
 export ENV_COIN_TYPE=usdttrc20  # usdttrc20
 export ENV_CONTRACT=TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj
-export ENV_COIN_API=47.252.19.181:50051,grpc.nile.trongrid.io:50051  
+export ENV_COIN_PUBLIC_API=grpc.nile.trongrid.io:50051,grpc.nile.trongrid.io:50051 # 提供grpc-api的地址
+export ENV_COIN_LOCAL_API=47.252.19.181:50051
+export ENV_COIN_JSONRPC_LOCAL_API=47.252.19.181:50545
+export ENV_COIN_JSONRPC_PUBLIC_API=
 export ENV_PROXY='10.107.172.251:50001'
 export ENV_LOG_DIR=/var/log 
 export ENV_LOG_LEVEL=debug 
@@ -131,11 +176,11 @@ plugin-solana 环境变量
 export ENV_COIN_NET=test
 export ENV_COIN_TYPE=solana
 # 开发网
-export ENV_COIN_API=https://api.devnet.solana.com
+export ENV_COIN_LOCAL_API=https://api.devnet.solana.com
 # 测试网
-#export ENV_COIN_API=https://api.testnet.solana.com
+#export ENV_COIN_LOCAL_API=https://api.testnet.solana.com
 # 主网
-#export ENV_COIN_API=https://api.mainnet-beta.solana.com
+#export ENV_COIN_LOCAL_API=https://api.mainnet-beta.solana.com
 ```
 
 运行plugin
@@ -171,9 +216,9 @@ After=network.target
 # filecoin
 Environment="ENV_COIN_NET=test"
 Environment="ENV_COIN_TYPE=filecoin"
-Environment="ENV_COIN_API=$wallet-ip:1234"
+Environment="ENV_COIN_LOCAL_API=$wallet-ip:1234"
 # BTC test
-# Environment="ENV_COIN_API=127.0.0.1:18443"
+# Environment="ENV_COIN_LOCAL_API=127.0.0.1:18443"
 Environment="ENV_COIN_TOKEN=$wallet-api"
 ExecStart=/opt/sphinx-plugin/sphinx-plugin run
 ExecStop=/bin/kill -s QUIT $MAINPID

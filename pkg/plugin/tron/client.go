@@ -1,12 +1,15 @@
 package tron
 
 import (
+	"encoding/json"
 	"fmt"
-	"math/big"
-	"math/rand"
+	"io/ioutil"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
@@ -14,52 +17,71 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Init() {
-	rand.Seed(time.Now().Unix())
-}
-
 const (
 	MinNodeNum = 1
 	MaxRetries = 3
 )
 
-type ClientI interface {
-	TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error)
-	TRC20SendS(from string, to string, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error)
+type TClientI interface {
+	TRXBalanceS(addr string) (int64, error)
+	TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error)
 	BroadcastS(tx *core.Transaction) (*api.Return, error)
 	GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error)
-	GetNode() *tronclient.GrpcClient
+	GetGRPCClient(endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error)
+	WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error
 }
 
-type TClients struct {
-	Endpoints []string
-	Retries   uint
-}
+type TClients struct{}
 
-func newTClients(retries uint, addrList []string) (*TClients, error) {
-	tronClient := &TClients{}
-	tronClient.Retries = retries
-	for _, addr := range addrList {
-		client := tronclient.NewGrpcClient(addr)
-		err := client.Start(grpc.WithInsecure())
-		if err != nil {
+var jsonAPIMap map[string]string
+
+func init() {
+	jsonAPIMap = make(map[string]string)
+	var jsonApis []string
+
+	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCLOCALAPI); ok {
+		strs := strings.Split(v, endpoints.AddrSplitter)
+		jsonApis = append(jsonApis, strs...)
+	}
+	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCPUBLICAPI); ok {
+		strs := strings.Split(v, endpoints.AddrSplitter)
+		jsonApis = append(jsonApis, strs...)
+	}
+
+	for _, v := range jsonApis {
+		strs := strings.Split(v, ":")
+		if len(strs) < 2 {
 			continue
 		}
-		client.Stop()
-		tronClient.Endpoints = append(tronClient.Endpoints, addr)
+		jsonAPIMap[strs[0]] = strs[1]
 	}
-	if len(tronClient.Endpoints) < MinNodeNum {
-		return tronClient, fmt.Errorf("too few nodes have been successfully connected,just %v nodes",
-			len(tronClient.Endpoints))
-	}
-	return tronClient, nil
 }
 
-func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
-	rIndex := rand.Intn(len(tClients.Endpoints))
-	addr := tClients.Endpoints[rIndex]
-	ntc := tronclient.NewGrpcClientWithTimeout(addr, 10*time.Second)
-	err := ntc.Start(grpc.WithInsecure())
+func (tClients *TClients) GetGRPCClient(endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error) {
+	endpoint, isLocal, err := endpointmgr.Peek()
+	if err != nil {
+		return nil, err
+	}
+	strs := strings.Split(endpoint, ":")
+
+	if isLocal {
+		port := jsonAPIMap[strs[0]]
+		syncRet, _err := tClients.SyncProgress(strs[0], port)
+		if _err != nil {
+			logger.Sugar().Error(_err)
+			return nil, _err
+		}
+
+		if syncRet != nil {
+			return nil, fmt.Errorf(
+				"node is syncing ,current block %v ,highest block %v ",
+				syncRet.Result.CurrentBlock, syncRet.Result.HighestBlock,
+			)
+		}
+	}
+
+	ntc := tronclient.NewGrpcClientWithTimeout(endpoint, 6*time.Second)
+	err = ntc.Start(grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
@@ -67,129 +89,130 @@ func (tClients *TClients) GetNode() (*tronclient.GrpcClient, error) {
 	return ntc, nil
 }
 
-func (tClients *TClients) withClient(fn func(*tronclient.GrpcClient) error) error {
-	client, err := tClients.GetNode()
+type SyncBlock struct {
+	StartingBlock string
+	CurrentBlock  string
+	HighestBlock  string
+}
+
+type SyncingResponse struct {
+	ID     int
+	Result SyncBlock
+}
+
+// SyncProgress retrieves the current progress of the sync algorithm. If there's
+// no sync currently running, it returns nil.
+func (tClients *TClients) SyncProgress(ip, port string) (*SyncingResponse, error) {
+	addr := fmt.Sprintf("http://%v:%v/jsonrpc", ip, port)
+
+	contentType := "application/json"
+	body := strings.NewReader(`{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":64}`)
+
+	resp, err := http.Post(addr, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var syncRes SyncingResponse
+	err = json.Unmarshal(data, &syncRes)
+	if err != nil {
+		return nil, err
+	}
+	if syncRes.Result.CurrentBlock >= syncRes.Result.HighestBlock {
+		return nil, nil
+	}
+
+	return &syncRes, nil
+}
+
+func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
+	var err error
+	var retry bool
+	var client *tronclient.GrpcClient
+
+	endpointmgr, err := endpoints.NewManager()
 	if err != nil {
 		return err
 	}
-	defer client.Stop()
-	return fn(client)
+	for i := 0; i < MaxRetries; i++ {
+		client, err = tClients.GetGRPCClient(endpointmgr)
+		if err != nil {
+			continue
+		}
+		retry, err = fn(client)
+		client.Stop()
+
+		if err == nil || !retry {
+			return err
+		}
+	}
+	return err
 }
 
 func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
-	var ret int64
-	var err error
-	for i := 0; i < int(tClients.Retries); i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			acc, err := client.GetAccount(addr)
-			if err != nil {
-				return err
-			}
-			ret = acc.GetBalance()
-			return nil
-		})
-		if err == nil {
-			return ret, nil
-		}
+	ret := EmptyTRX
+	if err := ValidAddress(addr); err != nil {
+		return ret, err
 	}
-	return ret, fmt.Errorf("fail TRXBalanceS, %v", err)
+
+	err := tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
+		acc, err := client.GetAccount(addr)
+		if err != nil {
+			return true, err
+		}
+		ret = acc.GetBalance()
+		return false, nil
+	})
+	if err != nil && strings.Contains(err.Error(), ErrAccountNotFound.Error()) {
+		return EmptyTRX, nil
+	}
+	return ret, nil
 }
 
 func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
 	var ret *api.TransactionExtention
 	var err error
-	for i := 0; i < int(tClients.Retries); i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.Transfer(from, to, amount)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-	}
-	return nil, fmt.Errorf("fail TRXTransferS, %v", err)
-}
+	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
+		ret, err = client.Transfer(from, to, amount)
+		return true, err
+	})
 
-func (tClients *TClients) TRC20ContractBalanceS(addr, contractAddress string) (*big.Int, error) {
-	var ret *big.Int
-	var err error
-	for i := 0; i < int(tClients.Retries); i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.TRC20ContractBalance(addr, contractAddress)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-	}
-	return nil, fmt.Errorf("fail TRC20ContractBalanceS, %v", err)
-}
-
-func (tClients *TClients) TRC20SendS(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
-	var ret *api.TransactionExtention
-	var err error
-	for i := 0; i < int(tClients.Retries); i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.TRC20Send(from, to, contract, amount, feeLimit)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-	}
-	return nil, fmt.Errorf("fail TRC20SendS, %v", err)
+	return ret, err
 }
 
 func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) {
 	var ret *api.Return
 	var err error
-	for i := 0; i < int(tClients.Retries); i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.Broadcast(tx)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
+
+	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
+		ret, err = client.Broadcast(tx)
 		if err != nil && ret.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
-			return ret, err
+			return false, err
 		}
-	}
-	return nil, fmt.Errorf("fail BroadcastS, %v", err)
+		return true, err
+	})
+
+	return ret, err
 }
 
 func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error) {
 	var ret *core.TransactionInfo
 	var err error
-	for i := 0; i < int(tClients.Retries); i++ {
-		err = tClients.withClient(func(client *tronclient.GrpcClient) error {
-			ret, err = client.GetTransactionInfoByID(id)
-			return err
-		})
-		if err == nil {
-			return ret, nil
-		}
-	}
-	return nil, fmt.Errorf("fail GetTransactionInfoByIDS, %v", err)
+
+	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
+		ret, err = client.GetTransactionInfoByID(id)
+		return true, err
+	})
+
+	return ret, err
 }
 
-var tClients *TClients
-
-func Client() (*TClients, error) {
-	if tClients != nil {
-		return tClients, nil
-	}
-	addrs, ok := env.LookupEnv(env.ENVCOINAPI)
-	if !ok {
-		return nil, env.ErrENVCoinAPINotFound
-	}
-
-	addrList := strings.Split(addrs, ",")
-
-	_tClients, err := newTClients(MaxRetries, addrList)
-	if err != nil {
-		return nil, err
-	}
-	tClients = _tClients
-	return tClients, nil
+func Client() TClientI {
+	return &TClients{}
 }

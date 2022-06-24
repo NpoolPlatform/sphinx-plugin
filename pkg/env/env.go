@@ -13,7 +13,8 @@ const (
 	ENVCOINTYPE = "ENV_COIN_TYPE"
 
 	// fil btc ip:port
-	ENVCOINAPI = "ENV_COIN_API"
+	ENVCOINLOCALAPI  = "ENV_COIN_LOCAL_API"
+	ENVCOINPUBLICAPI = "ENV_COIN_PUBLIC_API"
 
 	// for btc
 	ENVCOINUSER = "ENV_COIN_USER"
@@ -24,6 +25,10 @@ const (
 
 	// for eth/usdt
 	ENVCONTRACT = "ENV_CONTRACT"
+
+	// for tron
+	ENVCOINJSONRPCLOCALAPI  = "ENV_COIN_JSONRPC_LOCAL_API"
+	ENVCOINJSONRPCPUBLICAPI = "ENV_COIN_JSONRPC_PUBLIC_API"
 )
 
 var (
@@ -31,7 +36,8 @@ var (
 	ErrEVNCoinNet      = errors.New("env ENV_COIN_NET not found")
 	ErrEVNCoinNetValue = errors.New("env ENV_COIN_NET value only support main|test")
 
-	ErrENVCoinAPINotFound = errors.New("env ENV_COIN_API not found")
+	ErrENVCoinLocalAPINotFound  = errors.New("env ENV_COIN_LOCAL_API not found")
+	ErrENVCoinPublicAPINotFound = errors.New("env ENV_COIN_PUBLIC_API not found")
 
 	// btc
 	ErrENVCoinUserNotFound = errors.New("env ENV_COIN_USER not found")
@@ -46,6 +52,10 @@ var (
 
 	// eth/usdt
 	ErrENVContractNotFound = errors.New("env ENV_CONTRACT not found")
+
+	// tron
+	ErrENVCOINJSONRPCAPINotFound = errors.New("env ENV_COIN_JSONRPC_API not found")
+	ErrENVCOINGRPCAPINotFound    = errors.New("env ENV_COIN_GRPC_API not found")
 )
 
 func LookupEnv(key string) (string, bool) {

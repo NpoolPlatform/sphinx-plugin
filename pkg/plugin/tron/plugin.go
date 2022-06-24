@@ -27,30 +27,23 @@ const (
 )
 
 func WalletBalance(ctx context.Context, wallet string) (balance int64, err error) {
-	client, err := Client()
-	if err != nil {
-		return EmptyTRX, err
-	}
+	client := Client()
 	return client.TRXBalanceS(wallet)
 }
 
-func Transfer(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
+func BuildTransaciton(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
 	from := req.GetMessage().GetFrom()
 	to := req.GetMessage().GetTo()
 	amount := req.GetMessage().GetValue()
 
-	client, err := Client()
-	if err != nil {
-		return nil, err
-	}
+	client := Client()
+
 	return client.TRXTransferS(from, to, TRXToInt(amount))
 }
 
 func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (err error) {
-	client, err := Client()
-	if err != nil {
-		return err
-	}
+	client := Client()
+
 	result, err := client.BroadcastS(transaction)
 	if err != nil {
 		return err
@@ -66,10 +59,7 @@ func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (e
 
 // done(on chain) => true
 func SyncTxState(ctx context.Context, cid string) (pending bool, exitcode int64, err error) {
-	client, err := Client()
-	if err != nil {
-		return false, 0, err
-	}
+	client := Client()
 
 	txInfo, err := client.GetTransactionInfoByIDS(cid)
 
