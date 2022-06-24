@@ -43,18 +43,21 @@ type BClientI interface {
 type BClients struct{}
 
 func (bClients BClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error) {
-	endpoint, err := endpointmgr.Peek()
+	endpoint, _, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}
-	return ethclient.Dial(endpoint.Address)
+	return ethclient.Dial(endpoint)
 }
 
 func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
 	var client *ethclient.Client
 	var err error
 	var retry bool
-	endpointmgr := endpoints.NewManager()
+	endpointmgr, err := endpoints.NewManager()
+	if err != nil {
+		return err
+	}
 	for i := 0; i < MaxRetries; i++ {
 		client, err = bClients.GetNode(endpointmgr)
 		if err != nil {

@@ -13,6 +13,7 @@ import (
 var (
 	publicAddrs []string
 	localAddrs  []string
+	allAddrs    []string
 )
 
 const (
@@ -20,16 +21,9 @@ const (
 	AddrMinLen   = 3
 )
 
-type endpoint struct {
-	address string
-	peeked  bool
-}
-
 type Manager struct {
-	localEndpoints  []*endpoint
-	publicEndpoints []*endpoint
-	localCursor     int
-	publicCursor    int
+	peekOrder     []int
+	currentCursor int
 }
 
 func init() {
@@ -44,56 +38,60 @@ func init() {
 		localAddrs = strings.Split(_localAddrs, AddrSplitter)
 	}
 
+	allAddrs = append(allAddrs, localAddrs...)
+	allAddrs = append(allAddrs, publicAddrs...)
+
 	rand.Seed(time.Now().Unix())
 }
 
-func NewManager() (*Manager, error) {
-	m := Manager{}
+func ShuffleOrder(n int) []int {
+	if n < 1 {
+		return []int{}
+	}
+	order := make([]int, n)
+	for i := range order {
+		order[i] = i
+	}
 
-	if len(localAddrs) == 0 && len(publicAddrs) == 0 {
+	for i := 0; i < n; i++ {
+		j := rand.Intn(n)
+		order[i], order[j] = order[j], order[i]
+	}
+
+	return order
+}
+
+func NewManager() (*Manager, error) {
+	if len(allAddrs) == 0 {
 		return nil, fmt.Errorf("invalid addresses setting")
 	}
 
-	for _, addr := range localAddrs {
-		m.localEndpoints = append(m.localEndpoints, &endpoint{
-			Address: addr,
-			peeked:  false,
-		})
+	localOrder := ShuffleOrder(len(localAddrs))
+	publicOrder := ShuffleOrder(len(publicAddrs))
+	for i, v := range publicOrder {
+		publicOrder[i] = v + len(localAddrs)
 	}
 
-	for _, addr := range publicAddrs {
-		m.publicEndpoints = append(m.publicEndpoints, &endpoint{
-			Address: addr,
-			peeked:  false,
-		})
-	}
+	peekOrder := make([]int, 0)
+	peekOrder = append(peekOrder, localOrder...)
+	peekOrder = append(peekOrder, publicOrder...)
 
-	m.localCursor = rand.Intn(len(localAddrs))
-	m.publicCursor = rand.Intn(len(publicAddrs))
-
-	return &m
+	return &Manager{peekOrder: peekOrder, currentCursor: 0}, nil
 }
 
-func (mgr *Manager) Peek() (string, error) {
-	for i := 0; i < len(m.localEndpoints); i++ {
-		ep := m.localEndpoints[(i+m.localCursor)%len(m.localEndpoints)]
-		if ep.peeked {
-			continue
-		}
-		ep.peeked = true
-		m.localCursor = i + 1
-		return ep.Address, nil
+func (m *Manager) Peek() (addr string, isLocal bool, err error) {
+	if m.currentCursor >= len(m.peekOrder) {
+		return "", false, fmt.Errorf("fail peek,all endpoints is peeked")
 	}
 
-	for i := 0; i < len(m.publicEnepoints); i++ {
-		ep := m.publicEndpoints[(i+m.cursor)%len(m.publicEndpoints)]
-		if ep.peeked {
-			continue
-		}
-		ep.peeked = true
-		ep.publicCursor = i + 1
-		return ep.Address, nil
+	addr = allAddrs[m.peekOrder[m.currentCursor]]
+	m.currentCursor++
+
+	isLocal = false
+	if len(localAddrs) != 0 && m.currentCursor < len(localAddrs) {
+		isLocal = true
 	}
 
-	return "", fmt.Errorf("invalid endpoint")
+	logger.Sugar().Errorf("peek the endpoint: %v", addr)
+	return addr, isLocal, nil
 }

@@ -58,13 +58,13 @@ func init() {
 }
 
 func (tClients *TClients) GetGRPCClient(endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error) {
-	endpoint, err := endpointmgr.Peek()
+	endpoint, isLocal, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}
-	strs := strings.Split(endpoint.Address, ":")
+	strs := strings.Split(endpoint, ":")
 
-	if endpoint.IsLocal {
+	if isLocal {
 		port := jsonAPIMap[strs[0]]
 		syncRet, _err := tClients.SyncProgress(strs[0], port)
 		if _err != nil {
@@ -80,7 +80,7 @@ func (tClients *TClients) GetGRPCClient(endpointmgr *endpoints.Manager) (*troncl
 		}
 	}
 
-	ntc := tronclient.NewGrpcClientWithTimeout(endpoint.Address, 6*time.Second)
+	ntc := tronclient.NewGrpcClientWithTimeout(endpoint, 6*time.Second)
 	err = ntc.Start(grpc.WithInsecure())
 	if err != nil {
 		return nil, err
@@ -136,7 +136,10 @@ func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 	var retry bool
 	var client *tronclient.GrpcClient
 
-	endpointmgr := endpoints.NewManager()
+	endpointmgr, err := endpoints.NewManager()
+	if err != nil {
+		return err
+	}
 	for i := 0; i < MaxRetries; i++ {
 		client, err = tClients.GetGRPCClient(endpointmgr)
 		if err != nil {
