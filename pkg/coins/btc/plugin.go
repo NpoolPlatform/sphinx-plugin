@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/rpcclient"
@@ -52,15 +52,15 @@ func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 	}
 
 	if minConfirms <= 0 {
-		minConfirms = plugin.DefaultMinConfirms
+		minConfirms = coins.DefaultMinConfirms
 	}
 
-	_addr, err := btcutil.DecodeAddress(addr, plugin.BTCNetMap[plugin.CoinNet])
+	_addr, err := btcutil.DecodeAddress(addr, coins.BTCNetMap[coins.CoinNet])
 	if err != nil {
 		return btcutil.Amount(0), err
 	}
 
-	unspents, err := cli.ListUnspentMinMaxAddresses(minConfirms, plugin.DefaultMaxConfirms, []btcutil.Address{_addr})
+	unspents, err := cli.ListUnspentMinMaxAddresses(minConfirms, coins.DefaultMaxConfirms, []btcutil.Address{_addr})
 	if err != nil {
 		return btcutil.Amount(0), err
 	}
@@ -84,16 +84,16 @@ func ListUnspent(addr string, minConfirms int) ([]btcjson.ListUnspentResult, err
 	defer cli.Shutdown()
 
 	if minConfirms <= 0 {
-		minConfirms = plugin.DefaultMinConfirms
+		minConfirms = coins.DefaultMinConfirms
 	}
 
-	_addr, err := btcutil.DecodeAddress(addr, plugin.BTCNetMap[plugin.CoinNet])
+	_addr, err := btcutil.DecodeAddress(addr, coins.BTCNetMap[coins.CoinNet])
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO gas optimization
-	return cli.ListUnspentMinMaxAddresses(minConfirms, plugin.DefaultMaxConfirms, []btcutil.Address{_addr})
+	return cli.ListUnspentMinMaxAddresses(minConfirms, coins.DefaultMaxConfirms, []btcutil.Address{_addr})
 }
 
 // SendRawTransaction ..

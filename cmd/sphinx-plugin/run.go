@@ -6,8 +6,8 @@ import (
 	"syscall"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/task"
 	cli "github.com/urfave/cli/v2"
 )
@@ -17,8 +17,8 @@ var runCmd = &cli.Command{
 	Aliases: []string{"r"},
 	Usage:   "Run Sphinx Plugin daemon",
 	Before: func(c *cli.Context) error {
-		if !plugin.CheckSupportNet(plugin.CoinNet) {
-			// TODO should exit!!
+		if !coins.CheckSupportNet(coins.CoinNet) {
+			// TODO should exit ??
 			os.Exit(1)
 		}
 		return nil
@@ -30,7 +30,7 @@ var runCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "coin_net",
 			Hidden:      true,
-			Destination: &plugin.CoinNet,
+			Destination: &coins.CoinNet,
 			EnvVars:     []string{env.ENVCOINNET},
 		},
 	},

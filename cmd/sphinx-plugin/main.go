@@ -31,8 +31,11 @@ func main() {
 		usdt.DeployUSDTCmd,
 	}
 
-	description := fmt.Sprintf("%v service cli\nFor help on any individual command run <%v COMMAND -h>\n",
-		serviceName, serviceName)
+	description := fmt.Sprintf(
+		"%v service cli\nFor help on any individual command run <%v COMMAND -h>\n",
+		serviceName,
+		serviceName,
+	)
 
 	banner.NewColorFigure(serviceName, "", "green", true).Print()
 	ver, err := version.GetVersion()
