@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/spf13/viper"
@@ -39,8 +40,15 @@ func Init(configPath, appName string) error {
 		return fmt.Errorf("fail to init config: %v", err)
 	}
 
-	appID := viper.GetStringMap(rootConfig)[KeyAppID].(string)   //nolint
-	logDir := viper.GetStringMap(rootConfig)[KeyLogDir].(string) //nolint
+	appID, ok := viper.GetStringMap(rootConfig)[KeyAppID].(string)
+	if !ok {
+		return errors.New("fail to get init config KeyAppID not a string value")
+	}
+
+	logDir, ok := viper.GetStringMap(rootConfig)[KeyLogDir].(string)
+	if !ok {
+		return errors.New("fail to get init config KeyLogDir not a string value")
+	}
 
 	fmt.Printf("appid: %v\n", appID)
 	fmt.Printf("logdir: %v\n", logDir)
