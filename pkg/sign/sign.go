@@ -3,6 +3,7 @@ package sign
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 )
@@ -14,35 +15,35 @@ var (
 	ErrCoinSignTypeNotRegister = errors.New("coin sign type not register")
 	ErrOpSignTypeNotRegister   = errors.New("op sign type not register")
 
-	coinSignHandles = make(map[sphinxplugin.CoinType]func(ctx context.Context, payload []byte) ([]byte, error))
+	coinSignHandles = make(map[sphinxplugin.CoinType]map[sphinxplugin.TransactionType]Handlef)
 )
 
+type Handlef func(ctx context.Context, payload []byte) ([]byte, error)
+
 func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType, handle func(ctx context.Context, payload []byte) ([]byte, error)) {
-	switch opType {
-	case sphinxplugin.TransactionType_WalletNew:
-		if _, ok := coinSignHandles[coinType]; ok {
-			panic(ErrCoinSignTypeAlreadyRegister)
-		}
-		coinSignHandles[coinType] = handle
-	case sphinxplugin.TransactionType_Sign:
-		if _, ok := coinSignHandles[coinType]; ok {
-			panic(ErrCoinSignTypeAlreadyRegister)
-		}
-		coinSignHandles[coinType] = handle
-	default:
-		panic(errors.New("!!>>??"))
+	if opType != sphinxplugin.TransactionType_WalletNew && opType != sphinxplugin.TransactionType_Sign {
+		panic(errors.New("??"))
 	}
+	coinPluginHandle, ok := coinSignHandles[coinType]
+	if !ok {
+		coinSignHandles[coinType] = make(map[sphinxplugin.TransactionType]Handlef)
+	}
+	if _, ok := coinPluginHandle[opType]; ok {
+		panic(fmt.Errorf("coin type: %v for transaction: %v already registered", coinType, opType))
+	}
+	coinSignHandles[coinType][opType] = handle
 }
 
 func GetCoinSign(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType) (func(ctx context.Context, payload []byte) ([]byte, error), bool) {
-	switch opType {
-	case sphinxplugin.TransactionType_WalletNew:
-		handle, ok := coinSignHandles[coinType]
-		return handle, ok
-	case sphinxplugin.TransactionType_Sign:
-		handle, ok := coinSignHandles[coinType]
-		return handle, ok
-	default:
+	if opType != sphinxplugin.TransactionType_WalletNew && opType != sphinxplugin.TransactionType_Sign {
 		panic(errors.New("??"))
 	}
+	// TODO: check nested map exist
+	if _, ok := coinSignHandles[coinType]; !ok {
+		return nil, ok
+	}
+	if _, ok := coinSignHandles[coinType][opType]; !ok {
+		return nil, ok
+	}
+	return coinSignHandles[coinType][opType], true
 }
