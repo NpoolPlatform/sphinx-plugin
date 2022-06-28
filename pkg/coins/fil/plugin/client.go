@@ -1,4 +1,4 @@
-package fil
+package plugin
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	api    *v0api.FullNodeStruct
+	// api    v0api.FullNode = &v0api.FullNodeStruct{}
 	closer jsonrpc.ClientCloser
 )
 
@@ -35,16 +35,18 @@ func client() (v0api.FullNode, error) {
 		return nil, env.ErrENVCoinLocalAPINotFound
 	}
 
-	if api != nil {
-		return api, nil
-	}
+	// if api != nil {
+	// 	return api, nil
+	// }
 
 	var err error
+	var api v0api.FullNodeStruct
 	// internal has conn pool
 	closer, err = jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&api), headers)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return api, nil
+	return &api, nil
 }
