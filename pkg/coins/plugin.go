@@ -26,7 +26,7 @@ func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionTyp
 		coinPluginHandles[coinType] = make(map[sphinxplugin.TransactionType]Handlef)
 	}
 	if _, ok := coinPluginHandle[opType]; ok {
-		panic(fmt.Errorf("coin type: %v for transaction: %v already registed", coinType, opType))
+		panic(fmt.Errorf("coin type: %v for transaction: %v already registered", coinType, opType))
 	}
 	coinPluginHandles[coinType][opType] = handle
 }
