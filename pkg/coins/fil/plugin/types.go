@@ -46,8 +46,9 @@ type SyncTxResponse struct {
 
 // ########################## sign
 type SignRequest struct {
-	ENV  string `json:"env"` // main or test
-	Info RawTx  `json:"raw_tx"`
+	CoinType string `json:"cointype"`
+	ENV      string `json:"env"` // main or test
+	Info     RawTx  `json:"raw_tx"`
 }
 
 type SignResponse struct {
