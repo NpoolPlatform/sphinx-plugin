@@ -3,6 +3,7 @@ package sign
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -71,7 +72,8 @@ func CreateAccount(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	err = oss.PutObject(ctx, addr, ki.PrivateKey, true)
+	filePath := fmt.Sprintf("%v/%v", info.CoinType, addr)
+	err = oss.PutObject(ctx, filePath, ki.PrivateKey, true)
 	return out, err
 }
 
@@ -99,7 +101,8 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	pk, err := oss.GetObject(ctx, raw.From, true)
+	filePath := fmt.Sprintf("%v/%v", info.CoinType, raw.From)
+	pk, err := oss.GetObject(ctx, filePath, true)
 	if err != nil {
 		return
 	}
