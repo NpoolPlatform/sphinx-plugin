@@ -17,9 +17,8 @@ var (
 )
 
 const (
-	AddrSplitter     = ","
-	AddrMinLen       = 3
-	RetriesSleepTime = 1 * time.Second
+	AddrSplitter = ","
+	AddrMinLen   = 3
 )
 
 type Manager struct {
@@ -92,9 +91,7 @@ func (m *Manager) Peek() (addr string, isLocal bool, err error) {
 	if len(localAddrs) != 0 && m.currentCursor < len(localAddrs) {
 		isLocal = true
 	}
-	if m.currentCursor != 0 {
-		time.Sleep(RetriesSleepTime)
-	}
+
 	logger.Sugar().Errorf("peek the endpoint: %v", addr)
 	return addr, isLocal, nil
 }
