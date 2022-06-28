@@ -86,6 +86,9 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 
 	raw := info.Info
 
+	// set current net type main or test
+	address.CurrentNetwork = coins.FILNetMap[info.ENV]
+
 	to, err := address.NewFromString(raw.To)
 	if err != nil {
 		return nil, err
