@@ -1,4 +1,4 @@
-package fil
+package plugin
 
 import (
 	"context"

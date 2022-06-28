@@ -10,23 +10,32 @@ import (
 var (
 	ErrCoinTypeAlreadyRegister = errors.New("coin type already register")
 	ErrOpTypeAlreadyRegister   = errors.New("op type already register")
-
-	coinPluginHandles = make(map[sphinxplugin.CoinType]map[sphinxplugin.TransactionType]func(ctx context.Context, payload []byte) ([]byte, error))
+	ErrCoinTypeNotFound        = errors.New("coin type not found")
+	ErrOpTypeNotFound          = errors.New("op type not found")
+	coinPluginHandles          = make(map[sphinxplugin.CoinType]map[sphinxplugin.TransactionType]func(ctx context.Context, payload []byte) ([]byte, error))
 )
 
 // register coin handle
 func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType, handle func(ctx context.Context, payload []byte) ([]byte, error)) {
-	if coinHandle, ok := coinPluginHandles[coinType]; ok {
-		panic(ErrCoinTypeAlreadyRegister)
-	} else if _, ok := coinHandle[opType]; ok {
+	if _, ok := coinPluginHandles[coinType]; !ok {
+		coinPluginHandles[coinType] = make(map[sphinxplugin.TransactionType]func(ctx context.Context, payload []byte) ([]byte, error))
+	}
+	if _, ok := coinPluginHandles[coinType][opType]; ok {
 		panic(ErrOpTypeAlreadyRegister)
 	}
 	coinPluginHandles[coinType][opType] = handle
 }
 
-func GetCoinPlugin(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType) func(ctx context.Context, payload []byte) ([]byte, error) {
+func GetCoinPlugin(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType) (func(ctx context.Context, payload []byte) ([]byte, error), error) {
 	// TODO: check nested map exist
-	return coinPluginHandles[coinType][opType]
+	// DO
+	if _, ok := coinPluginHandles[coinType]; !ok {
+		return nil, ErrCoinTypeNotFound
+	}
+	if _, ok := coinPluginHandles[coinType][opType]; !ok {
+		return nil, ErrOpTypeNotFound
+	}
+	return coinPluginHandles[coinType][opType], nil
 }
 
 type IPlugin interface {
