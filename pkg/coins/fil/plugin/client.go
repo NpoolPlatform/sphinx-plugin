@@ -43,7 +43,6 @@ func client() (v0api.FullNode, error) {
 	var api v0api.FullNodeStruct
 	// internal has conn pool
 	closer, err = jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&api), headers)
-
 	if err != nil {
 		return nil, err
 	}

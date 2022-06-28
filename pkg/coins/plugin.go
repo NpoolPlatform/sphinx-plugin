@@ -3,32 +3,32 @@ package coins
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 )
 
 var (
-	ErrCoinTypeAlreadyRegister = errors.New("coin type already register")
-	ErrOpTypeAlreadyRegister   = errors.New("op type already register")
-	ErrCoinTypeNotFound        = errors.New("coin type not found")
-	ErrOpTypeNotFound          = errors.New("op type not found")
-	coinPluginHandles          = make(map[sphinxplugin.CoinType]map[sphinxplugin.TransactionType]func(ctx context.Context, payload []byte) ([]byte, error))
+	ErrCoinTypeNotFound = errors.New("coin type not found")
+	ErrOpTypeNotFound   = errors.New("op type not found")
+
+	coinPluginHandles = map[sphinxplugin.CoinType]map[sphinxplugin.TransactionType]Handlef{}
 )
 
+// coin transaction handle
+type Handlef func(ctx context.Context, payload []byte) ([]byte, error)
+
 // register coin handle
-func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType, handle func(ctx context.Context, payload []byte) ([]byte, error)) {
-	if _, ok := coinPluginHandles[coinType]; !ok {
-		coinPluginHandles[coinType] = make(map[sphinxplugin.TransactionType]func(ctx context.Context, payload []byte) ([]byte, error))
-	}
+// caution: not support dynamic register
+func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType, handle Handlef) {
 	if _, ok := coinPluginHandles[coinType][opType]; ok {
-		panic(ErrOpTypeAlreadyRegister)
+		panic(fmt.Errorf("coin type: %v for transaction: %v already registed", coinType, opType))
 	}
 	coinPluginHandles[coinType][opType] = handle
 }
 
-func GetCoinPlugin(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType) (func(ctx context.Context, payload []byte) ([]byte, error), error) {
+func GetCoinPlugin(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType) (Handlef, error) {
 	// TODO: check nested map exist
-	// DO
 	if _, ok := coinPluginHandles[coinType]; !ok {
 		return nil, ErrCoinTypeNotFound
 	}
