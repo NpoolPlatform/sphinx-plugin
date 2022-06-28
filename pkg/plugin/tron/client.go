@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	MinNodeNum = 1
-	MaxRetries = 3
+	MinNodeNum       = 1
+	MaxRetries       = 3
+	RetriesSleepTime = 1 * time.Second
 )
 
 type TClientI interface {
@@ -141,6 +142,9 @@ func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
+		if i > 0 {
+			time.Sleep(RetriesSleepTime)
+		}
 		client, err = tClients.GetGRPCClient(endpointmgr)
 		if err != nil {
 			continue

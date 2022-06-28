@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/ethereum/go-ethereum/common"
@@ -13,8 +14,9 @@ import (
 )
 
 const (
-	MinNodeNum = 1
-	MaxRetries = 3
+	MinNodeNum       = 1
+	MaxRetries       = 3
+	RetriesSleepTime = 1 * time.Second
 )
 
 var (
@@ -53,6 +55,9 @@ func (eClients *EClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
+		if i > 0 {
+			time.Sleep(RetriesSleepTime)
+		}
 		client, err = eClients.GetNode(endpointmgr)
 		if err != nil || client == nil {
 			continue

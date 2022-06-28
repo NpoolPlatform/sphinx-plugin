@@ -19,8 +19,9 @@ func Init() {
 }
 
 const (
-	MinNodeNum = 1
-	MaxRetries = 3
+	MinNodeNum       = 1
+	MaxRetries       = 3
+	RetriesSleepTime = 1 * time.Second
 )
 
 var (
@@ -59,6 +60,9 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
+		if i > 0 {
+			time.Sleep(RetriesSleepTime)
+		}
 		client, err = bClients.GetNode(endpointmgr)
 		if err != nil {
 			continue
