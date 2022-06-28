@@ -12,7 +12,7 @@ var (
 	ErrCoinTypeNotFound = errors.New("coin type not found")
 	ErrOpTypeNotFound   = errors.New("op type not found")
 
-	coinPluginHandles = map[sphinxplugin.CoinType]map[sphinxplugin.TransactionType]Handlef{}
+	coinPluginHandles = make(map[sphinxplugin.CoinType]map[sphinxplugin.TransactionType]Handlef)
 )
 
 // coin transaction handle
@@ -21,7 +21,11 @@ type Handlef func(ctx context.Context, payload []byte) ([]byte, error)
 // register coin handle
 // caution: not support dynamic register
 func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType, handle Handlef) {
-	if _, ok := coinPluginHandles[coinType][opType]; ok {
+	coinPluginHandle, ok := coinPluginHandles[coinType]
+	if !ok {
+		coinPluginHandles[coinType] = make(map[sphinxplugin.TransactionType]Handlef)
+	}
+	if _, ok := coinPluginHandle[opType]; ok {
 		panic(fmt.Errorf("coin type: %v for transaction: %v already registed", coinType, opType))
 	}
 	coinPluginHandles[coinType][opType] = handle
