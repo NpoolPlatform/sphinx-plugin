@@ -13,7 +13,8 @@ type WalletBalanceResponse struct {
 
 // sign
 type NewAccountRequest struct {
-	ENV string `json:"env"` // main or test
+	CoinType string `json:"cointype"`
+	ENV      string `json:"env"` // main or test
 }
 
 type NewAccountResponse struct {
