@@ -12,9 +12,9 @@ type WalletBalanceResponse struct {
 }
 
 type CreateTransactionRequest struct {
-	From  string `json:"from"`
-	To    string `json:"To"`
-	Value string `json:"Value"`
+	From  string  `json:"from"`
+	To    string  `json:"to"`
+	Value float64 `json:"value"`
 }
 
 type CreateTransactionResponse struct {
