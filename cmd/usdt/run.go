@@ -14,7 +14,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fatih/color"

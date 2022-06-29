@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -24,7 +24,7 @@ func ERC20Balance(ctx context.Context, addr string, client *ethclient.Client) (*
 	}
 
 	if !common.IsHexAddress(addr) {
-		return nil, eth.ErrAddrNotValid
+		return nil, plugin.ErrAddrNotValid
 	}
 
 	tetherERC20Token, err := NewTetherToken(common.HexToAddress(coins.USDTContractID(chainID.Int64())), client)
@@ -59,7 +59,7 @@ func ERC20Balance(ctx context.Context, addr string, client *ethclient.Client) (*
 
 // WalletBalance ..
 func WalletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
-	eClient := eth.Client()
+	eClient := plugin.Client()
 
 	var err error
 	var ret *BigUSDT

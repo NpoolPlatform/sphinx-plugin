@@ -1,4 +1,4 @@
-package plugin
+package fil
 
 import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"

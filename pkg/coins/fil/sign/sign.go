@@ -8,7 +8,7 @@ import (
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	fplugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/filecoin-project/go-address"
@@ -79,7 +79,7 @@ func CreateAccount(ctx context.Context, in []byte) (out []byte, err error) {
 
 // Message sign a raw transaction
 func Message(ctx context.Context, in []byte) (out []byte, err error) {
-	info := fplugin.SignRequest{}
+	info := fil.SignRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
@@ -138,9 +138,9 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := fplugin.SignResponse{
+	_out := fil.SignResponse{
 		Raw: info.Info,
-		Info: fplugin.Signature{
+		Info: fil.Signature{
 			SignType: signType,
 			Data:     s.Signature.Data,
 		},
