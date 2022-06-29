@@ -10,6 +10,7 @@ import (
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
@@ -120,7 +121,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
-	info := PreSignRequest{}
+	info := fil.PreSignRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
@@ -147,8 +148,8 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := PreSignReponse{
-		Info: RawTx{
+	_out := fil.PreSignReponse{
+		Info: fil.RawTx{
 			GasLimit:   200000000,
 			GasFeeCap:  10000000,
 			GasPremium: 1000000,
@@ -161,7 +162,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
-	info := BroadcastRequest{}
+	info := fil.BroadcastRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
@@ -182,7 +183,7 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, env.ErrAddressInvalid
 	}
 
-	signType, err := SignType(signed.SignType)
+	signType, err := fil.SignType(signed.SignType)
 	if err != nil {
 		return nil, env.ErrSignTypeInvalid
 	}
@@ -217,7 +218,7 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := BroadcastResponse{
+	_out := fil.BroadcastResponse{
 		TxID: _cid.String(),
 	}
 
@@ -225,7 +226,7 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 func SyncTx(_ctx context.Context, in []byte) (out []byte, err error) {
-	info := SyncTxRequest{}
+	info := fil.SyncTxRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
@@ -252,7 +253,7 @@ func SyncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := SyncTxResponse{
+	_out := fil.SyncTxResponse{
 		ExitCode: int64(msgLookUP.Receipt.ExitCode),
 	}
 

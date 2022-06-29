@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 	"math/big"
 	"os"
@@ -22,8 +21,8 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt"
+	eplugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin" //nolint
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
@@ -37,8 +36,6 @@ import (
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 	"github.com/gagliardetto/solana-go"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (
@@ -269,8 +266,7 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 	sphinxplugin.CoinType_CoinTypetbinanceusd: pluginBEP20,
 }
 
-// nolint
-func handle(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
+var _ = func(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
 	hf, ok := handleMap[req.GetCoinType()]
 	if !ok {
 		logger.Sugar().Errorf("not register handle for %v", req.GetCoinType())
@@ -392,7 +388,7 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 
 	switch req.GetTransactionType() {
 	case sphinxplugin.TransactionType_Balance:
-		bl, err := eth.WalletBalance(ctx, req.GetAddress())
+		bl, err := eplugin.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
 		}
@@ -410,7 +406,7 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
 	case sphinxplugin.TransactionType_PreSign:
-		preSignInfo, err := eth.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		preSignInfo, err := eplugin.PreSign(ctx, req.GetCoinType(), req.GetAddress())
 		if err != nil {
 			return err
 		}
@@ -423,18 +419,18 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		resp.Message.GasPrice = preSignInfo.GasPrice
 		resp.Message.GasLimit = preSignInfo.GasLimit
 	case sphinxplugin.TransactionType_Broadcast:
-		txHash, err := eth.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		txHash, err := eplugin.SendRawTransaction(ctx, req.GetSignedRawTxHex())
 		if err != nil {
 			return err
 		}
 		resp.CID = txHash
 	case sphinxplugin.TransactionType_SyncMsgState:
-		pending, err := eth.SyncTxState(ctx, req.GetCID())
+		pending, err := eplugin.SyncTxState(ctx, req.GetCID())
 		if err != nil {
 			return err
 		}
 		if !pending {
-			return eth.ErrWaitMessageOnChain
+			return eplugin.ErrWaitMessageOnChain
 		}
 	}
 	return nil
@@ -464,7 +460,7 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
 	case sphinxplugin.TransactionType_PreSign:
-		preSignInfo, err := eth.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		preSignInfo, err := eplugin.PreSign(ctx, req.GetCoinType(), req.GetAddress())
 		if err != nil {
 			return err
 		}
@@ -478,18 +474,18 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		resp.Message.GasPrice = preSignInfo.GasPrice
 		resp.Message.GasLimit = preSignInfo.GasLimit
 	case sphinxplugin.TransactionType_Broadcast:
-		txHash, err := eth.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		txHash, err := eplugin.SendRawTransaction(ctx, req.GetSignedRawTxHex())
 		if err != nil {
 			return err
 		}
 		resp.CID = txHash
 	case sphinxplugin.TransactionType_SyncMsgState:
-		pending, err := eth.SyncTxState(ctx, req.GetCID())
+		pending, err := eplugin.SyncTxState(ctx, req.GetCID())
 		if err != nil {
 			return err
 		}
 		if !pending {
-			return eth.ErrWaitMessageOnChain
+			return eplugin.ErrWaitMessageOnChain
 		}
 	}
 	return nil
@@ -776,15 +772,4 @@ func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 		}
 	}
 	return nil
-}
-
-// nolint
-func checkCode(err error) bool {
-	if err == io.EOF ||
-		status.Code(err) == codes.Unavailable ||
-		status.Code(err) == codes.Canceled ||
-		status.Code(err) == codes.Unimplemented {
-		return true
-	}
-	return false
 }

@@ -1,4 +1,4 @@
-package plugin
+package fil
 
 type RawTx struct {
 	Version    uint64  `json:"version"`

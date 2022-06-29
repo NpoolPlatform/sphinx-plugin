@@ -1,4 +1,4 @@
-package eth
+package plugin
 
 import (
 	"context"
