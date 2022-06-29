@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	// api    v0api.FullNode = &v0api.FullNodeStruct{}
+	api    v0api.FullNode = &v0api.FullNodeStruct{} //nolint
 	closer jsonrpc.ClientCloser
 )
 

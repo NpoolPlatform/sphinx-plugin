@@ -11,6 +11,16 @@ type WalletBalanceResponse struct {
 	// Exact      bool    `json:"_"`
 }
 
+type CreateTransactionRequest struct {
+	From  string `json:"from"`
+	To    string `json:"To"`
+	Value string `json:"Value"`
+}
+
+type CreateTransactionResponse struct {
+	CID string `json:"cid"`
+}
+
 // sign
 type NewAccountRequest struct {
 	CoinType string `json:"cointype"`
