@@ -1,7 +1,10 @@
 package coins
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestPlugin(t *testing.T) {
-
+	fmt.Print("testing")
 }
