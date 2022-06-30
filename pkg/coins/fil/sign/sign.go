@@ -7,6 +7,7 @@ import (
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
@@ -21,28 +22,28 @@ import (
 
 func init() {
 	// main
+	// sign.Register(
+	// 	sphinxplugin.CoinType_CoinTypefilecoin,
+	// 	sphinxproxy.TransactionType_WalletNew,
+	// 	CreateAccount,
+	// )
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxplugin.TransactionType_WalletNew,
-		CreateAccount,
-	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxplugin.TransactionType_Sign,
+		sphinxproxy.TransactionState_TransactionStateSign,
 		Message,
 	)
 
 	// --------------------
 
 	// test
+	// sign.Register(
+	// 	sphinxplugin.CoinType_CoinTypetfilecoin,
+	// 	sphinxproxy.TransactionType_WalletNew,
+	// 	CreateAccount,
+	// )
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxplugin.TransactionType_WalletNew,
-		CreateAccount,
-	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxplugin.TransactionType_Sign,
+		sphinxproxy.TransactionState_TransactionStateSign,
 		Message,
 	)
 }

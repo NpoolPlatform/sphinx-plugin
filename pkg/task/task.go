@@ -2,7 +2,6 @@ package task
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -30,10 +29,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/rpc"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/fbsobreira/gotron-sdk/pkg/common"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 	"github.com/gagliardetto/solana-go"
 	"google.golang.org/grpc"
 )
@@ -156,7 +151,7 @@ func (c *pluginClient) register() {
 			logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
 			c.sendChannel <- &sphinxproxy.ProxyPluginResponse{
 				CoinType:        coins.CoinStr2CoinType(coins.CoinNet, coinType),
-				TransactionType: sphinxplugin.TransactionType_RegisterCoin,
+				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
 				ENV:             coinNetwork,
 				Unit:            coins.CoinUnit[coins.CoinStr2CoinType(coins.CoinNet, coinType)],
 			}
@@ -197,7 +192,7 @@ func (c *pluginClient) recv() {
 				time.Since(now).Seconds(),
 			)
 
-			handler, err := coins.GetCoinPlugin(coinType, transactionType)
+			handler, err := coins.GetCoinPlugin(coinType, sphinxproxy.TransactionState_TransactionStateUnKnow)
 			if err != nil {
 				logger.Sugar().Errorf("GetCoinPlugin get handler error: %v", err)
 			}
@@ -293,11 +288,11 @@ dirct:
 
 // nolint
 func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
+	// defer cancel()
 
 	switch req.GetTransactionType() {
-	case sphinxplugin.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		balance, err := btc.WalletBalance(req.GetAddress(), coins.DefaultMinConfirms)
 		if err != nil {
 			return err
@@ -305,78 +300,78 @@ func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		resp.Balance = balance.ToBTC()
 		// take unit
 		resp.BalanceStr = balance.String()
-	case sphinxplugin.TransactionType_PreSign:
-		// get utxo
-		unspents, err := btc.ListUnspent(req.GetAddress(), coins.DefaultMinConfirms)
-		if err != nil {
-			return err
-		}
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		for _, unspent := range unspents {
-			resp.Message.Unspent = append(resp.Message.Unspent, &sphinxplugin.Unspent{
-				TxID:          unspent.TxID,
-				Vout:          unspent.Vout,
-				Address:       unspent.Address,
-				Account:       unspent.Account,
-				ScriptPubKey:  unspent.ScriptPubKey,
-				RedeemScript:  unspent.RedeemScript,
-				Amount:        unspent.Amount,
-				Confirmations: unspent.Confirmations,
-				Spendable:     unspent.Spendable,
-			})
-		}
-	case sphinxplugin.TransactionType_Broadcast:
-		msgTx := req.GetMsgTx()
-		txIn := make([]*wire.TxIn, 0)
-		txOut := make([]*wire.TxOut, 0)
+		// case sphinxplugin.TransactionType_PreSign:
+		// 	// get utxo
+		// 	unspents, err := btc.ListUnspent(req.GetAddress(), coins.DefaultMinConfirms)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.Message = req.GetMessage()
+		// 	if resp.GetMessage() == nil {
+		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
+		// 	}
+		// 	for _, unspent := range unspents {
+		// 		resp.Message.Unspent = append(resp.Message.Unspent, &sphinxplugin.Unspent{
+		// 			TxID:          unspent.TxID,
+		// 			Vout:          unspent.Vout,
+		// 			Address:       unspent.Address,
+		// 			Account:       unspent.Account,
+		// 			ScriptPubKey:  unspent.ScriptPubKey,
+		// 			RedeemScript:  unspent.RedeemScript,
+		// 			Amount:        unspent.Amount,
+		// 			Confirmations: unspent.Confirmations,
+		// 			Spendable:     unspent.Spendable,
+		// 		})
+		// 	}
+		// case sphinxplugin.TransactionType_Broadcast:
+		// 	msgTx := req.GetMsgTx()
+		// 	txIn := make([]*wire.TxIn, 0)
+		// 	txOut := make([]*wire.TxOut, 0)
 
-		for _, _txIn := range msgTx.GetTxIn() {
-			cHaxh, err := chainhash.NewHash(_txIn.GetPreviousOutPoint().GetHash())
-			if err != nil {
-				return err
-			}
-			txIn = append(txIn, &wire.TxIn{
-				PreviousOutPoint: wire.OutPoint{
-					Hash:  *cHaxh,
-					Index: _txIn.GetPreviousOutPoint().GetIndex(),
-				},
-				SignatureScript: _txIn.GetSignatureScript(),
-				Witness:         _txIn.GetWitness(),
-				Sequence:        _txIn.GetSequence(),
-			})
-		}
-		for _, _txOut := range msgTx.GetTxOut() {
-			txOut = append(txOut, &wire.TxOut{
-				Value:    _txOut.GetValue(),
-				PkScript: _txOut.GetPkScript(),
-			})
-		}
+		// 	for _, _txIn := range msgTx.GetTxIn() {
+		// 		cHaxh, err := chainhash.NewHash(_txIn.GetPreviousOutPoint().GetHash())
+		// 		if err != nil {
+		// 			return err
+		// 		}
+		// 		txIn = append(txIn, &wire.TxIn{
+		// 			PreviousOutPoint: wire.OutPoint{
+		// 				Hash:  *cHaxh,
+		// 				Index: _txIn.GetPreviousOutPoint().GetIndex(),
+		// 			},
+		// 			SignatureScript: _txIn.GetSignatureScript(),
+		// 			Witness:         _txIn.GetWitness(),
+		// 			Sequence:        _txIn.GetSequence(),
+		// 		})
+		// 	}
+		// 	for _, _txOut := range msgTx.GetTxOut() {
+		// 		txOut = append(txOut, &wire.TxOut{
+		// 			Value:    _txOut.GetValue(),
+		// 			PkScript: _txOut.GetPkScript(),
+		// 		})
+		// 	}
 
-		txHash, err := btc.SendRawTransaction(&wire.MsgTx{
-			Version:  msgTx.GetVersion(),
-			TxIn:     txIn,
-			TxOut:    txOut,
-			LockTime: msgTx.GetLockTime(),
-		})
-		if err != nil {
-			return err
-		}
-		resp.CID = txHash.String()
-	case sphinxplugin.TransactionType_SyncMsgState:
-		txHash, err := chainhash.NewHashFromStr(req.GetCID())
-		if err != nil {
-			return err
-		}
-		tranTx, err := btc.StateSearchMsg(ctx, txHash)
-		if err != nil {
-			return err
-		}
-		if tranTx.Confirmations < coins.DefaultMinConfirms {
-			return btc.ErrWaitMessageOnChainMinConfirms
-		}
+		// 	txHash, err := btc.SendRawTransaction(&wire.MsgTx{
+		// 		Version:  msgTx.GetVersion(),
+		// 		TxIn:     txIn,
+		// 		TxOut:    txOut,
+		// 		LockTime: msgTx.GetLockTime(),
+		// 	})
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.CID = txHash.String()
+		// case sphinxplugin.TransactionType_SyncMsgState:
+		// 	txHash, err := chainhash.NewHashFromStr(req.GetCID())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	tranTx, err := btc.StateSearchMsg(ctx, txHash)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	if tranTx.Confirmations < coins.DefaultMinConfirms {
+		// 		return btc.ErrWaitMessageOnChainMinConfirms
+		// 	}
 	}
 	return nil
 }
@@ -387,7 +382,7 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	defer cancel()
 
 	switch req.GetTransactionType() {
-	case sphinxplugin.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		bl, err := eplugin.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
@@ -405,26 +400,26 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
-	case sphinxplugin.TransactionType_PreSign:
-		preSignInfo, err := eplugin.PreSign(ctx, req.GetCoinType(), req.GetAddress())
-		if err != nil {
-			return err
-		}
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		resp.Message.ChainID = preSignInfo.ChainID
-		resp.Message.Nonce = preSignInfo.Nonce
-		resp.Message.GasPrice = preSignInfo.GasPrice
-		resp.Message.GasLimit = preSignInfo.GasLimit
-	case sphinxplugin.TransactionType_Broadcast:
-		txHash, err := eplugin.SendRawTransaction(ctx, req.GetSignedRawTxHex())
-		if err != nil {
-			return err
-		}
-		resp.CID = txHash
-	case sphinxplugin.TransactionType_SyncMsgState:
+		// case sphinxplugin.TransactionType_PreSign:
+		// 	preSignInfo, err := eplugin.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.Message = req.GetMessage()
+		// 	if resp.GetMessage() == nil {
+		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
+		// 	}
+		// 	resp.Message.ChainID = preSignInfo.ChainID
+		// 	resp.Message.Nonce = preSignInfo.Nonce
+		// 	resp.Message.GasPrice = preSignInfo.GasPrice
+		// 	resp.Message.GasLimit = preSignInfo.GasLimit
+		// case sphinxplugin.TransactionType_Broadcast:
+		// 	txHash, err := eplugin.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.CID = txHash
+		// case sphinxplugin.TransactionType_SyncMsgState:
 		pending, err := eplugin.SyncTxState(ctx, req.GetCID())
 		if err != nil {
 			return err
@@ -441,7 +436,7 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 	defer cancel()
 
 	switch req.GetTransactionType() {
-	case sphinxplugin.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		bl, err := usdt.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
@@ -459,27 +454,27 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		}
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
-	case sphinxplugin.TransactionType_PreSign:
-		preSignInfo, err := eplugin.PreSign(ctx, req.GetCoinType(), req.GetAddress())
-		if err != nil {
-			return err
-		}
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		resp.Message.ChainID = preSignInfo.ChainID
-		resp.Message.ContractID = preSignInfo.ContractID
-		resp.Message.Nonce = preSignInfo.Nonce
-		resp.Message.GasPrice = preSignInfo.GasPrice
-		resp.Message.GasLimit = preSignInfo.GasLimit
-	case sphinxplugin.TransactionType_Broadcast:
-		txHash, err := eplugin.SendRawTransaction(ctx, req.GetSignedRawTxHex())
-		if err != nil {
-			return err
-		}
-		resp.CID = txHash
-	case sphinxplugin.TransactionType_SyncMsgState:
+		// case sphinxplugin.TransactionType_PreSign:
+		// 	preSignInfo, err := eplugin.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.Message = req.GetMessage()
+		// 	if resp.GetMessage() == nil {
+		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
+		// 	}
+		// 	resp.Message.ChainID = preSignInfo.ChainID
+		// 	resp.Message.ContractID = preSignInfo.ContractID
+		// 	resp.Message.Nonce = preSignInfo.Nonce
+		// 	resp.Message.GasPrice = preSignInfo.GasPrice
+		// 	resp.Message.GasLimit = preSignInfo.GasLimit
+		// case sphinxplugin.TransactionType_Broadcast:
+		// 	txHash, err := eplugin.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.CID = txHash
+		// case sphinxplugin.TransactionType_SyncMsgState:
 		pending, err := eplugin.SyncTxState(ctx, req.GetCID())
 		if err != nil {
 			return err
@@ -496,7 +491,7 @@ func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	defer cancel()
 
 	switch req.GetTransactionType() {
-	case sphinxplugin.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		bl, err := sol.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
@@ -509,23 +504,23 @@ func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		}
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
-	case sphinxplugin.TransactionType_PreSign:
-		rhash, err := sol.GetRecentBlock(ctx)
-		if err != nil {
-			return err
-		}
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		resp.Message.RecentBhash = rhash.Value.Blockhash.String()
-	case sphinxplugin.TransactionType_Broadcast:
-		cid, err := sol.SendTransaction(ctx, req.GetMessage(), req.GetSignature())
-		if err != nil {
-			return err
-		}
-		resp.CID = cid.String()
-	case sphinxplugin.TransactionType_SyncMsgState:
+		// case sphinxplugin.TransactionType_PreSign:
+		// 	rhash, err := sol.GetRecentBlock(ctx)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.Message = req.GetMessage()
+		// 	if resp.GetMessage() == nil {
+		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
+		// 	}
+		// 	resp.Message.RecentBhash = rhash.Value.Blockhash.String()
+		// case sphinxplugin.TransactionType_Broadcast:
+		// 	cid, err := sol.SendTransaction(ctx, req.GetMessage(), req.GetSignature())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.CID = cid.String()
+		// case sphinxplugin.TransactionType_SyncMsgState:
 		cid, err := solana.SignatureFromBase58(req.CID)
 		if err != nil {
 			return err
@@ -545,7 +540,7 @@ func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 	defer cancel()
 
 	switch req.GetTransactionType() {
-	case sphinxplugin.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		bl, err := trc20.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
@@ -554,36 +549,36 @@ func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 		f := tron.TRC20ToBigFloat(bl)
 		resp.Balance, _ = f.Float64()
 		resp.BalanceStr = f.Text('f', tron.TRC20ACCURACY)
-	case sphinxplugin.TransactionType_PreSign:
-		txExtension, err := trc20.BuildTransaciton(ctx, req)
-		if err != nil {
-			return err
-		}
+		// case sphinxplugin.TransactionType_PreSign:
+		// 	txExtension, err := trc20.BuildTransaciton(ctx, req)
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-		txData, err := json.Marshal(txExtension)
-		if err != nil {
-			return err
-		}
+		// 	txData, err := json.Marshal(txExtension)
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		resp.Message.TxData = txData
-	case sphinxplugin.TransactionType_Broadcast:
-		tx := &api.TransactionExtention{}
-		txData := req.GetMessage().GetTxData()
-		err := json.Unmarshal(txData, tx)
-		if err != nil {
-			return err
-		}
+		// 	resp.Message = req.GetMessage()
+		// 	if resp.GetMessage() == nil {
+		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
+		// 	}
+		// 	resp.Message.TxData = txData
+		// case sphinxplugin.TransactionType_Broadcast:
+		// 	tx := &api.TransactionExtention{}
+		// 	txData := req.GetMessage().GetTxData()
+		// 	err := json.Unmarshal(txData, tx)
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-		err = tron.BroadcastTransaction(ctx, tx.Transaction)
-		if err != nil {
-			return err
-		}
-		resp.CID = common.BytesToHexString(tx.GetTxid())
-	case sphinxplugin.TransactionType_SyncMsgState:
+		// 	err = tron.BroadcastTransaction(ctx, tx.Transaction)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.CID = common.BytesToHexString(tx.GetTxid())
+		// case sphinxplugin.TransactionType_SyncMsgState:
 		pending, exitcode, err := tron.SyncTxState(ctx, req.GetCID())
 		if exitcode == tron.TransactionInfoFAILED {
 			resp.ExitCode = exitcode
@@ -606,7 +601,7 @@ func pluginTRX(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	defer cancel()
 
 	switch req.GetTransactionType() {
-	case sphinxplugin.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		bl, err := tron.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			return err
@@ -615,36 +610,36 @@ func pluginTRX(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		f := tron.TRXToBigFloat(bl)
 		resp.Balance, _ = f.Float64()
 		resp.BalanceStr = f.Text('f', tron.TRXACCURACY)
-	case sphinxplugin.TransactionType_PreSign:
-		txExtension, err := tron.BuildTransaciton(ctx, req)
-		if err != nil {
-			return err
-		}
+		// case sphinxplugin.TransactionType_PreSign:
+		// 	txExtension, err := tron.BuildTransaciton(ctx, req)
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-		txData, err := json.Marshal(txExtension)
-		if err != nil {
-			return err
-		}
+		// 	txData, err := json.Marshal(txExtension)
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		resp.Message.TxData = txData
-	case sphinxplugin.TransactionType_Broadcast:
-		tx := &api.TransactionExtention{}
-		txData := req.GetMessage().GetTxData()
-		err := json.Unmarshal(txData, tx)
-		if err != nil {
-			return err
-		}
+		// 	resp.Message = req.GetMessage()
+		// 	if resp.GetMessage() == nil {
+		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
+		// 	}
+		// 	resp.Message.TxData = txData
+		// case sphinxplugin.TransactionType_Broadcast:
+		// 	tx := &api.TransactionExtention{}
+		// 	txData := req.GetMessage().GetTxData()
+		// 	err := json.Unmarshal(txData, tx)
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-		err = tron.BroadcastTransaction(ctx, tx.Transaction)
-		if err != nil {
-			return err
-		}
-		resp.CID = common.BytesToHexString(tx.GetTxid())
-	case sphinxplugin.TransactionType_SyncMsgState:
+		// 	err = tron.BroadcastTransaction(ctx, tx.Transaction)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.CID = common.BytesToHexString(tx.GetTxid())
+		// case sphinxplugin.TransactionType_SyncMsgState:
 		pending, exitcode, err := tron.SyncTxState(ctx, req.GetCID())
 		if exitcode == tron.TransactionInfoFAILED {
 			resp.ExitCode = exitcode
@@ -667,7 +662,7 @@ func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 	defer cancel()
 
 	switch req.GetTransactionType() {
-	case sphinxplugin.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		bl, err := bsc.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			logger.Sugar().Errorf("get balance fail: %v", err)
@@ -686,26 +681,26 @@ func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
-	case sphinxplugin.TransactionType_PreSign:
-		preSignInfo, err := bsc.PreSign(ctx, req.GetCoinType(), req.GetAddress())
-		if err != nil {
-			return err
-		}
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		resp.Message.ChainID = preSignInfo.ChainID
-		resp.Message.Nonce = preSignInfo.Nonce
-		resp.Message.GasPrice = preSignInfo.GasPrice
-		resp.Message.GasLimit = preSignInfo.GasLimit
-	case sphinxplugin.TransactionType_Broadcast:
-		txHash, err := bsc.SendRawTransaction(ctx, req.GetSignedRawTxHex())
-		if err != nil {
-			return err
-		}
-		resp.CID = txHash
-	case sphinxplugin.TransactionType_SyncMsgState:
+		// case sphinxplugin.TransactionType_PreSign:
+		// 	preSignInfo, err := bsc.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.Message = req.GetMessage()
+		// 	if resp.GetMessage() == nil {
+		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
+		// 	}
+		// 	resp.Message.ChainID = preSignInfo.ChainID
+		// 	resp.Message.Nonce = preSignInfo.Nonce
+		// 	resp.Message.GasPrice = preSignInfo.GasPrice
+		// 	resp.Message.GasLimit = preSignInfo.GasLimit
+		// case sphinxplugin.TransactionType_Broadcast:
+		// 	txHash, err := bsc.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.CID = txHash
+		// case sphinxplugin.TransactionType_SyncMsgState:
 		pending, err := bsc.SyncTxState(ctx, req.GetCID())
 		if err != nil {
 			return err
@@ -723,7 +718,7 @@ func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 	defer cancel()
 
 	switch req.GetTransactionType() {
-	case sphinxplugin.TransactionType_Balance:
+	case sphinxproxy.TransactionType_Balance:
 		bl, err := busd.WalletBalance(ctx, req.GetAddress())
 		if err != nil {
 			logger.Sugar().Errorf("get balance fail:%v", err)
@@ -742,27 +737,27 @@ func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 
 		resp.Balance = f
 		resp.BalanceStr = balance.String()
-	case sphinxplugin.TransactionType_PreSign:
-		preSignInfo, err := bsc.PreSign(ctx, req.GetCoinType(), req.GetAddress())
-		if err != nil {
-			return err
-		}
-		resp.Message = req.GetMessage()
-		if resp.GetMessage() == nil {
-			resp.Message = &sphinxplugin.UnsignedMessage{}
-		}
-		resp.Message.ChainID = preSignInfo.ChainID
-		resp.Message.Nonce = preSignInfo.Nonce
-		resp.Message.ContractID = preSignInfo.ContractID
-		resp.Message.GasPrice = preSignInfo.GasPrice
-		resp.Message.GasLimit = preSignInfo.GasLimit
-	case sphinxplugin.TransactionType_Broadcast:
-		txHash, err := bsc.SendRawTransaction(ctx, req.GetSignedRawTxHex())
-		if err != nil {
-			return err
-		}
-		resp.CID = txHash
-	case sphinxplugin.TransactionType_SyncMsgState:
+		// case sphinxplugin.TransactionType_PreSign:
+		// 	preSignInfo, err := bsc.PreSign(ctx, req.GetCoinType(), req.GetAddress())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.Message = req.GetMessage()
+		// 	if resp.GetMessage() == nil {
+		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
+		// 	}
+		// 	resp.Message.ChainID = preSignInfo.ChainID
+		// 	resp.Message.Nonce = preSignInfo.Nonce
+		// 	resp.Message.ContractID = preSignInfo.ContractID
+		// 	resp.Message.GasPrice = preSignInfo.GasPrice
+		// 	resp.Message.GasLimit = preSignInfo.GasLimit
+		// case sphinxplugin.TransactionType_Broadcast:
+		// 	txHash, err := bsc.SendRawTransaction(ctx, req.GetSignedRawTxHex())
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	resp.CID = txHash
+		// case sphinxplugin.TransactionType_SyncMsgState:
 		pending, err := bsc.SyncTxState(ctx, req.GetCID())
 		if err != nil {
 			return err
