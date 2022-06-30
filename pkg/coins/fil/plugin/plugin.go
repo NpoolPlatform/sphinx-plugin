@@ -9,6 +9,7 @@ import (
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
@@ -30,46 +31,46 @@ import (
 // here register plugin func
 func init() {
 	// main
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypefilecoin,
+	// 	sphinxproxy.TransactionType_Balance,
+	// 	WalletBalance,
+	// )
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxplugin.TransactionType_Balance,
-		WalletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxplugin.TransactionType_PreSign,
+		sphinxproxy.TransactionState_TransactionStateWait,
 		PreSign,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxplugin.TransactionType_Broadcast,
+		sphinxproxy.TransactionState_TransactionStateBroadcast,
 		Broadcast,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxplugin.TransactionType_SyncMsgState,
+		sphinxproxy.TransactionState_TransactionStateSync,
 		SyncTx,
 	)
 
 	// test
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypetfilecoin,
+	// 	sphinxproxy.TransactionType_Balance,
+	// 	WalletBalance,
+	// )
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxplugin.TransactionType_Balance,
-		WalletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxplugin.TransactionType_PreSign,
+		sphinxproxy.TransactionState_TransactionStateWait,
 		PreSign,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxplugin.TransactionType_Broadcast,
+		sphinxproxy.TransactionState_TransactionStateBroadcast,
 		Broadcast,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxplugin.TransactionType_SyncMsgState,
+		sphinxproxy.TransactionState_TransactionStateSync,
 		SyncTx,
 	)
 }

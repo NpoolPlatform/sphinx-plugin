@@ -6,13 +6,14 @@ import (
 	"fmt"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 )
 
 var (
 	ErrCoinTypeNotFound = errors.New("coin type not found")
 	ErrOpTypeNotFound   = errors.New("op type not found")
 
-	coinPluginHandles = make(map[sphinxplugin.CoinType]map[sphinxplugin.TransactionType]Handlef)
+	coinPluginHandles = make(map[sphinxplugin.CoinType]map[sphinxproxy.TransactionState]Handlef)
 )
 
 // coin transaction handle
@@ -20,10 +21,10 @@ type Handlef func(ctx context.Context, payload []byte) ([]byte, error)
 
 // register coin handle
 // caution: not support dynamic register
-func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType, handle Handlef) {
+func Register(coinType sphinxplugin.CoinType, opType sphinxproxy.TransactionState, handle Handlef) {
 	coinPluginHandle, ok := coinPluginHandles[coinType]
 	if !ok {
-		coinPluginHandles[coinType] = make(map[sphinxplugin.TransactionType]Handlef)
+		coinPluginHandles[coinType] = make(map[sphinxproxy.TransactionState]Handlef)
 	}
 	if _, ok := coinPluginHandle[opType]; ok {
 		panic(fmt.Errorf("coin type: %v for transaction: %v already registered", coinType, opType))
@@ -31,7 +32,7 @@ func Register(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionTyp
 	coinPluginHandles[coinType][opType] = handle
 }
 
-func GetCoinPlugin(coinType sphinxplugin.CoinType, opType sphinxplugin.TransactionType) (Handlef, error) {
+func GetCoinPlugin(coinType sphinxplugin.CoinType, opType sphinxproxy.TransactionState) (Handlef, error) {
 	// TODO: check nested map exist
 	if _, ok := coinPluginHandles[coinType]; !ok {
 		return nil, ErrCoinTypeNotFound
