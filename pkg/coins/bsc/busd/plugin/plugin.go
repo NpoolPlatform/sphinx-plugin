@@ -6,12 +6,63 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/message/npool/sphinxproxy"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
+	bsc_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
+
+// here register plugin func
+func init() {
+	// main
+	// coins.RegisterBalance(
+	// 	sphinxplugin.CoinType_CoinTypebinancecoin,
+	// 	sphinxproxy.TransactionType_Balance,
+	// 	WalletBalance,
+	// )
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypebinancecoin,
+		sphinxproxy.TransactionState_TransactionStateWait,
+		bsc_plugin.PreSign,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypebinancecoin,
+		sphinxproxy.TransactionState_TransactionStateBroadcast,
+		bsc_plugin.SendRawTransaction,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypebinancecoin,
+		sphinxproxy.TransactionState_TransactionStateSync,
+		bsc_plugin.SyncTxState,
+	)
+
+	// test
+	// coins.RegisterBalance(
+	// 	sphinxplugin.CoinType_CoinTypetbinancecoin,
+	// 	sphinxproxy.TransactionType_Balance,
+	// 	WalletBalance,
+	// )
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetbinancecoin,
+		sphinxproxy.TransactionState_TransactionStateWait,
+		bsc_plugin.PreSign,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetbinancecoin,
+		sphinxproxy.TransactionState_TransactionStateBroadcast,
+		bsc_plugin.SendRawTransaction,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetbinancecoin,
+		sphinxproxy.TransactionState_TransactionStateSync,
+		bsc_plugin.SyncTxState,
+	)
+}
 
 var (
 	ErrContractAddrInvalid = errors.New("contract address is invalid")

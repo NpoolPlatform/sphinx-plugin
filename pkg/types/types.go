@@ -1,6 +1,10 @@
 package types
 
-import "context"
+import (
+	"context"
+
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+)
 
 type IPlugin interface {
 	WalletBalance(ctx context.Context, req []byte) ([]byte, error)
@@ -26,9 +30,10 @@ type WalletBalanceResponse struct {
 }
 
 type CreateTransactionRequest struct {
-	From  string  `json:"from"`
-	To    string  `json:"to"`
-	Value float64 `json:"value"`
+	CoinType sphinxplugin.CoinType `json:"coin_type"`
+	From     string                `json:"from"`
+	To       string                `json:"to"`
+	Value    float64               `json:"value"`
 }
 
 type CreateTransactionResponse struct {
