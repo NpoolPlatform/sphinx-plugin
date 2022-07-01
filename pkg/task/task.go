@@ -18,8 +18,9 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd"
+	bsc_base "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
+	busd "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
+	bsc "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc"
 	eplugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
@@ -30,7 +31,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/rpc"
-	"github.com/gagliardetto/solana-go"
 	"google.golang.org/grpc"
 )
 
@@ -525,11 +525,11 @@ func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		// 	}
 		// 	resp.CID = cid.String()
 		// case sphinxplugin.TransactionType_SyncMsgState:
-		cid, err := solana.SignatureFromBase58(req.CID)
-		if err != nil {
-			return err
-		}
-		_, err = sol.StateSearchMsg(cid)
+		// cid, err := solana.SignatureFromBase58(req.CID)
+		// if err != nil {
+		// 	return err
+		// }
+		// _, err = sol.StateSearchMsg(cid)
 
 		if err != nil {
 			return err
@@ -678,7 +678,7 @@ func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if !ok {
 			return errors.New("convert balance string to float64 error")
 		}
-		balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
+		balance.Quo(balance, big.NewFloat(math.Pow10(bsc_base.BNBACCURACY)))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
@@ -706,13 +706,13 @@ func pluginBSC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		// 	}
 		// 	resp.CID = txHash
 		// case sphinxplugin.TransactionType_SyncMsgState:
-		pending, err := bsc.SyncTxState(ctx, req.GetCID())
-		if err != nil {
-			return err
-		}
-		if !pending {
-			return bsc.ErrWaitMessageOnChain
-		}
+		// pending, err := bsc.SyncTxState(ctx, req.GetCID())
+		// if err != nil {
+		// 	return err
+		// }
+		// if !pending {
+		// 	return bsc.ErrWaitMessageOnChain
+		// }
 	}
 	return nil
 }
@@ -734,7 +734,7 @@ func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 		if !ok {
 			return errors.New("convert balance string to float64 error")
 		}
-		balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BEP20ACCURACY)))
+		balance.Quo(balance, big.NewFloat(math.Pow10(bsc_base.BEP20ACCURACY)))
 		f, exact := balance.Float64()
 		if exact != big.Exact {
 			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
@@ -763,13 +763,13 @@ func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlu
 		// 	}
 		// 	resp.CID = txHash
 		// case sphinxplugin.TransactionType_SyncMsgState:
-		pending, err := bsc.SyncTxState(ctx, req.GetCID())
-		if err != nil {
-			return err
-		}
-		if !pending {
-			return bsc.ErrWaitMessageOnChain
-		}
+		// pending, err := bsc.SyncTxState(ctx, req.GetCID())
+		// if err != nil {
+		// 	return err
+		// }
+		// if !pending {
+		// 	return bsc.ErrWaitMessageOnChain
+		// }
 	}
 	return nil
 }
