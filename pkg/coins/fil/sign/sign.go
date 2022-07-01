@@ -105,7 +105,7 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	filePath := fmt.Sprintf("%v/%v", info.CoinType, raw.From)
+	filePath := fmt.Sprintf("filecoin/%v", raw.From)
 	pk, err := oss.GetObject(ctx, filePath, true)
 	if err != nil {
 		return
@@ -139,9 +139,10 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := fil.SignResponse{
+	_out := fil.BroadcastRequest{
+		ENV: info.ENV,
 		Raw: info.Info,
-		Info: fil.Signature{
+		Signature: fil.Signature{
 			SignType: signType,
 			Data:     s.Signature.Data,
 		},

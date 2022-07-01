@@ -131,27 +131,19 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
-	info := fil.PreSignRequest{}
+	info := ct.BaseInfo{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
 
-	v, ok := env.LookupEnv(env.ENVCOINNET)
-	if !ok {
-		return nil, env.ErrEVNCoinNet
-	}
-	if !coins.CheckSupportNet(v) {
-		return nil, env.ErrEVNCoinNetValue
-	}
-
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[v]
+	address.CurrentNetwork = coins.FILNetMap[info.ENV]
 
-	if info.Address == "" {
+	if info.From == "" {
 		return nil, env.ErrAddressInvalid
 	}
 
-	from, err := address.NewFromString(info.Address)
+	from, err := address.NewFromString(info.From)
 	if err != nil {
 		return nil, err
 	}
@@ -166,8 +158,12 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := fil.PreSignReponse{
+	_out := fil.SignRequest{
+		ENV: info.ENV,
 		Info: fil.RawTx{
+			To:         info.To,
+			From:       info.From,
+			Value:      info.Value,
 			GasLimit:   200000000,
 			GasFeeCap:  10000000,
 			GasPremium: 1000000,
@@ -188,16 +184,8 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	raw := info.Raw
 	signed := info.Signature
 
-	v, ok := env.LookupEnv(env.ENVCOINNET)
-	if !ok {
-		return nil, env.ErrEVNCoinNet
-	}
-	if !coins.CheckSupportNet(v) {
-		return nil, env.ErrEVNCoinNetValue
-	}
-
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[v]
+	address.CurrentNetwork = coins.FILNetMap[info.ENV]
 
 	to, err := address.NewFromString(raw.To)
 	if err != nil {
@@ -217,6 +205,7 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
+
 	signMsg := &types.SignedMessage{
 		Message: types.Message{
 			To:         to,
@@ -244,7 +233,7 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := fil.BroadcastResponse{
+	_out := fil.SyncTxRequest{
 		TxID: _cid.String(),
 	}
 
