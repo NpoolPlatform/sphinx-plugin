@@ -75,9 +75,6 @@ var (
 		sphinxplugin.CoinType_CoinTypetbinanceusd:  CoinNetTest,
 	}
 
-	// CoinNet will filled value in app run
-	CoinNet string
-
 	CoinUnit = map[sphinxplugin.CoinType]string{
 		sphinxplugin.CoinType_CoinTypefilecoin:  "FIL",
 		sphinxplugin.CoinType_CoinTypetfilecoin: "FIL",

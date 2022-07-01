@@ -31,11 +31,11 @@ import (
 // here register plugin func
 func init() {
 	// main
-	// coins.Register(
-	// 	sphinxplugin.CoinType_CoinTypefilecoin,
-	// 	sphinxproxy.TransactionType_Balance,
-	// 	WalletBalance,
-	// )
+	coins.RegisterBalance(
+		sphinxplugin.CoinType_CoinTypefilecoin,
+		sphinxproxy.TransactionType_Balance,
+		WalletBalance,
+	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
 		sphinxproxy.TransactionState_TransactionStateWait,
@@ -53,11 +53,11 @@ func init() {
 	)
 
 	// test
-	// coins.Register(
-	// 	sphinxplugin.CoinType_CoinTypetfilecoin,
-	// 	sphinxproxy.TransactionType_Balance,
-	// 	WalletBalance,
-	// )
+	coins.RegisterBalance(
+		sphinxplugin.CoinType_CoinTypetfilecoin,
+		sphinxproxy.TransactionType_Balance,
+		WalletBalance,
+	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionState_TransactionStateWait,
@@ -80,8 +80,17 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
+
+	v, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return nil, env.ErrEVNCoinNet
+	}
+	if !coins.CheckSupportNet(v) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[coins.CoinNet]
+	address.CurrentNetwork = coins.FILNetMap[v]
 
 	if info.Address == "" {
 		return nil, env.ErrAddressInvalid
@@ -127,8 +136,16 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
+	v, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return nil, env.ErrEVNCoinNet
+	}
+	if !coins.CheckSupportNet(v) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[coins.CoinNet]
+	address.CurrentNetwork = coins.FILNetMap[v]
 
 	if info.Address == "" {
 		return nil, env.ErrAddressInvalid
@@ -171,8 +188,16 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	raw := info.Raw
 	signed := info.Signature
 
+	v, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return nil, env.ErrEVNCoinNet
+	}
+	if !coins.CheckSupportNet(v) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[coins.CoinNet]
+	address.CurrentNetwork = coins.FILNetMap[v]
 
 	to, err := address.NewFromString(raw.To)
 	if err != nil {
@@ -232,8 +257,16 @@ func SyncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
+	v, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return nil, env.ErrEVNCoinNet
+	}
+	if !coins.CheckSupportNet(v) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[coins.CoinNet]
+	address.CurrentNetwork = coins.FILNetMap[v]
 
 	api, err := client()
 	if err != nil {

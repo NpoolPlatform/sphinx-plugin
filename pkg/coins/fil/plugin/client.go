@@ -10,10 +10,7 @@ import (
 	"github.com/filecoin-project/lotus/api/v0api"
 )
 
-var (
-	api    v0api.FullNode = &v0api.FullNodeStruct{} //nolint
-	closer jsonrpc.ClientCloser
-)
+var closer jsonrpc.ClientCloser
 
 func Close() {
 	if closer != nil {

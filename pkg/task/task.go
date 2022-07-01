@@ -11,6 +11,7 @@ import (
 	"time"
 
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
+	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -44,7 +45,7 @@ type pluginClient struct {
 	exitChan     chan struct{}
 	sendChannel  chan *sphinxproxy.ProxyPluginResponse
 
-	onec        sync.Once
+	once        sync.Once
 	conn        *grpc.ClientConn
 	proxyClient sphinxproxy.SphinxProxy_ProxyPluginClient
 }
@@ -81,7 +82,7 @@ func delayNewClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 }
 
 func (c *pluginClient) closeProxyClient() {
-	c.onec.Do(func() {
+	c.once.Do(func() {
 		logger.Sugar().Info("close plugin conn and client")
 		if c != nil {
 			close(c.exitChan)
@@ -91,7 +92,9 @@ func (c *pluginClient) closeProxyClient() {
 				}
 			}
 			if c.conn != nil {
-				c.conn.Close()
+				if err := c.conn.Close(); err != nil {
+					log.Warn("close conn error: %v", err)
+				}
 			}
 		}
 	})
@@ -124,7 +127,6 @@ func (c *pluginClient) watch(exitSig chan os.Signal, cleanChan chan struct{}) {
 			<-c.closeBadConn
 			c.closeProxyClient()
 			logger.Sugar().Info("start watch plugin client exit")
-
 			delayNewClient(exitSig, cleanChan)
 		case <-exitSig:
 			c.closeProxyClient()
@@ -142,18 +144,19 @@ func (c *pluginClient) register() {
 			return
 		case <-time.After(registerCoinDuration):
 			// TODO coin net
-			coinType, coinNetwork, err := env.CoinInfo()
+			coinNetwork, coinType, err := env.CoinInfo()
 			if err != nil {
 				logger.Sugar().Errorf("register new coin error: %v", err)
 				continue
 			}
 
 			logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
+
 			c.sendChannel <- &sphinxproxy.ProxyPluginResponse{
-				CoinType:        coins.CoinStr2CoinType(coins.CoinNet, coinType),
+				CoinType:        coins.CoinStr2CoinType(coinNetwork, coinType),
 				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
 				ENV:             coinNetwork,
-				Unit:            coins.CoinUnit[coins.CoinStr2CoinType(coins.CoinNet, coinType)],
+				Unit:            coins.CoinUnit[coins.CoinStr2CoinType(coinNetwork, coinType)],
 			}
 		}
 	}
@@ -192,7 +195,7 @@ func (c *pluginClient) recv() {
 				time.Since(now).Seconds(),
 			)
 
-			handler, err := coins.GetCoinPlugin(coinType, sphinxproxy.TransactionState_TransactionStateUnKnow)
+			handler, err := coins.GetCoinBalancePlugin(coinType, sphinxproxy.TransactionType_Balance)
 			if err != nil {
 				logger.Sugar().Errorf("GetCoinPlugin get handler error: %v", err)
 			}
@@ -482,6 +485,7 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		if !pending {
 			return eplugin.ErrWaitMessageOnChain
 		}
+	default:
 	}
 	return nil
 }
@@ -530,6 +534,7 @@ func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if err != nil {
 			return err
 		}
+	default:
 	}
 	return nil
 }

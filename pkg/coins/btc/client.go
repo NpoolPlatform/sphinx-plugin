@@ -35,12 +35,21 @@ func client() (*rpcclient.Client, error) {
 	if !ok {
 		return nil, env.ErrENVCoinPassNotFound
 	}
+
+	v, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return nil, env.ErrEVNCoinNet
+	}
+	if !coins.CheckSupportNet(v) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	connCfg := &rpcclient.ConnConfig{
 		Host: host,
 		User: user,
 		Pass: pass,
 		// default mainnet
-		Params:       configParam[coins.CoinNet],
+		Params:       configParam[v],
 		HTTPPostMode: true,
 		DisableTLS:   true,
 	}

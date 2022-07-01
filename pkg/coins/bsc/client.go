@@ -4,19 +4,13 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
-
-func Init() {
-	rand.Seed(time.Now().Unix())
-}
 
 const (
 	MinNodeNum = 1

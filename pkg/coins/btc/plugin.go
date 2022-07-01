@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/rpcclient"
@@ -55,7 +56,15 @@ func WalletBalance(addr string, minConfirms int) (btcutil.Amount, error) {
 		minConfirms = coins.DefaultMinConfirms
 	}
 
-	_addr, err := btcutil.DecodeAddress(addr, coins.BTCNetMap[coins.CoinNet])
+	v, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return btcutil.Amount(0), env.ErrEVNCoinNet
+	}
+	if !coins.CheckSupportNet(v) {
+		return btcutil.Amount(0), env.ErrEVNCoinNetValue
+	}
+
+	_addr, err := btcutil.DecodeAddress(addr, coins.BTCNetMap[v])
 	if err != nil {
 		return btcutil.Amount(0), err
 	}
@@ -87,7 +96,15 @@ func ListUnspent(addr string, minConfirms int) ([]btcjson.ListUnspentResult, err
 		minConfirms = coins.DefaultMinConfirms
 	}
 
-	_addr, err := btcutil.DecodeAddress(addr, coins.BTCNetMap[coins.CoinNet])
+	v, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return nil, env.ErrEVNCoinNet
+	}
+	if !coins.CheckSupportNet(v) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
+	_addr, err := btcutil.DecodeAddress(addr, coins.BTCNetMap[v])
 	if err != nil {
 		return nil, err
 	}
