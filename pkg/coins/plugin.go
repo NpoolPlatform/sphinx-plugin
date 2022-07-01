@@ -13,7 +13,8 @@ var (
 	ErrCoinTypeNotFound = errors.New("coin type not found")
 	ErrOpTypeNotFound   = errors.New("op type not found")
 
-	coinPluginHandles = make(map[sphinxplugin.CoinType]map[sphinxproxy.TransactionState]Handlef)
+	coinPluginHandles        = make(map[sphinxplugin.CoinType]map[sphinxproxy.TransactionState]Handlef)
+	coinBalancePluginHandles = make(map[sphinxplugin.CoinType]map[sphinxproxy.TransactionType]Handlef)
 )
 
 // coin transaction handle
@@ -43,12 +44,24 @@ func GetCoinPlugin(coinType sphinxplugin.CoinType, opType sphinxproxy.Transactio
 	return coinPluginHandles[coinType][opType], nil
 }
 
-type IPlugin interface {
-	// NewAccount(ctx context.Context, req []byte) ([]byte, error)
-	// Sign(ctx context.Context, req []byte) ([]byte, error)
+func RegisterBalance(coinType sphinxplugin.CoinType, opType sphinxproxy.TransactionType, handle Handlef) {
+	coinBalancePluginHandle, ok := coinBalancePluginHandles[coinType]
+	if !ok {
+		coinBalancePluginHandles[coinType] = make(map[sphinxproxy.TransactionType]Handlef)
+	}
+	if _, ok := coinBalancePluginHandle[opType]; ok {
+		panic(fmt.Errorf("coin type: %v for transaction: %v already registered", coinType, opType))
+	}
+	coinBalancePluginHandles[coinType][opType] = handle
+}
 
-	WalletBalance(ctx context.Context, req []byte) ([]byte, error)
-	PreSign(ctx context.Context, req []byte) ([]byte, error)
-	Broadcast(ctx context.Context, req []byte) ([]byte, error)
-	SyncTx(ctx context.Context, req []byte) error
+func GetCoinBalancePlugin(coinType sphinxplugin.CoinType, opType sphinxproxy.TransactionType) (Handlef, error) {
+	// TODO: check nested map exist
+	if _, ok := coinBalancePluginHandles[coinType]; !ok {
+		return nil, ErrCoinTypeNotFound
+	}
+	if _, ok := coinBalancePluginHandles[coinType][opType]; !ok {
+		return nil, ErrOpTypeNotFound
+	}
+	return coinBalancePluginHandles[coinType][opType], nil
 }

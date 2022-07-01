@@ -9,7 +9,7 @@ const (
 	// main or test
 	ENVCOINNET = "ENV_COIN_NET"
 
-	// FIL BTC ETH/USDT SpaceMesh
+	// eg: filecoin/tfilecoin
 	ENVCOINTYPE = "ENV_COIN_TYPE"
 
 	// fil btc ip:port
@@ -62,16 +62,17 @@ func LookupEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
-func CoinInfo() (coinType, networkType string, err error) {
+func CoinInfo() (networkType, coinType string, err error) {
 	var ok bool
-	coinType, ok = LookupEnv(ENVCOINTYPE)
-	if !ok {
-		err = ErrEVNCoinType
-		return
-	}
 	networkType, ok = LookupEnv(ENVCOINNET)
 	if !ok {
 		err = ErrEVNCoinNet
+		return
+	}
+
+	coinType, ok = LookupEnv(ENVCOINTYPE)
+	if !ok {
+		err = ErrEVNCoinType
 		return
 	}
 	return

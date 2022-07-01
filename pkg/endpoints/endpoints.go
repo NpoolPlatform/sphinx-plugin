@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
@@ -40,8 +39,6 @@ func init() {
 
 	allAddrs = append(allAddrs, localAddrs...)
 	allAddrs = append(allAddrs, publicAddrs...)
-
-	rand.Seed(time.Now().Unix())
 }
 
 func ShuffleOrder(n int) []int {

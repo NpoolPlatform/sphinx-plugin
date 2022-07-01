@@ -11,7 +11,6 @@ issues:
       linters:
         - gocritic
         - revive
-        - dupl
 linters:
   disable-all: true
   enable:
@@ -20,7 +19,6 @@ linters:
     - deadcode
     - depguard
     - dogsled
-    - dupl
     - errcheck
     - goconst
     - gocritic
@@ -132,4 +130,4 @@ linters-settings:
       - unnecessaryBlock
   gocognit:
     # minimal code complexity to report, 30 by default (but we recommend 10-20)
-    min-complexity: 20
+    min-complexity: 30

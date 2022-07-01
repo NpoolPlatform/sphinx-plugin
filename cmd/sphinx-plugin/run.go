@@ -1,40 +1,31 @@
 package main
 
 import (
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/task"
 	cli "github.com/urfave/cli/v2"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 var runCmd = &cli.Command{
 	Name:    "run",
 	Aliases: []string{"r"},
 	Usage:   "Run Sphinx Plugin daemon",
-	Before: func(c *cli.Context) error {
-		if !coins.CheckSupportNet(coins.CoinNet) {
-			// TODO should exit!!
-			os.Exit(1)
-		}
-		return nil
-	},
 	After: func(c *cli.Context) error {
 		return logger.Sync()
 	},
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:        "coin_net",
-			Hidden:      true,
-			Destination: &coins.CoinNet,
-			EnvVars:     []string{env.ENVCOINNET},
-		},
-	},
 	Action: func(c *cli.Context) error {
+		task.Run()
+
 		sigs := make(chan os.Signal, 1)
 		cleanChan := make(chan struct{})
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)

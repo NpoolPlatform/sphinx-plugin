@@ -1,5 +1,19 @@
 package types
 
+import "context"
+
+type IPlugin interface {
+	WalletBalance(ctx context.Context, req []byte) ([]byte, error)
+	PreSign(ctx context.Context, req []byte) ([]byte, error)
+	Broadcast(ctx context.Context, req []byte) ([]byte, error)
+	SyncTx(ctx context.Context, req []byte) error
+}
+
+type ISign interface {
+	NewAccount(ctx context.Context, req []byte) ([]byte, error)
+	Sign(ctx context.Context, req []byte) ([]byte, error)
+}
+
 // plugin
 type WalletBalanceRequest struct {
 	Address string `json:"address"`
