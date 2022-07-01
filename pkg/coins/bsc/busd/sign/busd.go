@@ -16,7 +16,7 @@ import (
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
+	busd "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -73,8 +73,8 @@ func SignBepMsg(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO: NewReader use bep20 abi
-	_abi, err := abi.JSON(strings.NewReader(usdt.TetherTokenABI))
+
+	_abi, err := abi.JSON(strings.NewReader(busd.BEP20TokenABI))
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package busd
+package plugin
 
 import (
 	"context"
@@ -79,7 +79,7 @@ func Bep20Balance(ctx context.Context, addr string, client bind.ContractBackend)
 		return nil, ErrAccountAddrInvalid
 	}
 
-	usdt, err := NewBusd(common.HexToAddress(contract), client)
+	usdt, err := NewBEP20Token(common.HexToAddress(contract), client)
 	if err != nil {
 		return nil, err
 	}
