@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"encoding/json"
 	"math/rand"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 )
 
@@ -66,7 +68,7 @@ func nonce(name string, interval int) {
 			}
 
 			for _, transInfo := range transInfos.GetInfos() {
-				func() {
+				func(transInfo *sphinxproxy.TransactionInfo) {
 					ctx, cancel := context.WithTimeout(ctx, updateTransactionsTimeout)
 					defer cancel()
 
@@ -79,7 +81,18 @@ func nonce(name string, interval int) {
 						time.Since(now).Seconds(),
 					)
 
-					respPayload, err := handler(ctx, nil)
+					preSignPayload, err := json.Marshal(types.BaseInfo{
+						ENV:   coinNetwork,
+						From:  transInfo.GetFrom(),
+						To:    transInfo.GetTo(),
+						Value: transInfo.GetAmount(),
+					})
+					if err != nil {
+						errorf(name, "marshal presign info error: %v", err)
+						return
+					}
+
+					respPayload, err := handler(ctx, preSignPayload)
 					if err != nil {
 						errorf(name, "GetCoinPlugin handle deal transaction error: %v", err)
 						return
@@ -98,7 +111,7 @@ func nonce(name string, interval int) {
 					}
 
 					infof(name, "UpdateTransaction transaction: %v done", transInfo.GetTransactionID())
-				}()
+				}(transInfo)
 			}
 		}()
 	}

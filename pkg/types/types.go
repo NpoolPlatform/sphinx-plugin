@@ -18,6 +18,21 @@ type ISign interface {
 	Sign(ctx context.Context, req []byte) ([]byte, error)
 }
 
+type BaseInfo struct {
+	ENV   string  `json:"env"`
+	From  string  `json:"from"`
+	To    string  `json:"to"`
+	Value float64 `json:"value"`
+}
+
+type BroadcastInfo struct {
+	TxID string `json:"tx_id"`
+}
+
+type SyncInfo struct {
+	ExitCode int64 `json:"exit_code"`
+}
+
 // plugin
 type WalletBalanceRequest struct {
 	Address string `json:"address"`

@@ -19,21 +19,10 @@ type Signature struct {
 }
 
 // ##################### plugin
-type PreSignRequest struct {
-	Address string `json:"address"`
-}
-
-type PreSignReponse struct {
-	Info RawTx `json:"raw_tx"`
-}
-
 type BroadcastRequest struct {
+	ENV       string    `json:"env"` // main or test
 	Raw       RawTx     `json:"raw"`
 	Signature Signature `json:"signature"`
-}
-
-type BroadcastResponse struct {
-	TxID string `json:"tx_id"`
 }
 
 type SyncTxRequest struct {
@@ -46,12 +35,6 @@ type SyncTxResponse struct {
 
 // ########################## sign
 type SignRequest struct {
-	CoinType string `json:"cointype"`
-	ENV      string `json:"env"` // main or test
-	Info     RawTx  `json:"raw_tx"`
-}
-
-type SignResponse struct {
-	Raw  RawTx     `json:"raw_tx"`
-	Info Signature `json:"signature"`
+	ENV  string `json:"env"` // main or test
+	Info RawTx  `json:"raw_tx"`
 }

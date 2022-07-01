@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"encoding/json"
 	"math/rand"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 )
 
@@ -66,7 +68,7 @@ func syncTx(name string, interval int) {
 			}
 
 			for _, transInfo := range transInfos.GetInfos() {
-				func() {
+				func(transInfo *sphinxproxy.TransactionInfo) {
 					ctx, cancel := context.WithTimeout(ctx, updateTransactionsTimeout)
 					defer cancel()
 
@@ -79,7 +81,7 @@ func syncTx(name string, interval int) {
 						time.Since(now).Seconds(),
 					)
 
-					respPayload, err := handler(ctx, nil)
+					respPayload, err := handler(ctx, transInfo.GetPayload())
 					if err != nil {
 						errorf(name, "GetCoinPlugin handle deal transaction error: %v", err)
 						return
@@ -87,10 +89,22 @@ func syncTx(name string, interval int) {
 
 					_ = Abort(err)
 
+					// if some error {
+					// 	continue retry
+					// }
+
+					// TODO: delete this dirty code
+					syncInfo := types.SyncInfo{}
+					if err := json.Unmarshal(respPayload, &syncInfo); err != nil {
+						errorf(name, "unmarshal sync info error: %v", err)
+						return
+					}
+
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
 						TransactionID:        transInfo.GetTransactionID(),
 						TransactionState:     tState,
 						NextTransactionState: sphinxproxy.TransactionState_TransactionStateDone,
+						ExitCode:             syncInfo.ExitCode,
 						Payload:              respPayload,
 					}); err != nil {
 						errorf(name, "UpdateTransaction transaction: %v error: %v", transInfo.GetTransactionID(), err)
@@ -98,7 +112,7 @@ func syncTx(name string, interval int) {
 					}
 
 					infof(name, "UpdateTransaction transaction: %v done", transInfo.GetTransactionID())
-				}()
+				}(transInfo)
 			}
 		}()
 	}
