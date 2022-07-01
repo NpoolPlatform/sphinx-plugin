@@ -22,11 +22,11 @@ import (
 
 func init() {
 	// main
-	// sign.Register(
-	// 	sphinxplugin.CoinType_CoinTypefilecoin,
-	// 	sphinxproxy.TransactionType_WalletNew,
-	// 	CreateAccount,
-	// )
+	sign.RegisterWallet(
+		sphinxplugin.CoinType_CoinTypefilecoin,
+		sphinxproxy.TransactionType_WalletNew,
+		CreateAccount,
+	)
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
 		sphinxproxy.TransactionState_TransactionStateSign,
@@ -36,11 +36,11 @@ func init() {
 	// --------------------
 
 	// test
-	// sign.Register(
-	// 	sphinxplugin.CoinType_CoinTypetfilecoin,
-	// 	sphinxproxy.TransactionType_WalletNew,
-	// 	CreateAccount,
-	// )
+	sign.RegisterWallet(
+		sphinxplugin.CoinType_CoinTypetfilecoin,
+		sphinxproxy.TransactionType_WalletNew,
+		CreateAccount,
+	)
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionState_TransactionStateSign,
@@ -146,5 +146,6 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 			Data:     s.Signature.Data,
 		},
 	}
+
 	return json.Marshal(_out)
 }
