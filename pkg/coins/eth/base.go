@@ -2,7 +2,7 @@ package eth
 
 import "github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 
-// usdt contract
+// USDTContract ...
 var USDTContract = func(chainet int64) string {
 	switch chainet {
 	case 1:

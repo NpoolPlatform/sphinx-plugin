@@ -15,6 +15,7 @@ require (
 	github.com/filecoin-project/go-jsonrpc v0.1.5
 	github.com/filecoin-project/go-state-types v0.1.3
 	github.com/filecoin-project/lotus v1.15.2
+	github.com/gagliardetto/binary v0.6.1
 	github.com/ipfs/go-cid v0.1.0
 	github.com/myxtype/filecoin-client v0.3.2
 	github.com/shopspring/decimal v1.3.1
@@ -40,7 +41,6 @@ require (
 	github.com/filecoin-project/go-amt-ipld/v4 v4.0.0 // indirect
 	github.com/filecoin-project/go-padreader v0.0.1 // indirect
 	github.com/filecoin-project/specs-actors/v7 v7.0.0 // indirect
-	github.com/gagliardetto/binary v0.6.1 // indirect
 	github.com/gagliardetto/treeout v0.1.4 // indirect
 	github.com/go-chassis/go-archaius v1.5.3 // indirect
 	github.com/go-chassis/openlog v1.1.3 // indirect

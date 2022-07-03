@@ -162,7 +162,7 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 		return nil, env.ErrAddressInvalid
 	}
 	if info.Value <= 0 {
-
+		return nil, env.ErrAmountInvalid
 	}
 
 	var (

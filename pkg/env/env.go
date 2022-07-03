@@ -39,16 +39,19 @@ var (
 	ErrENVCoinLocalAPINotFound  = errors.New("env ENV_COIN_LOCAL_API not found")
 	ErrENVCoinPublicAPINotFound = errors.New("env ENV_COIN_PUBLIC_API not found")
 
+	ErrAddressInvalid = errors.New("address invalid")
+	ErrAmountInvalid  = errors.New("amount invalid")
+
 	// btc
 	ErrENVCoinUserNotFound = errors.New("env ENV_COIN_USER not found")
 	ErrENVCoinPassNotFound = errors.New("env ENV_COIN_PASS not found")
 
 	// fil
 	ErrENVCoinTokenNotFound = errors.New("env ENV_COIN_TOKEN not found")
-	ErrAddressInvalid       = errors.New("address invalid")
-	ErrSignTypeInvalid      = errors.New("sign type invalid")
-	ErrFindMsgNotFound      = errors.New("failed to find message")
-	ErrCIDInvalid           = errors.New("cid invalid")
+
+	ErrSignTypeInvalid = errors.New("sign type invalid")
+	ErrFindMsgNotFound = errors.New("failed to find message")
+	ErrCIDInvalid      = errors.New("cid invalid")
 
 	// eth/usdt
 	ErrENVContractNotFound = errors.New("env ENV_CONTRACT not found")
