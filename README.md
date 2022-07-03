@@ -5,20 +5,42 @@
 [目录](#目录)
 
 - [Npool go service app template](#npool-go-service-app-template)
+  - [新增币种](#新增币种)
+    - [新增功能](#新增功能)
   - [功能](#功能)
   - [命令](#命令)
   - [最佳实践](#最佳实践)
   - [环境变量](#环境变量)
-  - [新增币种的开发步骤](#新增币种的开发步骤)
-  - [ethereum 部署](#ethereum-部署)
-  - [solana 部署](#solana-部署)
-  - [部署](#部署)
-  - [升级说明](#升级说明)
-  - [推荐](#推荐)
-  - [说明](#说明)
+  - [Plugin Features](#plugin-features)
+    - [multiple-endpoints](#multiple-endpoints)
+    - [wallet-status-check](#wallet-status-check)
+    - [account-check](#account-check)
+    - [ethereum 部署](#ethereum-部署)
+    - [TRC20部署](#trc20部署)
+    - [solana 部署](#solana-部署)
+    - [部署](#部署)
+    - [升级说明](#升级说明)
+    - [推荐](#推荐)
+    - [说明](#说明)
   - [优化](#优化)
 
 -----------
+
+## [新增币种](./newcoin.md)
+
+### 新增功能
+
+- [x] 自定义调度周期
+- [x] 自定义错误处理
+- [ ] 优化配置
+- [ ] 动态调整 **gas fee**
+- [ ] 支持多 **pod** 部署
+
+新币种的支持步骤
+
+1. 配置新币种单位和名称
+2. 必须要实现的接口
+3. 注册新币种
 
 ## 功能
 
@@ -44,20 +66,20 @@
 
 ## 环境变量
 
-| 币种                               | 变量名称                        | 支持的值                                                    | 说明                                            |
-|:-------------------------------- |:--------------------------- |:------------------------------------------------------- |:--------------------------------------------- |
-| common                           | ENV_COIN_NET                | main or test                                            |                                               |
-|                                  | ENV_COIN_TYPE               | filecoin bitcoin ethereum/usdterc20 spacemesh usdttrc20 | 如果此**plugin**支持多币种使用,分割                       |
+| 币种                             | 变量名称                    | 支持的值                                                | 说明                                                  |
+| :------------------------------- | :-------------------------- | :------------------------------------------------------ | :---------------------------------------------------- |
+| common                           | ENV_COIN_NET                | main or test                                            |                                                       |
+|                                  | ENV_COIN_TYPE               | filecoin bitcoin ethereum/usdterc20 spacemesh usdttrc20 | 如果此**plugin**支持多币种使用,分割                   |
 | ~~fil btc sol~~                  | ~~ENV_COIN_API~~            | ~~ip:port~~                                             | 已经废弃，使用ENV_COIN_LOCAL_API及ENV_COIN_PUBLIC_API |
 | fil btc sol eth/erc20 tron/trc20 | ENV_COIN_LOCAL_API          | ip:port                                                 | 多个地址使用,分割                                     |
 | fil btc sol eth/erc20 tron/trc20 | ENV_COIN_PUBLIC_API         | ip:port                                                 | 多个地址使用,分割                                     |
 | tron/trc20                       | ENV_COIN_JSONRPC_LOCAL_API  | ip:port                                                 | 多个地址使用,分割                                     |
 | tron/trc20                       | ENV_COIN_JSONRPC_PUBLIC_API | ip:port                                                 | 多个地址使用,分割                                     |
-| ethereum/usdterc20               |                             |                                                         |                                               |
-| filecoin                         | ENV_COIN_TOKEN              |                                                         |                                               |
-| bitcoin                          | ENV_COIN_USER               |                                                         |                                               |
-|                                  | ENV_COIN_PASS               |                                                         |                                               |
-| usdttrc20                        | ENV_CONTRACT                |                                                         | 填写trc20的合约地址                                  |
+| ethereum/usdterc20               |                             |                                                         |                                                       |
+| filecoin                         | ENV_COIN_TOKEN              |                                                         |                                                       |
+| bitcoin                          | ENV_COIN_USER               |                                                         |                                                       |
+|                                  | ENV_COIN_PASS               |                                                         |                                                       |
+| usdttrc20                        | ENV_CONTRACT                |                                                         | 填写trc20的合约地址                                   |
 
 1. **ENV_COIN_LOCAL_API/ENV_COIN_PUBLIC_API** 钱包服务的 **ipv4** 、 **ipv6** 地址或是域名
 2. **ENV_COIN_TOKEN** 钱包服务的 **token**
@@ -95,12 +117,6 @@ tron/trc20 在连接节点时检测区块高度，需要节点开启json-api端�
 tron/trc20 在获取balance时检测账户格式，与波场HTTP-API提供的wallet/validateaddress功能一致
 
 其他币种暂无
-
-### [新增币种的开发步骤](./newcoin.md)
-
-1. 必须要实现的接口
-
-2. 注册新币种
 
 ### ethereum 部署
 
@@ -200,8 +216,8 @@ config:
 - **失败可以重试, 成功操作不可重试**
 - **注意 SQL 只更新了 filecoin 和 bitcoin 币种，其余可参考 filecoin 和 bitcoin, tfilecoin 和 tbitcoin 上报完成才可以执行**
 
-| 条件      | 升级 SQL                       |
-|:------- |:---------------------------- |
+| 条件    | 升级 SQL                     |
+| :------ | :--------------------------- |
 | mainnet | DO NOTHING                   |
 | testnet | [upgrade](./sql/upgrade.sql) |
 
