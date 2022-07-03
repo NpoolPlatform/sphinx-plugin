@@ -34,48 +34,48 @@ func init() {
 	coins.RegisterBalance(
 		sphinxplugin.CoinType_CoinTypefilecoin,
 		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
+		walletBalance,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
 		sphinxproxy.TransactionState_TransactionStateWait,
-		PreSign,
+		preSign,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
 		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		Broadcast,
+		broadcast,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
 		sphinxproxy.TransactionState_TransactionStateSync,
-		SyncTx,
+		syncTx,
 	)
 
 	// test
 	coins.RegisterBalance(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
+		walletBalance,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionState_TransactionStateWait,
-		PreSign,
+		preSign,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		Broadcast,
+		broadcast,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionState_TransactionStateSync,
-		SyncTx,
+		syncTx,
 	)
 }
 
-func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.WalletBalanceRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[v]
+	address.CurrentNetwork = fil.FILNetMap[v]
 
 	if info.Address == "" {
 		return nil, env.ErrAddressInvalid
@@ -116,7 +116,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, errors.New("convert balance string to float64 error")
 	}
 
-	balance.Quo(balance, big.NewFloat(float64((build.FilecoinPrecision))))
+	balance.Quo(balance, big.NewFloat(0).SetUint64(build.FilecoinPrecision))
 	f, exact := balance.Float64()
 	if exact != big.Exact {
 		logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
@@ -130,14 +130,18 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
+func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.BaseInfo{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
 
+	if !coins.CheckSupportNet(info.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[info.ENV]
+	address.CurrentNetwork = fil.FILNetMap[info.ENV]
 
 	if info.From == "" {
 		return nil, env.ErrAddressInvalid
@@ -175,7 +179,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
+func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	info := fil.BroadcastRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -184,8 +188,12 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	raw := info.Raw
 	signed := info.Signature
 
+	if !coins.CheckSupportNet(info.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[info.ENV]
+	address.CurrentNetwork = fil.FILNetMap[info.ENV]
 
 	to, err := address.NewFromString(raw.To)
 	if err != nil {
@@ -233,15 +241,15 @@ func Broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := fil.SyncTxRequest{
+	_out := ct.SyncRequest{
 		TxID: _cid.String(),
 	}
 
 	return json.Marshal(_out)
 }
 
-func SyncTx(_ctx context.Context, in []byte) (out []byte, err error) {
-	info := fil.SyncTxRequest{}
+func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
+	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
@@ -255,7 +263,7 @@ func SyncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	// TODO in main init
-	address.CurrentNetwork = coins.FILNetMap[v]
+	address.CurrentNetwork = fil.FILNetMap[v]
 
 	api, err := client()
 	if err != nil {
@@ -276,7 +284,7 @@ func SyncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	_out := fil.SyncTxResponse{
+	_out := ct.SyncResponse{
 		ExitCode: int64(msgLookUP.Receipt.ExitCode),
 	}
 

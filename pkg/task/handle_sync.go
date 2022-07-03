@@ -94,7 +94,7 @@ func syncTx(name string, interval int) {
 					// }
 
 					// TODO: delete this dirty code
-					syncInfo := types.SyncInfo{}
+					syncInfo := types.SyncResponse{}
 					if err := json.Unmarshal(respPayload, &syncInfo); err != nil {
 						errorf(name, "unmarshal sync info error: %v", err)
 						return

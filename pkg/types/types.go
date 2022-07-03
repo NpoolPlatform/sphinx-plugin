@@ -29,7 +29,11 @@ type BroadcastInfo struct {
 	TxID string `json:"tx_id"`
 }
 
-type SyncInfo struct {
+type SyncRequest struct {
+	TxID string `json:"tx_id"`
+}
+
+type SyncResponse struct {
 	ExitCode int64 `json:"exit_code"`
 }
 
