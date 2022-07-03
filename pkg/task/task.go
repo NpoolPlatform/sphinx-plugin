@@ -21,11 +21,9 @@ import (
 	bsc_base "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
 	busd "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
 	bsc "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc"
 	eplugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin" //nolint
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
@@ -195,7 +193,7 @@ func (c *pluginClient) recv() {
 				time.Since(now).Seconds(),
 			)
 
-			handler, err := coins.GetCoinBalancePlugin(coinType, sphinxproxy.TransactionType_Balance)
+			handler, err := coins.GetCoinBalancePlugin(coinType, transactionType)
 			if err != nil {
 				logger.Sugar().Errorf("GetCoinPlugin get handler error: %v", err)
 			}
@@ -239,17 +237,11 @@ func (c *pluginClient) send() {
 // register coin handle
 // nolint
 var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error{
-	sphinxplugin.CoinType_CoinTypebitcoin:  pluginBTC,
-	sphinxplugin.CoinType_CoinTypetbitcoin: pluginBTC,
-
 	sphinxplugin.CoinType_CoinTypeethereum:  pluginETH,
 	sphinxplugin.CoinType_CoinTypetethereum: pluginETH,
 
 	sphinxplugin.CoinType_CoinTypeusdterc20:  pluginUSDT,
 	sphinxplugin.CoinType_CoinTypetusdterc20: pluginUSDT,
-
-	sphinxplugin.CoinType_CoinTypesolana:  pluginSOL,
-	sphinxplugin.CoinType_CoinTypetsolana: pluginSOL,
 
 	sphinxplugin.CoinType_CoinTypeusdttrc20:  pluginTRC20,
 	sphinxplugin.CoinType_CoinTypetusdttrc20: pluginTRC20,
@@ -287,96 +279,6 @@ var _ = func(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxp
 
 dirct:
 	c.sendChannel <- resp
-}
-
-// nolint
-func pluginBTC(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
-	// ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
-	// defer cancel()
-
-	switch req.GetTransactionType() {
-	case sphinxproxy.TransactionType_Balance:
-		balance, err := btc.WalletBalance(req.GetAddress(), coins.DefaultMinConfirms)
-		if err != nil {
-			return err
-		}
-		resp.Balance = balance.ToBTC()
-		// take unit
-		resp.BalanceStr = balance.String()
-		// case sphinxplugin.TransactionType_PreSign:
-		// 	// get utxo
-		// 	unspents, err := btc.ListUnspent(req.GetAddress(), coins.DefaultMinConfirms)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.Message = req.GetMessage()
-		// 	if resp.GetMessage() == nil {
-		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
-		// 	}
-		// 	for _, unspent := range unspents {
-		// 		resp.Message.Unspent = append(resp.Message.Unspent, &sphinxplugin.Unspent{
-		// 			TxID:          unspent.TxID,
-		// 			Vout:          unspent.Vout,
-		// 			Address:       unspent.Address,
-		// 			Account:       unspent.Account,
-		// 			ScriptPubKey:  unspent.ScriptPubKey,
-		// 			RedeemScript:  unspent.RedeemScript,
-		// 			Amount:        unspent.Amount,
-		// 			Confirmations: unspent.Confirmations,
-		// 			Spendable:     unspent.Spendable,
-		// 		})
-		// 	}
-		// case sphinxplugin.TransactionType_Broadcast:
-		// 	msgTx := req.GetMsgTx()
-		// 	txIn := make([]*wire.TxIn, 0)
-		// 	txOut := make([]*wire.TxOut, 0)
-
-		// 	for _, _txIn := range msgTx.GetTxIn() {
-		// 		cHaxh, err := chainhash.NewHash(_txIn.GetPreviousOutPoint().GetHash())
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 		txIn = append(txIn, &wire.TxIn{
-		// 			PreviousOutPoint: wire.OutPoint{
-		// 				Hash:  *cHaxh,
-		// 				Index: _txIn.GetPreviousOutPoint().GetIndex(),
-		// 			},
-		// 			SignatureScript: _txIn.GetSignatureScript(),
-		// 			Witness:         _txIn.GetWitness(),
-		// 			Sequence:        _txIn.GetSequence(),
-		// 		})
-		// 	}
-		// 	for _, _txOut := range msgTx.GetTxOut() {
-		// 		txOut = append(txOut, &wire.TxOut{
-		// 			Value:    _txOut.GetValue(),
-		// 			PkScript: _txOut.GetPkScript(),
-		// 		})
-		// 	}
-
-		// 	txHash, err := btc.SendRawTransaction(&wire.MsgTx{
-		// 		Version:  msgTx.GetVersion(),
-		// 		TxIn:     txIn,
-		// 		TxOut:    txOut,
-		// 		LockTime: msgTx.GetLockTime(),
-		// 	})
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.CID = txHash.String()
-		// case sphinxplugin.TransactionType_SyncMsgState:
-		// 	txHash, err := chainhash.NewHashFromStr(req.GetCID())
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	tranTx, err := btc.StateSearchMsg(ctx, txHash)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	if tranTx.Confirmations < coins.DefaultMinConfirms {
-		// 		return btc.ErrWaitMessageOnChainMinConfirms
-		// 	}
-	}
-	return nil
 }
 
 // nolint
@@ -484,55 +386,6 @@ func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlug
 		}
 		if !pending {
 			return eplugin.ErrWaitMessageOnChain
-		}
-	default:
-	}
-	return nil
-}
-
-func pluginSOL(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
-	defer cancel()
-
-	switch req.GetTransactionType() {
-	case sphinxproxy.TransactionType_Balance:
-		bl, err := sol.WalletBalance(ctx, req.GetAddress())
-		if err != nil {
-			return err
-		}
-		balance := sol.ToSol(&bl)
-
-		f, exact := balance.Float64()
-		if exact != big.Exact {
-			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
-		}
-		resp.Balance = f
-		resp.BalanceStr = balance.String()
-		// case sphinxplugin.TransactionType_PreSign:
-		// 	rhash, err := sol.GetRecentBlock(ctx)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.Message = req.GetMessage()
-		// 	if resp.GetMessage() == nil {
-		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
-		// 	}
-		// 	resp.Message.RecentBhash = rhash.Value.Blockhash.String()
-		// case sphinxplugin.TransactionType_Broadcast:
-		// 	cid, err := sol.SendTransaction(ctx, req.GetMessage(), req.GetSignature())
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.CID = cid.String()
-		// case sphinxplugin.TransactionType_SyncMsgState:
-		// cid, err := solana.SignatureFromBase58(req.CID)
-		// if err != nil {
-		// 	return err
-		// }
-		// _, err = sol.StateSearchMsg(cid)
-
-		if err != nil {
-			return err
 		}
 	default:
 	}

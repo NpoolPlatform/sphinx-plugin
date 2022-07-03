@@ -7,18 +7,25 @@ import (
 	solana "github.com/gagliardetto/solana-go"
 )
 
-var EmptyWalletL = big.Int{}
-
-var EmptyWalletS = big.Float{}
+var (
+	// EmptyWalletL ..
+	EmptyWalletL = big.Int{}
+	// EmptyWalletS ..
+	EmptyWalletS = big.Float{}
+)
 
 var (
-	ErrSolBlockNotFound  = errors.New("not found confirmed block in solana chain")
+	// ErrSolBlockNotFound ..
+	ErrSolBlockNotFound = errors.New("not found confirmed block in solana chain")
+	// ErrSolSignatureWrong ..
 	ErrSolSignatureWrong = errors.New("solana signature is wrong or failed")
 )
 
-func ToSol(larm *big.Int) big.Float {
+func ToSol(larm uint64) *big.Float {
 	// Convert lamports to sol:
-	sols := new(big.Float).Quo(new(big.Float).SetInt(larm), new(big.Float).SetUint64(solana.LAMPORTS_PER_SOL))
-
-	return *sols
+	return big.NewFloat(0).
+		Quo(
+			big.NewFloat(0).SetUint64(larm),
+			big.NewFloat(0).SetUint64(solana.LAMPORTS_PER_SOL),
+		)
 }

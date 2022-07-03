@@ -3,13 +3,13 @@ package sign
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/filecoin-project/go-address"
@@ -25,12 +25,12 @@ func init() {
 	sign.RegisterWallet(
 		sphinxplugin.CoinType_CoinTypefilecoin,
 		sphinxproxy.TransactionType_WalletNew,
-		CreateAccount,
+		createAccount,
 	)
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypefilecoin,
 		sphinxproxy.TransactionState_TransactionStateSign,
-		Message,
+		signTx,
 	)
 
 	// --------------------
@@ -39,24 +39,30 @@ func init() {
 	sign.RegisterWallet(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionType_WalletNew,
-		CreateAccount,
+		createAccount,
 	)
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionState_TransactionStateSign,
-		Message,
+		signTx,
 	)
 }
 
-// CreateAccount create new account address
-func CreateAccount(ctx context.Context, in []byte) (out []byte, err error) {
+const s3KeyPrxfix = "filecoin/"
+
+// createAccount create new account address
+func createAccount(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.NewAccountRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
 	}
 
+	if !coins.CheckSupportNet(info.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	// set current net type main or test
-	address.CurrentNetwork = coins.FILNetMap[info.ENV]
+	address.CurrentNetwork = fil.FILNetMap[info.ENV]
 
 	ki, _addr, err := local.WalletNew(types.KTSecp256k1)
 	if err != nil {
@@ -73,13 +79,12 @@ func CreateAccount(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	filePath := fmt.Sprintf("%v/%v", info.CoinType, addr)
-	err = oss.PutObject(ctx, filePath, ki.PrivateKey, true)
+	err = oss.PutObject(ctx, s3KeyPrxfix+addr, ki.PrivateKey, true)
 	return out, err
 }
 
-// Message sign a raw transaction
-func Message(ctx context.Context, in []byte) (out []byte, err error) {
+// signTx sign a raw transaction
+func signTx(ctx context.Context, in []byte) (out []byte, err error) {
 	info := fil.SignRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -87,8 +92,12 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 
 	raw := info.Info
 
+	if !coins.CheckSupportNet(info.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	// set current net type main or test
-	address.CurrentNetwork = coins.FILNetMap[info.ENV]
+	address.CurrentNetwork = fil.FILNetMap[info.ENV]
 
 	to, err := address.NewFromString(raw.To)
 	if err != nil {
@@ -105,8 +114,7 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	filePath := fmt.Sprintf("filecoin/%v", raw.From)
-	pk, err := oss.GetObject(ctx, filePath, true)
+	pk, err := oss.GetObject(ctx, s3KeyPrxfix+raw.From, true)
 	if err != nil {
 		return
 	}

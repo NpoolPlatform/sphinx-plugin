@@ -1,4 +1,4 @@
-package btc
+package plugin
 
 import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"

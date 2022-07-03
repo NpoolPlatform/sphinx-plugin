@@ -1,4 +1,4 @@
-package sol
+package plugin
 
 import (
 	"context"
@@ -10,14 +10,14 @@ import (
 // TODO:Now is a compromise, consider the way of using the pool of clients.
 var rpcClient *rpc.Client
 
-func NewClient() (*rpc.Client, error) {
+func NewClient(ctx context.Context) (*rpc.Client, error) {
 	addr, ok := env.LookupEnv(env.ENVCOINLOCALAPI)
 	if !ok {
 		return nil, env.ErrENVCoinLocalAPINotFound
 	}
-	client := rpc.New(addr)
 
-	_, err := client.GetHealth(context.Background())
+	client := rpc.New(addr)
+	_, err := client.GetHealth(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -25,17 +25,19 @@ func NewClient() (*rpc.Client, error) {
 	return client, nil
 }
 
-func client() (*rpc.Client, error) {
+func client(ctx context.Context) (*rpc.Client, error) {
 	var err error
 
 	if rpcClient == nil {
-		rpcClient, err = NewClient()
+		rpcClient, err = NewClient(ctx)
 		return rpcClient, err
 	}
-	_, err = rpcClient.GetHealth(context.Background())
+
+	_, err = rpcClient.GetHealth(ctx)
 	if err != nil {
-		rpcClient, err = NewClient()
+		rpcClient, err = NewClient(ctx)
 		return rpcClient, err
 	}
-	return rpcClient, err
+
+	return rpcClient, nil
 }

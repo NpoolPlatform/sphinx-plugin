@@ -1,11 +1,19 @@
 package fil
 
 import (
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/lotus/build"
 	"github.com/shopspring/decimal"
 )
+
+// FILNetMap fil net map
+var FILNetMap = map[string]address.Network{
+	coins.CoinNetMain: address.Mainnet,
+	coins.CoinNetTest: address.Testnet,
+}
 
 func SignType(signType string) (crypto.SigType, error) {
 	switch signType {

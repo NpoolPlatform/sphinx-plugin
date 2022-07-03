@@ -25,14 +25,6 @@ type BroadcastRequest struct {
 	Signature Signature `json:"signature"`
 }
 
-type SyncTxRequest struct {
-	TxID string `json:"tx_id"`
-}
-
-type SyncTxResponse struct {
-	ExitCode int64 `json:"exit_code"`
-}
-
 // ########################## sign
 type SignRequest struct {
 	ENV  string `json:"env"` // main or test

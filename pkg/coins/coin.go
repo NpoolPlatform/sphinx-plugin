@@ -4,19 +4,11 @@ import (
 	"strings"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/filecoin-project/go-address"
 )
 
 const (
 	CoinNetMain = "main"
 	CoinNetTest = "test"
-
-	// DefaultMinConfirms ..
-	DefaultMinConfirms = 6
-	// DefaultMaxConfirms ..
-	DefaultMaxConfirms = 9999999
 )
 
 var (
@@ -102,29 +94,6 @@ var (
 
 		sphinxplugin.CoinType_CoinTypebinanceusd:  "BUSD",
 		sphinxplugin.CoinType_CoinTypetbinanceusd: "BUSD",
-	}
-
-	// BTCNetMap btc net map
-	BTCNetMap = map[string]*chaincfg.Params{
-		CoinNetMain: &chaincfg.MainNetParams,
-		CoinNetTest: &chaincfg.RegressionNetParams,
-	}
-
-	// FILNetMap fil net map
-	FILNetMap = map[string]address.Network{
-		CoinNetMain: address.Mainnet,
-		CoinNetTest: address.Testnet,
-	}
-
-	// usdt contract
-	USDTContract = func(chainet int64) string {
-		switch chainet {
-		case 1:
-			return "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-		case 1337:
-			return config.GetString(config.KeyContract)
-		}
-		return ""
 	}
 )
 
