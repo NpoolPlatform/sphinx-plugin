@@ -171,7 +171,7 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-// wait message on chain
+// syncTx sync transaction status on chain
 func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {

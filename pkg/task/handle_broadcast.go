@@ -81,27 +81,47 @@ func broadcast(name string, interval int) {
 						time.Since(now).Seconds(),
 					)
 
+					var (
+						broadcastInfo = types.BroadcastInfo{}
+						state         = sphinxproxy.TransactionState_TransactionStateSync
+					)
+
 					respPayload, err := handler(ctx, transInfo.GetPayload())
-					if err != nil {
-						errorf(name, "GetCoinPlugin handle deal transaction error: %v", err)
-						return
+					if err == nil {
+						goto done
+					}
+					{
+						if !coins.NextStop(err) {
+							warnf(name,
+								"broadcase transaction: %v error: %v retry",
+								transInfo.GetTransactionID(),
+								err,
+							)
+							return
+						}
+
+						errorf(name,
+							"broadcase transaction: %v error: %v stop",
+							transInfo.GetTransactionID(),
+							err,
+						)
+						state = sphinxproxy.TransactionState_TransactionStateFail
 					}
 
-					// if some error {
-					// 	continue retry
-					// }
-
 					// TODO: delete this dirty code
-					broadcastInfo := types.BroadcastInfo{}
-					if err := json.Unmarshal(respPayload, &broadcastInfo); err != nil {
-						errorf(name, "unmarshal broadcast info error: %v", err)
-						return
+				done:
+					{
+						if respPayload != nil {
+							if err := json.Unmarshal(respPayload, &broadcastInfo); err != nil {
+								errorf(name, "unmarshal broadcast info error: %v", err)
+							}
+						}
 					}
 
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
 						TransactionID:        transInfo.GetTransactionID(),
 						TransactionState:     tState,
-						NextTransactionState: sphinxproxy.TransactionState_TransactionStateSync,
+						NextTransactionState: state,
 						CID:                  broadcastInfo.TxID,
 						Payload:              respPayload,
 					}); err != nil {

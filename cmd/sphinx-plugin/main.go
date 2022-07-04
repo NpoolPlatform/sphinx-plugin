@@ -19,10 +19,11 @@ const (
 )
 
 var (
-	proxyAddress = ""
-	contract     = ""
-	logDir       = ""
-	logLevel     = ""
+	proxyAddress       = ""
+	syncInterval int64 = 0
+	contract           = ""
+	logDir             = ""
+	logLevel           = ""
 )
 
 func main() {
@@ -46,11 +47,13 @@ func main() {
 		Description: description,
 		Usage:       usageText,
 		Before: func(ctx *cli.Context) error {
+			// TODO: elegent set or get env
 			config.SetENV(config.ENVInfo{
-				Proxy:    proxyAddress,
-				Contract: contract,
-				LogDir:   logDir,
-				LogLevel: logLevel,
+				Proxy:        proxyAddress,
+				SyncInterval: syncInterval,
+				Contract:     contract,
+				LogDir:       logDir,
+				LogLevel:     logLevel,
 			})
 			return nil
 		},
@@ -64,6 +67,16 @@ func main() {
 				Required:    true,
 				Value:       "",
 				Destination: &proxyAddress,
+			},
+			// sync interval
+			&cli.Int64Flag{
+				Name:        "sync-interval",
+				Aliases:     []string{"si"},
+				Usage:       "interval seconds of sync transaction on chain status",
+				EnvVars:     []string{"ENV_SYNC_INTERVAL"},
+				Required:    true,
+				Value:       0,
+				Destination: &syncInterval,
 			},
 			// contract id
 			&cli.StringFlag{

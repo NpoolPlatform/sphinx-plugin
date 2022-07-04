@@ -66,10 +66,11 @@ func GetInt(key string) int {
 var global ENVInfo
 
 type ENVInfo struct {
-	Proxy    string
-	Contract string
-	LogDir   string
-	LogLevel string
+	Proxy        string
+	SyncInterval int64
+	Contract     string
+	LogDir       string
+	LogLevel     string
 }
 
 func SetENV(info ENVInfo) {

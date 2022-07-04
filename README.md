@@ -33,6 +33,8 @@
 - [x] 自定义调度周期
 - [x] 自定义错误处理
 - [ ] 优化配置
+- [ ] 现在相同地址的并发处理
+- [ ] payload 同步到 redis
 - [ ] 动态调整 **gas fee**
 - [ ] 支持多 **pod** 部署
 
@@ -66,23 +68,32 @@
 
 ## 环境变量
 
-| 币种                             | 变量名称                    | 支持的值                                                | 说明                                                  |
-| :------------------------------- | :-------------------------- | :------------------------------------------------------ | :---------------------------------------------------- |
-| common                           | ENV_COIN_NET                | main or test                                            |                                                       |
-|                                  | ENV_COIN_TYPE               | filecoin bitcoin ethereum/usdterc20 spacemesh usdttrc20 | 如果此**plugin**支持多币种使用,分割                   |
-| ~~fil btc sol~~                  | ~~ENV_COIN_API~~            | ~~ip:port~~                                             | 已经废弃，使用ENV_COIN_LOCAL_API及ENV_COIN_PUBLIC_API |
-| fil btc sol eth/erc20 tron/trc20 | ENV_COIN_LOCAL_API          | ip:port                                                 | 多个地址使用,分割                                     |
-| fil btc sol eth/erc20 tron/trc20 | ENV_COIN_PUBLIC_API         | ip:port                                                 | 多个地址使用,分割                                     |
-| tron/trc20                       | ENV_COIN_JSONRPC_LOCAL_API  | ip:port                                                 | 多个地址使用,分割                                     |
-| tron/trc20                       | ENV_COIN_JSONRPC_PUBLIC_API | ip:port                                                 | 多个地址使用,分割                                     |
-| ethereum/usdterc20               |                             |                                                         |                                                       |
-| filecoin                         | ENV_COIN_TOKEN              |                                                         |                                                       |
-| bitcoin                          | ENV_COIN_USER               |                                                         |                                                       |
-|                                  | ENV_COIN_PASS               |                                                         |                                                       |
-| usdttrc20                        | ENV_CONTRACT                |                                                         | 填写trc20的合约地址                                   |
+| 币种                             | 变量名称                    | 支持的值     | 说明                    |
+|:---------------------------------|:----------------------------|:-------------|:------------------------|
+| common                           | ENV_COIN_NET                | main or test |                         |
+|                                  | ENV_COIN_TYPE               |              |                         |
+|                                  | ENV_SYNC_INTERVAL           |              | 交易状态同步间隔周期(s) |
+| fil btc sol eth/erc20 tron/trc20 | ENV_COIN_LOCAL_API          | ip:port      | 多个地址使用,分割       |
+| fil btc sol eth/erc20 tron/trc20 | ENV_COIN_PUBLIC_API         | ip:port      | 多个地址使用,分割       |
+| tron/trc20                       | ENV_COIN_JSONRPC_LOCAL_API  | ip:port      | 多个地址使用,分割       |
+| tron/trc20                       | ENV_COIN_JSONRPC_PUBLIC_API | ip:port      | 多个地址使用,分割       |
+| ethereum/usdterc20               | ENV_CONTRACT                |              | 填写trc20的合约地址     |
+| filecoin                         | ENV_COIN_TOKEN              |              |                         |
+| bitcoin                          | ENV_COIN_USER               |              |                         |
+|                                  | ENV_COIN_PASS               |              |                         |
+| usdttrc20                        | ENV_CONTRACT                |              | 填写trc20的合约地址     |
+
+交易状态默认周期
+
+|        币种        | 默认值 |
+|:------------------:|:------:|
+|      filecoin      |        |
+|      bitcoin       |        |
+|       solana       |        |
+| ethereum/usdterc20 |        |
 
 1. **ENV_COIN_LOCAL_API/ENV_COIN_PUBLIC_API** 钱包服务的 **ipv4** 、 **ipv6** 地址或是域名
-2. **ENV_COIN_TOKEN** 钱包服务的 **token**
+2. **ENV_COIN_TOKEN** filecoin 钱包服务的 **token**
 
 ## Plugin Features
 
@@ -217,7 +228,7 @@ config:
 - **注意 SQL 只更新了 filecoin 和 bitcoin 币种，其余可参考 filecoin 和 bitcoin, tfilecoin 和 tbitcoin 上报完成才可以执行**
 
 | 条件    | 升级 SQL                     |
-| :------ | :--------------------------- |
+|:--------|:-----------------------------|
 | mainnet | DO NOTHING                   |
 | testnet | [upgrade](./sql/upgrade.sql) |
 

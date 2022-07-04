@@ -3,7 +3,6 @@ package task
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
 	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -17,7 +16,11 @@ import (
 
 func init() {
 	// TODO: support from env or config dynamic set [3,6)
-	if err := register("task::synctx", rand.Intn(3)+3, syncTx); err != nil {
+	if err := register(
+		"task::synctx",
+		config.GetInt(env.ENVSYNCINTERVAL),
+		syncTx,
+	); err != nil {
 		fatalf("task::synctx", "task already register")
 	}
 }
@@ -81,29 +84,48 @@ func syncTx(name string, interval int) {
 						time.Since(now).Seconds(),
 					)
 
+					var (
+						syncInfo = types.SyncResponse{}
+						state    = sphinxproxy.TransactionState_TransactionStateDone
+					)
+
 					respPayload, err := handler(ctx, transInfo.GetPayload())
-					if err != nil {
-						errorf(name, "GetCoinPlugin handle deal transaction error: %v", err)
-						return
+					if err == nil {
+						goto done
 					}
+					{
+						if !coins.NextStop(err) {
+							errorf(name,
+								"sync transaction: %v error: %v retry",
+								transInfo.GetTransactionID(),
+								err,
+							)
+							return
+						}
 
-					_ = Abort(err)
-
-					// if some error {
-					// 	continue retry
-					// }
+						errorf(name,
+							"sync transaction: %v error: %v stop",
+							transInfo.GetTransactionID(),
+							err,
+						)
+						state = sphinxproxy.TransactionState_TransactionStateFail
+					}
 
 					// TODO: delete this dirty code
-					syncInfo := types.SyncResponse{}
-					if err := json.Unmarshal(respPayload, &syncInfo); err != nil {
-						errorf(name, "unmarshal sync info error: %v", err)
-						return
+					{
+						if respPayload != nil {
+							if err := json.Unmarshal(respPayload, &syncInfo); err != nil {
+								errorf(name, "unmarshal sync info error: %v", err)
+								return
+							}
+						}
 					}
 
+				done:
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
 						TransactionID:        transInfo.GetTransactionID(),
 						TransactionState:     tState,
-						NextTransactionState: sphinxproxy.TransactionState_TransactionStateDone,
+						NextTransactionState: state,
 						ExitCode:             syncInfo.ExitCode,
 						Payload:              respPayload,
 					}); err != nil {

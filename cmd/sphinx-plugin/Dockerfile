@@ -3,6 +3,7 @@ FROM jrei/systemd-centos:7
 COPY sphinx-plugin /usr/local/bin/sphinx-plugin
 
 ENV ENV_PROXY='' \
+    ENV_SYNC_INTERVAL=0 \
     ENV_CONTRACT='' \
     ENV_LOG_DIR=/var/log \
     ENV_LOG_LEVEL=debug \
