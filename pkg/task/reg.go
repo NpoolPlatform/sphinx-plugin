@@ -10,9 +10,9 @@ import (
 
 const (
 	// s
-	getTransactionsTimeout = time.Duration(60)
+	getTransactionsTimeout = 6 * time.Second
 	// s
-	updateTransactionsTimeout = time.Duration(5)
+	updateTransactionsTimeout = 6 * time.Second
 )
 
 type tworker struct {

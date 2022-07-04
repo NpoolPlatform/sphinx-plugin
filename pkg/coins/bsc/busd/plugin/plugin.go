@@ -26,39 +26,39 @@ func init() {
 	// 	WalletBalance,
 	// )
 	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinancecoin,
+		sphinxplugin.CoinType_CoinTypebinanceusd,
 		sphinxproxy.TransactionState_TransactionStateWait,
 		bsc_plugin.PreSign,
 	)
 	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinancecoin,
+		sphinxplugin.CoinType_CoinTypebinanceusd,
 		sphinxproxy.TransactionState_TransactionStateBroadcast,
 		bsc_plugin.SendRawTransaction,
 	)
 	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinancecoin,
+		sphinxplugin.CoinType_CoinTypebinanceusd,
 		sphinxproxy.TransactionState_TransactionStateSync,
 		bsc_plugin.SyncTxState,
 	)
 
-	// test
+	// testTransactionStateWait
 	// coins.RegisterBalance(
 	// 	sphinxplugin.CoinType_CoinTypetbinancecoin,
 	// 	sphinxproxy.TransactionType_Balance,
 	// 	WalletBalance,
 	// )
 	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinancecoin,
+		sphinxplugin.CoinType_CoinTypetbinanceusd,
 		sphinxproxy.TransactionState_TransactionStateWait,
 		bsc_plugin.PreSign,
 	)
 	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinancecoin,
+		sphinxplugin.CoinType_CoinTypetbinanceusd,
 		sphinxproxy.TransactionState_TransactionStateBroadcast,
 		bsc_plugin.SendRawTransaction,
 	)
 	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinancecoin,
+		sphinxplugin.CoinType_CoinTypetbinanceusd,
 		sphinxproxy.TransactionState_TransactionStateSync,
 		bsc_plugin.SyncTxState,
 	)

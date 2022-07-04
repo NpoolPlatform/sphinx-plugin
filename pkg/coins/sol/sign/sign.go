@@ -85,9 +85,9 @@ func signTx(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	var (
-		from   = info.From
-		to     = info.To
-		value  = info.Value
+		from   = info.BaseInfo.From
+		to     = info.BaseInfo.To
+		value  = info.BaseInfo.Value
 		rbHash = info.RecentBlockHash
 	)
 
