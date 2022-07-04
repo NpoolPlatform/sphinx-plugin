@@ -29,3 +29,10 @@ func ToSol(larm uint64) *big.Float {
 			big.NewFloat(0).SetUint64(solana.LAMPORTS_PER_SOL),
 		)
 }
+
+func ToLarm(value float64) (uint64, big.Accuracy) {
+	return big.NewFloat(0).Mul(
+		big.NewFloat(0).SetFloat64(value),
+		big.NewFloat(0).SetUint64(solana.LAMPORTS_PER_SOL),
+	).Uint64()
+}

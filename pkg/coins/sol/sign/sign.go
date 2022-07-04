@@ -106,10 +106,7 @@ func signTx(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	lamports, accuracy := big.NewFloat(value).Mul(
-		big.NewFloat(1),
-		big.NewFloat(0).SetUint64(solana.LAMPORTS_PER_SOL),
-	).Uint64()
+	lamports, accuracy := sol.ToLarm(value)
 	if accuracy != big.Exact {
 		logger.Sugar().Warnf("transafer sol amount not accuracy: from %v-> to %v", value, lamports)
 	}
