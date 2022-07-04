@@ -71,6 +71,7 @@ var (
 	// ErrAbortErrorAlreadyRegister ..
 	ErrAbortErrorAlreadyRegister = errors.New("abort error already register")
 
+	// TODO: think how to check not value error
 	abortErrs = make(map[error]struct{})
 )
 

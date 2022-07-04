@@ -58,12 +58,13 @@ var (
 	ErrENVCOINGRPCAPINotFound    = errors.New("env ENV_COIN_GRPC_API not found")
 
 	// not env error----------------------------
-	ErrSignTypeInvalid    = errors.New("sign type invalid")
-	ErrFindMsgNotFound    = errors.New("failed to find message")
-	ErrCIDInvalid         = errors.New("cid invalid")
-	ErrAddressInvalid     = errors.New("address invalid")
-	ErrAmountInvalid      = errors.New("amount invalid")
-	ErrWaitMessageOnChain = errors.New("wait message on chain")
+	ErrSignTypeInvalid     = errors.New("sign type invalid")
+	ErrFindMsgNotFound     = errors.New("failed to find message")
+	ErrCIDInvalid          = errors.New("cid invalid")
+	ErrAddressInvalid      = errors.New("address invalid")
+	ErrAmountInvalid       = errors.New("amount invalid")
+	ErrInsufficientBalance = errors.New("insufficient balance")
+	ErrWaitMessageOnChain  = errors.New("wait message on chain")
 )
 
 func LookupEnv(key string) (string, bool) {
