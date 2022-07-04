@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	// s
+	// unit seconds
 	getTransactionsTimeout = time.Duration(60)
-	// s
+	// unit seconds
 	updateTransactionsTimeout = time.Duration(5)
 )
 
@@ -52,9 +52,9 @@ func errorf(prefix, template string, args ...interface{}) {
 	logger.Sugar().Errorf(fmt.Sprintf("%s %v", prefix, template), args...)
 }
 
-// func warnf(prefix, template string, args ...interface{}) {
-// 	logger.Sugar().Warnf(fmt.Sprintf("%s %v", prefix, template), args...)
-// }
+func warnf(prefix, template string, args ...interface{}) {
+	logger.Sugar().Warnf(fmt.Sprintf("%s %v", prefix, template), args...)
+}
 
 func infof(prefix, template string, args ...interface{}) {
 	logger.Sugar().Infof(fmt.Sprintf("%s %v", prefix, template), args...)
