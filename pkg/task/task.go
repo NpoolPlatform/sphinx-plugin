@@ -24,6 +24,7 @@ import (
 	eplugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin" //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin" //nolint
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
@@ -147,15 +148,16 @@ func (c *pluginClient) register() {
 				logger.Sugar().Errorf("register new coin error: %v", err)
 				continue
 			}
+			logger.Sugar().Errorf("ssssssssss %v %v", coinNetwork, coinType)
 
 			logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
-
-			c.sendChannel <- &sphinxproxy.ProxyPluginResponse{
+			resp := &sphinxproxy.ProxyPluginResponse{
 				CoinType:        coins.CoinStr2CoinType(coinNetwork, coinType),
 				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
 				ENV:             coinNetwork,
 				Unit:            coins.CoinUnit[coins.CoinStr2CoinType(coinNetwork, coinType)],
 			}
+			c.sendChannel <- resp
 		}
 	}
 }
