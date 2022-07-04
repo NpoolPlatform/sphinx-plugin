@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -63,6 +64,13 @@ func init() {
 		sphinxplugin.CoinType_CoinTypetbitcoin,
 		sphinxproxy.TransactionState_TransactionStateSync,
 		syncTx,
+	)
+
+	coins.RegisterAbortErr(
+		env.ErrEVNCoinNetValue,
+		env.ErrAddressInvalid,
+		env.ErrAmountInvalid,
+		env.ErrInsufficientBalance,
 	)
 }
 
@@ -223,12 +231,14 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 	}
 
 	if !amountflag {
-		return nil, fmt.Errorf(
-			"amount not enough: total: %v, transfer: %v, gas:%v",
+		// TODO: think how to use same error
+		logger.Sugar().Errorf(
+			"insufficient balance: total: %v, transfer: %v, gas: %v",
 			enoughUTXOAmount,
 			amount,
 			btc.BTCGas,
 		)
+		return nil, env.ErrInsufficientBalance
 	}
 
 	fromAddr, err := btcutil.DecodeAddress(from, btc.BTCNetMap[info.ENV])
