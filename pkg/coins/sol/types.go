@@ -5,8 +5,8 @@ import (
 )
 
 type SignMsgTx struct {
-	ct.BaseInfo     `json:"base"`
-	RecentBlockHash string `json:"recent_block_hash"`
+	BaseInfo        ct.BaseInfo `json:"base_info"`
+	RecentBlockHash string      `json:"recent_block_hash"`
 }
 
 type BroadcastRequest struct {

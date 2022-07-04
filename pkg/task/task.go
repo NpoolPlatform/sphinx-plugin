@@ -24,6 +24,7 @@ import (
 	eplugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin" //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin" //nolint
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
