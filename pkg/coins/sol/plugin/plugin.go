@@ -69,7 +69,6 @@ func init() {
 	coins.RegisterAbortErr(
 		sol.ErrSolTransactionFailed,
 	)
-
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {

@@ -90,8 +90,7 @@ var (
 func RegisterAbortErr(errs ...error) {
 	for _, err := range errs {
 		if _, ok := abortErrs[err]; ok {
-			// return ErrAbortErrorAlreadyRegister
-			continue
+			panic(ErrAbortErrorAlreadyRegister)
 		}
 		abortErrs[err] = struct{}{}
 	}
