@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
-	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -65,6 +64,19 @@ func init() {
 		sphinxproxy.TransactionState_TransactionStateSync,
 		syncTx,
 	)
+
+	// register err fsm
+	err := coins.RegisterAbortErr(
+		env.ErrEVNCoinNet,
+		env.ErrEVNCoinNetValue,
+		env.ErrAddressInvalid,
+		env.ErrSignTypeInvalid,
+		env.ErrCIDInvalid,
+		sol.ErrSolTransactionFailed,
+	)
+	if err != nil {
+		logger.Sugar().Error(err)
+	}
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
@@ -161,8 +173,17 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 
 	cid, err := api.SendTransaction(ctx, tx)
 	if err != nil {
-		return nil, err
+		sResp := &ct.SyncResponse{}
+		sResp.ExitCode = -1
+		out, err := json.Marshal(sResp)
+		if err != nil {
+			return nil, err
+		}
+		return out, sol.ErrSolTransactionFailed
 	}
+
+	// cid, err := api.SendTransaction(ctx, tx)
+	// logger.Sugar().Errorf("ssssss%-v,%-v", cid, err)
 
 	_out := ct.SyncRequest{
 		TxID: cid.String(),
@@ -175,12 +196,12 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
-		return in, err
+		return nil, err
 	}
 
 	signature, err := solana.SignatureFromBase58(info.TxID)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, sconst.WaitMsgOutTimeout)
@@ -188,22 +209,40 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 
 	api, err := client(ctx)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(1 * time.Second):
-			// TODO double-spend
-			chainMsg, err := api.GetConfirmedTransaction(ctx, signature)
-			if chainMsg != nil {
-				return in, nil
-			}
-			if err != nil {
-				return in, sol.ErrSolBlockNotFound
-			}
-		}
+	// TODO double-spend
+	chainMsg, err := api.GetTransaction(
+		ctx,
+		signature,
+		&rpc.GetTransactionOpts{
+			Encoding:   solana.EncodingBase58,
+			Commitment: rpc.CommitmentFinalized,
+		})
+	if err != nil {
+		return nil, sol.ErrSolBlockNotFound
 	}
+
+	if chainMsg != nil && chainMsg.Meta.Err != nil {
+		sResp := &ct.SyncResponse{}
+		sResp.ExitCode = -1
+		out, err := json.Marshal(sResp)
+		if err != nil {
+			return nil, err
+		}
+		return out, sol.ErrSolTransactionFailed
+	}
+
+	if chainMsg != nil && chainMsg.Meta.Err == nil {
+		sResp := &ct.SyncResponse{}
+		sResp.ExitCode = 0
+		out, err := json.Marshal(sResp)
+		if err != nil {
+			return nil, err
+		}
+		return out, nil
+	}
+
+	return nil, sol.ErrSolBlockNotFound
 }

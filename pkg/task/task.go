@@ -147,7 +147,6 @@ func (c *pluginClient) register() {
 				logger.Sugar().Errorf("register new coin error: %v", err)
 				continue
 			}
-			logger.Sugar().Errorf("ssssssssss %v %v", coinNetwork, coinType)
 
 			logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
 			resp := &sphinxproxy.ProxyPluginResponse{
