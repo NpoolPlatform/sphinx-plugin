@@ -71,19 +71,31 @@ var (
 	// ErrAbortErrorAlreadyRegister ..
 	ErrAbortErrorAlreadyRegister = errors.New("abort error already register")
 
+	// ErrAbortErrorFuncAlreadyRegister ..
+	ErrAbortErrorFuncAlreadyRegister = errors.New("abort error func already register")
+
 	// TODO: think how to check not value error
-	abortErrs = make(map[error]struct{})
+	abortErrs     = make(map[error]struct{})
+	abortFuncErrs = make(map[sphinxplugin.CoinType]func(error) bool)
 )
 
 // RegisterAbortErr ..
-func RegisterAbortErr(errs ...error) error {
+func RegisterAbortErr(errs ...error) {
 	for _, err := range errs {
 		if _, ok := abortErrs[err]; ok {
-			return ErrAbortErrorAlreadyRegister
+			panic(ErrAbortErrorAlreadyRegister)
 		}
 		abortErrs[err] = struct{}{}
 	}
+}
 
+// RegisterAbortFuncErr ..
+func RegisterAbortFuncErr(coinType sphinxplugin.CoinType, f func(error) bool) error {
+	if _, ok := abortFuncErrs[coinType]; ok {
+		return ErrAbortErrorFuncAlreadyRegister
+	}
+
+	abortFuncErrs[coinType] = f
 	return nil
 }
 
@@ -96,7 +108,20 @@ func nextStop(err error) bool {
 	return ok
 }
 
-// NextStop ..
-func NextStop(err error) bool {
-	return nextStop(err)
+// Abort ..
+func Abort(coinType sphinxplugin.CoinType, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if nextStop(err) {
+		return true
+	}
+
+	mf, ok := abortFuncErrs[coinType]
+	if ok {
+		return mf(err)
+	}
+
+	return false
 }
