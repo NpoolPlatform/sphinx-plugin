@@ -95,7 +95,7 @@ func syncTx(name string, interval int) {
 					}
 					if coins.Abort(_coinType, err) {
 						errorf(name,
-							"sync transaction: %v error: %v retry",
+							"sync transaction: %v error: %v stop",
 							transInfo.GetTransactionID(),
 							err,
 						)
@@ -104,7 +104,7 @@ func syncTx(name string, interval int) {
 					}
 
 					errorf(name,
-						"sync transaction: %v error: %v stop",
+						"sync transaction: %v error: %v retry",
 						transInfo.GetTransactionID(),
 						err,
 					)

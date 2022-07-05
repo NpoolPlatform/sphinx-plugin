@@ -101,7 +101,7 @@ func nonce(name string, interval int) {
 
 					if coins.Abort(_coinType, err) {
 						errorf(name,
-							"pre sign transaction: %v error: %v retry",
+							"pre sign transaction: %v error: %v stop",
 							transInfo.GetTransactionID(),
 							err,
 						)
@@ -110,7 +110,7 @@ func nonce(name string, interval int) {
 					}
 
 					errorf(name,
-						"pre sign transaction: %v error: %v stop",
+						"pre sign transaction: %v error: %v retry",
 						transInfo.GetTransactionID(),
 						err,
 					)
