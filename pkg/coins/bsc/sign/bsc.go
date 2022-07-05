@@ -15,6 +15,7 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	bsc "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
+	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -22,11 +23,11 @@ import (
 
 func init() {
 	// main
-	// sign.Register(
-	// 	sphinxplugin.CoinType_CoinTypefilecoin,
-	// 	sphinxproxy.TransactionType_WalletNew,
-	// 	CreateAccount,
-	// )
+	sign.RegisterWallet(
+		sphinxplugin.CoinType_CoinTypebinancecoin,
+		sphinxproxy.TransactionType_WalletNew,
+		CreateBscAccount,
+	)
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypebinancecoin,
 		sphinxproxy.TransactionState_TransactionStateSign,
@@ -36,11 +37,11 @@ func init() {
 	// --------------------
 
 	// test
-	// sign.Register(
-	// 	sphinxplugin.CoinType_CoinTypetfilecoin,
-	// 	sphinxproxy.TransactionType_WalletNew,
-	// 	CreateAccount,
-	// )
+	sign.RegisterWallet(
+		sphinxplugin.CoinType_CoinTypetbinancecoin,
+		sphinxproxy.TransactionType_WalletNew,
+		CreateBscAccount,
+	)
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypetbinancecoin,
 		sphinxproxy.TransactionState_TransactionStateSign,
@@ -54,8 +55,9 @@ func BscMsg(ctx context.Context, in []byte) (out []byte, err error) {
 	return Message(ctx, s3KeyPrxfix, in)
 }
 
-func CreateBscAccount(ctx context.Context) (string, error) {
-	return CreateAccount(ctx, s3KeyPrxfix)
+func CreateBscAccount(ctx context.Context, in []byte) (out []byte, err error) {
+	return CreateAccount(ctx, s3KeyPrxfix, in)
+
 }
 
 func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err error) {
@@ -115,10 +117,10 @@ func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err er
 	return out, err
 }
 
-func CreateAccount(ctx context.Context, s3Store string) (string, error) {
+func CreateAccount(ctx context.Context, s3Store string, in []byte) (out []byte, err error) {
 	privateKey, err := crypto.GenerateKey()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	privateKeyBytes := crypto.FromECDSA(privateKey)
@@ -129,14 +131,19 @@ func CreateAccount(ctx context.Context, s3Store string) (string, error) {
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
-		return "", errors.New("create account error casting public key to ECDSA")
+		return nil, errors.New("create account error casting public key to ECDSA")
 	}
 
-	// crypto.PubkeyToAddress
-	// publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
-	// hash := sha3.NewKeccak256()
-	// hash.Write(publicKeyBytes[1:])
-	// hexutil.Encode(hash.Sum(nil)[12:])
 	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex() // Hex String
-	return address, oss.PutObject(ctx, s3Store+address, privateKeyBytesHex, true)
+	err = oss.PutObject(ctx, s3Store+address, privateKeyBytesHex, true)
+	if err != nil {
+		return nil, err
+	}
+	_out := &ct.NewAccountResponse{Address: address}
+	out, err = json.Marshal(_out)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, err
 }

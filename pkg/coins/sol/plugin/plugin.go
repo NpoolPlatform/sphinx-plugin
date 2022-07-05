@@ -129,7 +129,7 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	recentBlockHash, err := api.GetRecentBlockhash(ctx, rpc.CommitmentFinalized)
+	recentBlockHash, err := api.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
 	if err != nil {
 		return nil, err
 	}
@@ -173,9 +173,6 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		}
 		return out, sol.ErrSolTransactionFailed
 	}
-
-	// cid, err := api.SendTransaction(ctx, tx)
-	// logger.Sugar().Errorf("ssssss%-v,%-v", cid, err)
 
 	_out := ct.SyncRequest{
 		TxID: cid.String(),
