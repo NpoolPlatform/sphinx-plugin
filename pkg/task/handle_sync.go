@@ -3,8 +3,11 @@ package task
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -16,9 +19,18 @@ import (
 
 func init() {
 	// TODO: support from env or config dynamic set [3,6)
+	_interval, ok := env.LookupEnv(env.ENVSYNCINTERVAL)
+	if !ok {
+		panic("task::synctx don`t set ENV_SYNC_INTERVAL")
+	}
+	interval, err := strconv.Atoi(_interval)
+	if err != nil {
+		panic(fmt.Sprintf("task::synctx failed to read ENV_SYNC_INTERVAL, %v", err))
+	}
 	if err := register(
 		"task::synctx",
-		config.GetInt(env.ENVSYNCINTERVAL),
+		interval,
+		// config.GetInt(env.ENVSYNCINTERVAL), // TODO: make sure and remove
 		syncTx,
 	); err != nil {
 		fatalf("task::synctx", "task already register")
@@ -122,6 +134,7 @@ func syncTx(name string, interval int) {
 					}
 
 				done:
+					logger.Sugar().Errorf("ssssssss %-v", syncInfo)
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
 						TransactionID:        transInfo.GetTransactionID(),
 						TransactionState:     tState,

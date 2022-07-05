@@ -79,7 +79,8 @@ var (
 func RegisterAbortErr(errs ...error) error {
 	for _, err := range errs {
 		if _, ok := abortErrs[err]; ok {
-			return ErrAbortErrorAlreadyRegister
+			// return ErrAbortErrorAlreadyRegister
+			continue
 		}
 		abortErrs[err] = struct{}{}
 	}

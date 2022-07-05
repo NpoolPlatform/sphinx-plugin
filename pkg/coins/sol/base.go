@@ -18,7 +18,8 @@ var (
 	// ErrSolBlockNotFound ..
 	ErrSolBlockNotFound = errors.New("not found confirmed block in solana chain")
 	// ErrSolSignatureWrong ..
-	ErrSolSignatureWrong = errors.New("solana signature is wrong or failed")
+	ErrSolSignatureWrong    = errors.New("solana signature is wrong or failed")
+	ErrSolTransactionFailed = errors.New("sol transaction failed")
 )
 
 func ToSol(larm uint64) *big.Float {
