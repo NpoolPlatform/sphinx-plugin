@@ -98,23 +98,23 @@ func nonce(name string, interval int) {
 					if err == nil {
 						goto done
 					}
-					{
-						if !coins.NextStop(err) {
-							errorf(name,
-								"pre sign transaction: %v error: %v retry",
-								transInfo.GetTransactionID(),
-								err,
-							)
-							return
-						}
 
+					if coins.Abort(_coinType, err) {
 						errorf(name,
 							"pre sign transaction: %v error: %v stop",
 							transInfo.GetTransactionID(),
 							err,
 						)
 						state = sphinxproxy.TransactionState_TransactionStateFail
+						goto done
 					}
+
+					errorf(name,
+						"pre sign transaction: %v error: %v retry",
+						transInfo.GetTransactionID(),
+						err,
+					)
+					return
 
 				done:
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{

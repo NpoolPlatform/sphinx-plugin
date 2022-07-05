@@ -66,17 +66,10 @@ func init() {
 	)
 
 	// register err fsm
-	err := coins.RegisterAbortErr(
-		env.ErrEVNCoinNet,
-		env.ErrEVNCoinNetValue,
-		env.ErrAddressInvalid,
-		env.ErrSignTypeInvalid,
-		env.ErrCIDInvalid,
+	coins.RegisterAbortErr(
 		sol.ErrSolTransactionFailed,
 	)
-	if err != nil {
-		logger.Sugar().Error(err)
-	}
+
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {

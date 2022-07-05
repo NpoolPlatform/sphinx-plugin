@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -105,25 +104,25 @@ func syncTx(name string, interval int) {
 					if err == nil {
 						goto done
 					}
-					{
-						if !coins.NextStop(err) {
-							errorf(name,
-								"sync transaction: %v error: %v retry",
-								transInfo.GetTransactionID(),
-								err,
-							)
-							return
-						}
-
+					if coins.Abort(_coinType, err) {
 						errorf(name,
 							"sync transaction: %v error: %v stop",
 							transInfo.GetTransactionID(),
 							err,
 						)
 						state = sphinxproxy.TransactionState_TransactionStateFail
+						goto done
 					}
 
+					errorf(name,
+						"sync transaction: %v error: %v retry",
+						transInfo.GetTransactionID(),
+						err,
+					)
+					return
+
 					// TODO: delete this dirty code
+				done:
 					{
 						if respPayload != nil {
 							if err := json.Unmarshal(respPayload, &syncInfo); err != nil {
@@ -133,8 +132,6 @@ func syncTx(name string, interval int) {
 						}
 					}
 
-				done:
-					logger.Sugar().Errorf("ssssssss %-v", syncInfo)
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
 						TransactionID:        transInfo.GetTransactionID(),
 						TransactionState:     tState,

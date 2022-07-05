@@ -19,11 +19,11 @@ const (
 )
 
 var (
-	proxyAddress       = ""
-	syncInterval int64 = 0
-	contract           = ""
-	logDir             = ""
-	logLevel           = ""
+	proxyAddress string
+	syncInterval int64
+	contract     string
+	logDir       string
+	logLevel     string
 )
 
 func main() {

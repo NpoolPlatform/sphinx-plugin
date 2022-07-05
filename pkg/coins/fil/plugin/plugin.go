@@ -71,14 +71,17 @@ func init() {
 		syncTx,
 	)
 
-	// register err fsm
-	coins.RegisterAbortErr(
-		env.ErrEVNCoinNet,
-		env.ErrEVNCoinNetValue,
-		env.ErrAddressInvalid,
-		env.ErrSignTypeInvalid,
-		env.ErrCIDInvalid,
-	)
+	// register err not a value handle
+	// coins.RegisterAbortFuncErr(
+	// 	sphinxplugin.CoinType_CoinTypefilecoin,
+	// 	func(err error) bool {
+	// 		return true
+	// 	})
+	// coins.RegisterAbortFuncErr(
+	// 	sphinxplugin.CoinType_CoinTypetfilecoin,
+	// 	func(err error) bool {
+	// 		return false
+	// 	})
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
