@@ -74,9 +74,6 @@ func init() {
 		env.ErrCIDInvalid,
 		sol.ErrSolTransactionFailed,
 	)
-	if err != nil {
-		logger.Sugar().Error(err)
-	}
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
