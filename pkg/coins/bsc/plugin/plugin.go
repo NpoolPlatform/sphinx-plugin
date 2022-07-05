@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math"
 	"math/big"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -22,11 +24,11 @@ import (
 // here register plugin func
 func init() {
 	// main
-	// coins.RegisterBalance(
-	// 	sphinxplugin.CoinType_CoinTypebinancecoin,
-	// 	sphinxproxy.TransactionType_Balance,
-	// 	WalletBalance,
-	// )
+	coins.RegisterBalance(
+		sphinxplugin.CoinType_CoinTypebinancecoin,
+		sphinxproxy.TransactionType_Balance,
+		WalletBalance,
+	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypebinancecoin,
 		sphinxproxy.TransactionState_TransactionStateWait,
@@ -44,11 +46,11 @@ func init() {
 	)
 
 	// test
-	// coins.RegisterBalance(
-	// 	sphinxplugin.CoinType_CoinTypetbinancecoin,
-	// 	sphinxproxy.TransactionType_Balance,
-	// 	WalletBalance,
-	// )
+	coins.RegisterBalance(
+		sphinxplugin.CoinType_CoinTypetbinancecoin,
+		sphinxproxy.TransactionType_Balance,
+		WalletBalance,
+	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetbinancecoin,
 		sphinxproxy.TransactionState_TransactionStateWait,
@@ -83,13 +85,41 @@ type PreSignInfo struct {
 	GasLimit   int64
 }
 
-func WalletBalance(ctx context.Context, addr string) (*big.Int, error) {
+func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+	wbReq := &plugin_types.WalletBalanceRequest{}
+	err = json.Unmarshal(in, wbReq)
+	if err != nil {
+		return nil, err
+	}
 	client := bsc.Client()
 
-	if !common.IsHexAddress(addr) {
+	if !common.IsHexAddress(wbReq.Address) {
 		return nil, ErrAddrNotValid
 	}
-	return client.BalanceAtS(ctx, common.HexToAddress(addr), nil)
+
+	bl, err := client.BalanceAtS(ctx, common.HexToAddress(wbReq.Address), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	balance, ok := big.NewFloat(0).SetString(bl.String())
+	if !ok {
+		return nil, errors.New("convert balance string to float64 error")
+	}
+
+	balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
+	f, exact := balance.Float64()
+	if exact != big.Exact {
+		logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+	}
+
+	wbResp := &plugin_types.WalletBalanceResponse{
+		Balance:    f,
+		BalanceStr: balance.String(),
+	}
+	out, err = json.Marshal(wbResp)
+
+	return out, err
 }
 
 func PreSign(ctx context.Context, in []byte) (out []byte, err error) {

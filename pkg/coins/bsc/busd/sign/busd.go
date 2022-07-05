@@ -26,11 +26,11 @@ import (
 
 func init() {
 	// main
-	// sign.Register(
-	// 	sphinxplugin.CoinType_CoinTypefilecoin,
-	// 	sphinxproxy.TransactionType_WalletNew,
-	// 	CreateAccount,
-	// )
+	sign.RegisterWallet(
+		sphinxplugin.CoinType_CoinTypebinanceusd,
+		sphinxproxy.TransactionType_WalletNew,
+		CreateBep20Account,
+	)
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypebinanceusd,
 		sphinxproxy.TransactionState_TransactionStateSign,
@@ -40,11 +40,11 @@ func init() {
 	// --------------------
 
 	// test
-	// sign.Register(
-	// 	sphinxplugin.CoinType_CoinTypetfilecoin,
-	// 	sphinxproxy.TransactionType_WalletNew,
-	// 	CreateAccount,
-	// )
+	sign.RegisterWallet(
+		sphinxplugin.CoinType_CoinTypetbinanceusd,
+		sphinxproxy.TransactionType_WalletNew,
+		CreateBep20Account,
+	)
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypetbinanceusd,
 		sphinxproxy.TransactionState_TransactionStateSign,
@@ -54,8 +54,8 @@ func init() {
 
 const s3KeyPrxfix = "binanceusd/"
 
-func CreateBep20Account(ctx context.Context) (string, error) {
-	return bscSign.CreateAccount(ctx, s3KeyPrxfix)
+func CreateBep20Account(ctx context.Context, in []byte) (out []byte, err error) {
+	return bscSign.CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
 func SignBepMsg(ctx context.Context, in []byte) (out []byte, err error) {
