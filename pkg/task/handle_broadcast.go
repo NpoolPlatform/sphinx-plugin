@@ -90,23 +90,22 @@ func broadcast(name string, interval int) {
 					if err == nil {
 						goto done
 					}
-					{
-						if !coins.NextStop(err) {
-							warnf(name,
-								"broadcase transaction: %v error: %v retry",
-								transInfo.GetTransactionID(),
-								err,
-							)
-							return
-						}
-
-						errorf(name,
+					if coins.Abort(_coinType, err) {
+						warnf(name,
 							"broadcase transaction: %v error: %v stop",
 							transInfo.GetTransactionID(),
 							err,
 						)
 						state = sphinxproxy.TransactionState_TransactionStateFail
+						goto done
 					}
+
+					errorf(name,
+						"broadcase transaction: %v error: %v retry",
+						transInfo.GetTransactionID(),
+						err,
+					)
+					return
 
 					// TODO: delete this dirty code
 				done:

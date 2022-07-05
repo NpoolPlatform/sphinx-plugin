@@ -93,25 +93,25 @@ func syncTx(name string, interval int) {
 					if err == nil {
 						goto done
 					}
-					{
-						if !coins.NextStop(err) {
-							errorf(name,
-								"sync transaction: %v error: %v retry",
-								transInfo.GetTransactionID(),
-								err,
-							)
-							return
-						}
-
+					if coins.Abort(_coinType, err) {
 						errorf(name,
-							"sync transaction: %v error: %v stop",
+							"sync transaction: %v error: %v retry",
 							transInfo.GetTransactionID(),
 							err,
 						)
 						state = sphinxproxy.TransactionState_TransactionStateFail
+						goto done
 					}
 
+					errorf(name,
+						"sync transaction: %v error: %v stop",
+						transInfo.GetTransactionID(),
+						err,
+					)
+					return
+
 					// TODO: delete this dirty code
+				done:
 					{
 						if respPayload != nil {
 							if err := json.Unmarshal(respPayload, &syncInfo); err != nil {
@@ -121,7 +121,6 @@ func syncTx(name string, interval int) {
 						}
 					}
 
-				done:
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
 						TransactionID:        transInfo.GetTransactionID(),
 						TransactionState:     tState,
