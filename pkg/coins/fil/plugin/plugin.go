@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"math/big"
-	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -18,8 +17,6 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/crypto"
-	lotusapi "github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/api/v0api"
 	"github.com/filecoin-project/lotus/build"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/specs-actors/actors/builtin"
@@ -72,6 +69,15 @@ func init() {
 		sphinxplugin.CoinType_CoinTypetfilecoin,
 		sphinxproxy.TransactionState_TransactionStateSync,
 		syncTx,
+	)
+
+	// register err fsm
+	coins.RegisterAbortErr(
+		env.ErrEVNCoinNet,
+		env.ErrEVNCoinNetValue,
+		env.ErrAddressInvalid,
+		env.ErrSignTypeInvalid,
+		env.ErrCIDInvalid,
 	)
 }
 
@@ -248,7 +254,7 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
+func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -275,64 +281,90 @@ func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, env.ErrCIDInvalid
 	}
 
-	if err := waitMessageOut(api, _cid); err != nil {
-		return nil, err
+	ctx, cancel := context.WithTimeout(ctx, sconst.WaitMsgOutTimeout)
+	defer cancel()
+
+	// 1. check message out
+	mp, err := api.MpoolPending(ctx, types.EmptyTSK)
+	if err != nil {
+		return
+	}
+	if !includeCID(_cid, mp) {
+		return
 	}
 
-	msgLookUP, err := waitMessageOnChain(api, _cid)
+	// 2. check message on chain
+	chainMsg, err := api.StateSearchMsg(ctx, _cid)
 	if err != nil {
 		return nil, err
 	}
 
+	// if message not on chain chainMsg is nil, until wait message on chain
+	if chainMsg == nil {
+		return nil, env.ErrWaitMessageOnChain
+	}
+
+	// TODO: check message is replaced ?
+	// chainMsg.Receipt.ExitCode != exitcode.Ok
+
+	// check message on chain done
 	_out := ct.SyncResponse{
-		ExitCode: int64(msgLookUP.Receipt.ExitCode),
+		ExitCode: int64(chainMsg.Receipt.ExitCode),
 	}
 
 	return json.Marshal(_out)
 }
 
-// wait message on out
-func waitMessageOut(api v0api.FullNode, _cid cid.Cid) error {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.WaitMsgOutTimeout)
-	defer cancel()
-	for {
-		select {
-		// 40 seconds timeout possible gas too low
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(1 * time.Second):
-			mp, err := api.MpoolPending(ctx, types.EmptyTSK)
-			if err != nil {
-				return err
+/*
+// waitMessageOut wait message on out
+func waitMessageOut(ctx context.Context, api v0api.FullNode, _cid cid.Cid) error {
+	var (
+		errExit    = make(chan error)
+		waitMsgOut = make(chan struct{})
+	)
+
+	// wait message out
+	go func() {
+		for {
+			select {
+			// 40 seconds timeout possible gas too low
+			case <-ctx.Done():
+				errExit <- ctx.Err()
+				return
+			case <-time.After(5 * time.Second):
+				mp, err := api.MpoolPending(ctx, types.EmptyTSK)
+				if err != nil {
+					errExit <- ctx.Err()
+					return
+				}
+				if !includeCID(_cid, mp) {
+					waitMsgOut <- struct{}{}
+					return
+				}
 			}
-			if !includeCID(_cid, mp) {
-				return nil
+		}
+	}()
+
+	select {
+	case _ = <-errExit:
+	case <-waitMsgOut:
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(5 * time.Second):
+				// TODO double-spend
+				chainMsg, err := api.StateSearchMsg(ctx, _cid)
+				if err != nil {
+					return err
+				}
+				if chainMsg != nil && chainMsg.Receipt.ExitCode != exitcode.Ok {}
 			}
 		}
 	}
+	return nil
 }
-
-// wait message on chain
-func waitMessageOnChain(api v0api.FullNode, _cid cid.Cid) (*lotusapi.MsgLookup, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.WaitMsgOutTimeout)
-	defer cancel()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(1 * time.Second):
-			// TODO double-spend
-			chainMsg, err := api.StateSearchMsg(ctx, _cid)
-			if err != nil {
-				return chainMsg, err
-			}
-			if chainMsg != nil {
-				return chainMsg, nil
-			}
-		}
-	}
-}
+*/
 
 func includeCID(_cid cid.Cid, sms []*types.SignedMessage) bool {
 	for _, mCid := range sms {

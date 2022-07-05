@@ -92,18 +92,35 @@ func nonce(name string, interval int) {
 						return
 					}
 
+					state := sphinxproxy.TransactionState_TransactionStateSign
+
 					respPayload, err := handler(ctx, preSignPayload)
-					if err != nil {
-						errorf(name, "GetCoinPlugin handle deal transaction error: %v", err)
-						return
+					if err == nil {
+						goto done
+					}
+					{
+						if !coins.NextStop(err) {
+							errorf(name,
+								"pre sign transaction: %v error: %v retry",
+								transInfo.GetTransactionID(),
+								err,
+							)
+							return
+						}
+
+						errorf(name,
+							"pre sign transaction: %v error: %v stop",
+							transInfo.GetTransactionID(),
+							err,
+						)
+						state = sphinxproxy.TransactionState_TransactionStateFail
 					}
 
-					_ = Abort(err)
-
+				done:
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
 						TransactionID:        transInfo.GetTransactionID(),
 						TransactionState:     tState,
-						NextTransactionState: sphinxproxy.TransactionState_TransactionStateSign,
+						NextTransactionState: state,
 						Payload:              respPayload,
 					}); err != nil {
 						errorf(name, "UpdateTransaction transaction: %v error: %v", transInfo.GetTransactionID(), err)

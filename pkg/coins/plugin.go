@@ -65,3 +65,38 @@ func GetCoinBalancePlugin(coinType sphinxplugin.CoinType, opType sphinxproxy.Tra
 	}
 	return coinBalancePluginHandles[coinType][opType], nil
 }
+
+// error ----------------------------
+var (
+	// ErrAbortErrorAlreadyRegister ..
+	ErrAbortErrorAlreadyRegister = errors.New("abort error already register")
+
+	// TODO: think how to check not value error
+	abortErrs = make(map[error]struct{})
+)
+
+// RegisterAbortErr ..
+func RegisterAbortErr(errs ...error) error {
+	for _, err := range errs {
+		if _, ok := abortErrs[err]; ok {
+			return ErrAbortErrorAlreadyRegister
+		}
+		abortErrs[err] = struct{}{}
+	}
+
+	return nil
+}
+
+func nextStop(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	_, ok := abortErrs[err]
+	return ok
+}
+
+// NextStop ..
+func NextStop(err error) bool {
+	return nextStop(err)
+}

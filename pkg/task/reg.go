@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	// s
-	getTransactionsTimeout = 6 * time.Second
-	// s
-	updateTransactionsTimeout = 6 * time.Second
+	// unit seconds
+	getTransactionsTimeout = time.Duration(60)
+	// unit seconds
+	updateTransactionsTimeout = time.Duration(5)
 )
 
 type tworker struct {
@@ -52,9 +52,9 @@ func errorf(prefix, template string, args ...interface{}) {
 	logger.Sugar().Errorf(fmt.Sprintf("%s %v", prefix, template), args...)
 }
 
-// func warnf(prefix, template string, args ...interface{}) {
-// 	logger.Sugar().Warnf(fmt.Sprintf("%s %v", prefix, template), args...)
-// }
+func warnf(prefix, template string, args ...interface{}) {
+	logger.Sugar().Warnf(fmt.Sprintf("%s %v", prefix, template), args...)
+}
 
 func infof(prefix, template string, args ...interface{}) {
 	logger.Sugar().Infof(fmt.Sprintf("%s %v", prefix, template), args...)
