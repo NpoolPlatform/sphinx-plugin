@@ -175,12 +175,12 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
-		return nil, err
+		return in, err
 	}
 
 	signature, err := solana.SignatureFromBase58(info.TxID)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, sconst.WaitMsgOutTimeout)
@@ -188,7 +188,7 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 
 	api, err := client(ctx)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	for {
@@ -199,10 +199,10 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 			// TODO double-spend
 			chainMsg, err := api.GetConfirmedTransaction(ctx, signature)
 			if chainMsg != nil {
-				return nil, nil
+				return in, nil
 			}
 			if err != nil {
-				return nil, sol.ErrSolBlockNotFound
+				return in, sol.ErrSolBlockNotFound
 			}
 		}
 	}
