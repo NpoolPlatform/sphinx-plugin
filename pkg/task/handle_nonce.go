@@ -12,7 +12,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/types"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 )
 
 func init() {
@@ -37,11 +36,7 @@ func nonce(name string, interval int) {
 				return
 			}
 
-			_coinType, err := utils.ToCoinType(coinType)
-			if err != nil {
-				errorf(name, "transafer coin name error: %v", err)
-				return
-			}
+			_coinType := coins.CoinStr2CoinType(coinNetwork, coinType)
 
 			tState := sphinxproxy.TransactionState_TransactionStateWait
 			handler, err := coins.GetCoinPlugin(
