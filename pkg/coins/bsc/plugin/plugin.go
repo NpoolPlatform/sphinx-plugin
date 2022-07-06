@@ -7,16 +7,16 @@ import (
 	"errors"
 	"math"
 	"math/big"
+	"strings"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
 	bsc "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
-	plugin_types "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
+	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
@@ -68,28 +68,40 @@ func init() {
 		sphinxproxy.TransactionState_TransactionStateSync,
 		SyncTxState,
 	)
+
+	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypebinancecoin, IsErrStop)
+	if err != nil {
+		panic(err)
+	}
+
+	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetbinancecoin, IsErrStop)
+	if err != nil {
+		panic(err)
+	}
+
+	coins.RegisterAbortErr(bsc.ErrTransactionFail)
 }
 
 func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
-	wbReq := &plugin_types.WalletBalanceRequest{}
+	wbReq := &ct.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 	client := bsc.Client()
 
 	if !common.IsHexAddress(wbReq.Address) {
-		return nil, bsc.ErrAddrNotValid
+		return in, bsc.ErrAddrNotValid
 	}
 
 	bl, err := client.BalanceAtS(ctx, common.HexToAddress(wbReq.Address), nil)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	balance, ok := big.NewFloat(0).SetString(bl.String())
 	if !ok {
-		return nil, errors.New("convert balance string to float64 error")
+		return in, errors.New("convert balance string to float64 error")
 	}
 
 	balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
@@ -98,7 +110,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 	}
 
-	wbResp := &plugin_types.WalletBalanceResponse{
+	wbResp := &ct.WalletBalanceResponse{
 		Balance:    f,
 		BalanceStr: balance.String(),
 	}
@@ -108,39 +120,42 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
-	txRequest := &plugin_types.CreateTransactionRequest{}
-	err = json.Unmarshal(in, txRequest)
+	baseInfo := &ct.BaseInfo{}
+	err = json.Unmarshal(in, baseInfo)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 	client := bsc.Client()
 
-	if !common.IsHexAddress(txRequest.From) {
-		return nil, bsc.ErrAddrNotValid
+	if !common.IsHexAddress(baseInfo.From) {
+		return in, bsc.ErrAddrNotValid
 	}
 
 	chainID, err := client.NetworkIDS(ctx)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
-	nonce, err := client.PendingNonceAtS(ctx, common.HexToAddress(txRequest.From))
+	nonce, err := client.PendingNonceAtS(ctx, common.HexToAddress(baseInfo.From))
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	gasPrice, err := client.SuggestGasPriceS(ctx)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	info := &bsc.PreSignData{
 		ChainID:  chainID.Int64(),
 		Nonce:    nonce,
 		GasPrice: gasPrice.Int64(),
+		From:     baseInfo.From,
+		To:       baseInfo.To,
+		Value:    baseInfo.Value,
 	}
 
-	switch txRequest.CoinType {
+	switch baseInfo.CoinType {
 	case sphinxplugin.CoinType_CoinTypebinancecoin, sphinxplugin.CoinType_CoinTypetbinancecoin:
 		info.GasLimit = 21_000
 	case sphinxplugin.CoinType_CoinTypebinanceusd, sphinxplugin.CoinType_CoinTypetbinanceusd:
@@ -157,22 +172,22 @@ func SendRawTransaction(ctx context.Context, in []byte) (out []byte, err error) 
 	signedData := &bsc.SignedData{}
 	err = json.Unmarshal(in, signedData)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 	client := bsc.Client()
 
 	tx := new(types.Transaction)
 
 	if err := rlp.Decode(bytes.NewReader(signedData.SignedTx), tx); err != nil {
-		return nil, err
+		return in, err
 	}
 
 	if err := client.SendTransactionS(ctx, tx); err != nil {
-		return nil, err
+		return in, err
 	}
 
-	broadcastedData := bsc.BroadcastedData{
-		TxHash: tx.Hash().Hex(),
+	broadcastedData := ct.BroadcastInfo{
+		TxID: tx.Hash().Hex(),
 	}
 	out, err = json.Marshal(broadcastedData)
 	return out, err
@@ -180,24 +195,24 @@ func SendRawTransaction(ctx context.Context, in []byte) (out []byte, err error) 
 
 // done(on chain) => true
 func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
-	broadcastedData := &bsc.BroadcastedData{}
+	broadcastedData := &ct.BroadcastInfo{}
 	err = json.Unmarshal(in, broadcastedData)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 	client := bsc.Client()
 
-	_, isPending, err := client.TransactionByHashS(ctx, common.HexToHash(broadcastedData.TxHash))
+	_, isPending, err := client.TransactionByHashS(ctx, common.HexToHash(broadcastedData.TxID))
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 	if isPending {
-		return nil, bsc.ErrWaitMessageOnChain
+		return in, bsc.ErrWaitMessageOnChain
 	}
 
-	receipt, err := client.TransactionReceiptS(ctx, common.HexToHash(broadcastedData.TxHash))
+	receipt, err := client.TransactionReceiptS(ctx, common.HexToHash(broadcastedData.TxID))
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	logger.Sugar().Infof("transaction info: TxHash %v, GasUsed %v, Status %v.", receipt.TxHash, receipt.GasUsed, receipt.Status == 1)
@@ -205,12 +220,30 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 	sResp := &ct.SyncResponse{ExitCode: 0}
 	out, err = json.Marshal(sResp)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	if receipt.Status == 1 {
 		return out, nil
 	}
 
-	return nil, bsc.ErrTransactionFail
+	return in, bsc.ErrTransactionFail
+}
+
+func IsErrStop(err error) bool {
+	if err.Error() == "" {
+		return false
+	}
+	matchedErrs := []string{
+		`intrinsic gas too low`,                      // gas low
+		`insufficient funds for gas * price + value`, // funds low
+	}
+
+	for _, v := range matchedErrs {
+		if strings.Contains(err.Error(), v) {
+			return true
+		}
+	}
+
+	return false
 }

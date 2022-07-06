@@ -77,10 +77,11 @@ func nonce(name string, interval int) {
 					)
 
 					preSignPayload, err := json.Marshal(types.BaseInfo{
-						ENV:   coinNetwork,
-						From:  transInfo.GetFrom(),
-						To:    transInfo.GetTo(),
-						Value: transInfo.GetAmount(),
+						ENV:      coinNetwork,
+						CoinType: _coinType,
+						From:     transInfo.GetFrom(),
+						To:       transInfo.GetTo(),
+						Value:    transInfo.GetAmount(),
 					})
 					if err != nil {
 						errorf(name, "marshal presign info error: %v", err)

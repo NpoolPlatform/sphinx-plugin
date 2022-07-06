@@ -92,6 +92,7 @@ func broadcast(name string, interval int) {
 							err,
 						)
 						state = sphinxproxy.TransactionState_TransactionStateFail
+
 						goto done
 					}
 

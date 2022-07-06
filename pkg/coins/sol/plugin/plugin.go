@@ -79,34 +79,34 @@ func init() {
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.WalletBalanceRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
-		return nil, err
+		return in, err
 	}
 
 	v, ok := env.LookupEnv(env.ENVCOINNET)
 	if !ok {
-		return nil, env.ErrEVNCoinNet
+		return in, env.ErrEVNCoinNet
 	}
 	if !coins.CheckSupportNet(v) {
-		return nil, env.ErrEVNCoinNetValue
+		return in, env.ErrEVNCoinNetValue
 	}
 
 	if info.Address == "" {
-		return nil, env.ErrAddressInvalid
+		return in, env.ErrAddressInvalid
 	}
 
 	pubKey, err := solana.PublicKeyFromBase58(info.Address)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	api, err := client(ctx)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	bl, err := api.GetBalance(ctx, pubKey, rpc.CommitmentFinalized)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	balance := sol.ToSol(bl.Value)
@@ -126,17 +126,17 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.BaseInfo{}
 	if err := json.Unmarshal(in, &info); err != nil {
-		return nil, err
+		return in, err
 	}
 
 	api, err := client(ctx)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	recentBlockHash, err := api.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	_out := sol.SignMsgTx{
@@ -150,22 +150,22 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	info := sol.BroadcastRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
-		return nil, err
+		return in, err
 	}
 
 	tx, err := solana.TransactionFromDecoder(bin.NewBinDecoder(info.Signature))
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	err = tx.VerifySignatures()
 	if err != nil {
-		return nil, sol.ErrSolSignatureWrong
+		return in, sol.ErrSolSignatureWrong
 	}
 
 	api, err := client(ctx)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	cid, err := api.SendTransaction(ctx, tx)
@@ -174,7 +174,7 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		sResp.ExitCode = -1
 		out, err := json.Marshal(sResp)
 		if err != nil {
-			return nil, err
+			return in, err
 		}
 		return out, sol.ErrSolTransactionFailed
 	}
@@ -190,12 +190,12 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
-		return nil, err
+		return in, err
 	}
 
 	signature, err := solana.SignatureFromBase58(info.TxID)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, sconst.WaitMsgOutTimeout)
@@ -203,7 +203,7 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 
 	api, err := client(ctx)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	// TODO double-spend
@@ -215,7 +215,7 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 			Commitment: rpc.CommitmentFinalized,
 		})
 	if err != nil {
-		return nil, sol.ErrSolBlockNotFound
+		return in, sol.ErrSolBlockNotFound
 	}
 
 	if chainMsg != nil && chainMsg.Meta.Err != nil {
@@ -223,7 +223,7 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 		sResp.ExitCode = -1
 		out, err := json.Marshal(sResp)
 		if err != nil {
-			return nil, err
+			return in, err
 		}
 		return out, sol.ErrSolTransactionFailed
 	}
@@ -233,10 +233,10 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 		sResp.ExitCode = 0
 		out, err := json.Marshal(sResp)
 		if err != nil {
-			return nil, err
+			return in, err
 		}
 		return out, nil
 	}
 
-	return nil, sol.ErrSolBlockNotFound
+	return in, sol.ErrSolBlockNotFound
 }

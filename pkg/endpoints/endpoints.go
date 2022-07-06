@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 )
 
@@ -88,6 +87,6 @@ func (m *Manager) Peek() (addr string, isLocal bool, err error) {
 		isLocal = true
 	}
 
-	logger.Sugar().Infof("peek the endpoint: %v", addr)
+	// logger.Sugar().Infof("peek the endpoint: %v", addr)
 	return addr, isLocal, nil
 }
