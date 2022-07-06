@@ -67,6 +67,15 @@ func init() {
 		sphinxproxy.TransactionState_TransactionStateSync,
 		bsc_plugin.SyncTxState,
 	)
+	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypebinanceusd, bsc_plugin.IsErrStop)
+	if err != nil {
+		panic(err)
+	}
+
+	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetbinanceusd, bsc_plugin.IsErrStop)
+	if err != nil {
+		panic(err)
+	}
 }
 
 var (
