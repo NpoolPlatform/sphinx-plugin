@@ -57,7 +57,6 @@ func BscMsg(ctx context.Context, in []byte) (out []byte, err error) {
 
 func CreateBscAccount(ctx context.Context, in []byte) (out []byte, err error) {
 	return CreateAccount(ctx, s3KeyPrxfix, in)
-
 }
 
 func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err error) {
