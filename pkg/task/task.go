@@ -21,7 +21,6 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin" //nolint
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"      //nolint
 	eplugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin" //nolint
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin" //nolint
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
@@ -239,9 +238,6 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 	sphinxplugin.CoinType_CoinTypeethereum:  pluginETH,
 	sphinxplugin.CoinType_CoinTypetethereum: pluginETH,
 
-	sphinxplugin.CoinType_CoinTypeusdterc20:  pluginUSDT,
-	sphinxplugin.CoinType_CoinTypetusdterc20: pluginUSDT,
-
 	sphinxplugin.CoinType_CoinTypeusdttrc20:  pluginTRC20,
 	sphinxplugin.CoinType_CoinTypetusdttrc20: pluginTRC20,
 
@@ -325,62 +321,6 @@ func pluginETH(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if !pending {
 			return eplugin.ErrWaitMessageOnChain
 		}
-	}
-	return nil
-}
-
-func pluginUSDT(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
-	defer cancel()
-
-	switch req.GetTransactionType() {
-	case sphinxproxy.TransactionType_Balance:
-		bl, err := usdt.WalletBalance(ctx, req.GetAddress())
-		if err != nil {
-			return err
-		}
-
-		balance, ok := big.NewFloat(0).SetString(bl.Balance.String())
-		if !ok {
-			return errors.New("convert balance string to float64 error")
-		}
-
-		balance.Quo(balance, big.NewFloat(math.Pow10(int(bl.Decimal.Int64()))))
-		f, exact := balance.Float64()
-		if exact != big.Exact {
-			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
-		}
-		resp.Balance = f
-		resp.BalanceStr = balance.String()
-		// case sphinxplugin.TransactionType_PreSign:
-		// 	preSignInfo, err := eplugin.PreSign(ctx, req.GetCoinType(), req.GetAddress())
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.Message = req.GetMessage()
-		// 	if resp.GetMessage() == nil {
-		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
-		// 	}
-		// 	resp.Message.ChainID = preSignInfo.ChainID
-		// 	resp.Message.ContractID = preSignInfo.ContractID
-		// 	resp.Message.Nonce = preSignInfo.Nonce
-		// 	resp.Message.GasPrice = preSignInfo.GasPrice
-		// 	resp.Message.GasLimit = preSignInfo.GasLimit
-		// case sphinxplugin.TransactionType_Broadcast:
-		// 	txHash, err := eplugin.SendRawTransaction(ctx, req.GetSignedRawTxHex())
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.CID = txHash
-		// case sphinxplugin.TransactionType_SyncMsgState:
-		pending, err := eplugin.SyncTxState(ctx, req.GetCID())
-		if err != nil {
-			return err
-		}
-		if !pending {
-			return eplugin.ErrWaitMessageOnChain
-		}
-	default:
 	}
 	return nil
 }
