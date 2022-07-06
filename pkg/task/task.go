@@ -18,9 +18,8 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	bsc_base "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
-	busd "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin" //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin" //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"      //nolint
 	eplugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin/usdt"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin" //nolint
@@ -249,9 +248,6 @@ var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginReque
 
 	sphinxplugin.CoinType_CoinTypetron:  pluginTRX,
 	sphinxplugin.CoinType_CoinTypettron: pluginTRX,
-
-	sphinxplugin.CoinType_CoinTypebinanceusd:  pluginBEP20,
-	sphinxplugin.CoinType_CoinTypetbinanceusd: pluginBEP20,
 }
 
 var _ = func(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
@@ -508,63 +504,6 @@ func pluginTRX(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPlugi
 		if !pending {
 			return tron.ErrWaitMessageOnChain
 		}
-	}
-	return nil
-}
-
-// nolint
-func pluginBEP20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
-	defer cancel()
-
-	switch req.GetTransactionType() {
-	case sphinxproxy.TransactionType_Balance:
-		bl, err := busd.WalletBalance(ctx, req.GetAddress())
-		if err != nil {
-			logger.Sugar().Errorf("get balance fail:%v", err)
-			return err
-		}
-
-		balance, ok := big.NewFloat(0).SetString(bl.String())
-		if !ok {
-			return errors.New("convert balance string to float64 error")
-		}
-		balance.Quo(balance, big.NewFloat(math.Pow10(bsc_base.BEP20ACCURACY)))
-		f, exact := balance.Float64()
-		if exact != big.Exact {
-			logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
-		}
-
-		resp.Balance = f
-		resp.BalanceStr = balance.String()
-		// case sphinxplugin.TransactionType_PreSign:
-		// 	preSignInfo, err := bsc.PreSign(ctx, req.GetCoinType(), req.GetAddress())
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.Message = req.GetMessage()
-		// 	if resp.GetMessage() == nil {
-		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
-		// 	}
-		// 	resp.Message.ChainID = preSignInfo.ChainID
-		// 	resp.Message.Nonce = preSignInfo.Nonce
-		// 	resp.Message.ContractID = preSignInfo.ContractID
-		// 	resp.Message.GasPrice = preSignInfo.GasPrice
-		// 	resp.Message.GasLimit = preSignInfo.GasLimit
-		// case sphinxplugin.TransactionType_Broadcast:
-		// 	txHash, err := bsc.SendRawTransaction(ctx, req.GetSignedRawTxHex())
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.CID = txHash
-		// case sphinxplugin.TransactionType_SyncMsgState:
-		// pending, err := bsc.SyncTxState(ctx, req.GetCID())
-		// if err != nil {
-		// 	return err
-		// }
-		// if !pending {
-		// 	return bsc.ErrWaitMessageOnChain
-		// }
 	}
 	return nil
 }
