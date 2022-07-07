@@ -26,12 +26,12 @@ import (
 func init() {
 	// main
 	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypeethereum,
+		sphinxplugin.CoinType_CoinTypeusdterc20,
 		sphinxproxy.TransactionType_WalletNew,
 		CreateBrc20Account,
 	)
 	sign.Register(
-		sphinxplugin.CoinType_CoinTypeethereum,
+		sphinxplugin.CoinType_CoinTypeusdterc20,
 		sphinxproxy.TransactionState_TransactionStateSign,
 		Message,
 	)
@@ -40,12 +40,12 @@ func init() {
 
 	// test
 	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypetethereum,
+		sphinxplugin.CoinType_CoinTypetusdterc20,
 		sphinxproxy.TransactionType_WalletNew,
 		CreateBrc20Account,
 	)
 	sign.Register(
-		sphinxplugin.CoinType_CoinTypetethereum,
+		sphinxplugin.CoinType_CoinTypetusdterc20,
 		sphinxproxy.TransactionState_TransactionStateSign,
 		Message,
 	)
