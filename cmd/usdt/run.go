@@ -137,6 +137,6 @@ func execGeth(addr, cmdArgs string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("%s attach %s --exec '%s'", geth, addr, cmdArgs))
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("%s --exec '%s' attach %s", geth, cmdArgs, addr))
 	return cmd.CombinedOutput()
 }

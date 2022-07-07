@@ -1,4 +1,4 @@
-package busd
+package sign
 
 import (
 	"bytes"
@@ -9,15 +9,14 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
-	bscSign "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/sign"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
-
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
+	ethSign "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/sign"
+
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
-	busd "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
-
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -27,64 +26,64 @@ import (
 func init() {
 	// main
 	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypebinanceusd,
+		sphinxplugin.CoinType_CoinTypeethereum,
 		sphinxproxy.TransactionType_WalletNew,
-		CreateBep20Account,
+		CreateBrc20Account,
 	)
 	sign.Register(
-		sphinxplugin.CoinType_CoinTypebinanceusd,
+		sphinxplugin.CoinType_CoinTypeethereum,
 		sphinxproxy.TransactionState_TransactionStateSign,
-		SignBepMsg,
+		Message,
 	)
 
 	// --------------------
 
 	// test
 	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypetbinanceusd,
+		sphinxplugin.CoinType_CoinTypetethereum,
 		sphinxproxy.TransactionType_WalletNew,
-		CreateBep20Account,
+		CreateBrc20Account,
 	)
 	sign.Register(
-		sphinxplugin.CoinType_CoinTypetbinanceusd,
+		sphinxplugin.CoinType_CoinTypetethereum,
 		sphinxproxy.TransactionState_TransactionStateSign,
-		SignBepMsg,
+		Message,
 	)
 }
 
-const s3KeyPrxfix = "binanceusd/"
+const s3KeyPrxfix = "ethereum/"
 
-func CreateBep20Account(ctx context.Context, in []byte) (out []byte, err error) {
-	return bscSign.CreateAccount(ctx, s3KeyPrxfix, in)
+func CreateBrc20Account(ctx context.Context, in []byte) (out []byte, err error) {
+	return ethSign.CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
-func SignBepMsg(ctx context.Context, in []byte) (out []byte, err error) {
-	preSignData := &bsc.PreSignData{}
+func Message(ctx context.Context, in []byte) (out []byte, err error) {
+	preSignData := &eth.PreSignData{}
 	err = json.Unmarshal(in, preSignData)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 	pk, err := oss.GetObject(ctx, s3KeyPrxfix+preSignData.From, true)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	privateKey, err := crypto.HexToECDSA(string(pk))
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
-	_abi, err := abi.JSON(strings.NewReader(busd.BEP20TokenABI))
+	_abi, err := abi.JSON(strings.NewReader(usdt.TetherTokenABI))
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	amount := big.NewFloat(preSignData.Value)
-	amount.Mul(amount, big.NewFloat(math.Pow10(bsc.BEP20ACCURACY)))
+	amount.Mul(amount, big.NewFloat(math.Pow10(eth.ERC20ACCURACY)))
 
 	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
 	if !ok {
-		return nil, errors.New("invalid busd amount")
+		return in, errors.New("invalid usd amount")
 	}
 
 	input, err := _abi.Pack(
@@ -93,15 +92,18 @@ func SignBepMsg(ctx context.Context, in []byte) (out []byte, err error) {
 		amountBig,
 	)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
+
+	// Estimate GasLimit
+	gasLimit := uint64(preSignData.GasLimit)
 
 	caddr := common.HexToAddress(preSignData.ContractID)
 	baseTx := &types.LegacyTx{
 		To:       &caddr,
 		Nonce:    preSignData.Nonce,
 		GasPrice: big.NewInt(preSignData.GasPrice),
-		Gas:      uint64(preSignData.GasLimit),
+		Gas:      gasLimit,
 		Value:    big.NewInt(0),
 		Data:     input,
 	}
@@ -109,14 +111,15 @@ func SignBepMsg(ctx context.Context, in []byte) (out []byte, err error) {
 	// tx := types.NewTx(baseTx)
 	signedTx, err := types.SignNewTx(privateKey, types.NewEIP155Signer(big.NewInt(preSignData.ChainID)), baseTx)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
 
 	signedTxBuf := bytes.Buffer{}
 	if err := signedTx.EncodeRLP(&signedTxBuf); err != nil {
-		return nil, err
+		return in, err
 	}
-	signedData := bsc.SignedData{
+
+	signedData := eth.SignedData{
 		SignedTx: signedTxBuf.Bytes(),
 	}
 	out, err = json.Marshal(signedData)
