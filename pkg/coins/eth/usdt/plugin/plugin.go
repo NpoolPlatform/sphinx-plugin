@@ -78,8 +78,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	coins.RegisterAbortErr(eth.ErrTransactionFail)
 }
 
 type BigUSDT struct {

@@ -34,7 +34,7 @@ func init() {
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypebinanceusd,
 		sphinxproxy.TransactionState_TransactionStateSign,
-		SignBepMsg,
+		Bep20Msg,
 	)
 
 	// --------------------
@@ -48,7 +48,7 @@ func init() {
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypetbinanceusd,
 		sphinxproxy.TransactionState_TransactionStateSign,
-		SignBepMsg,
+		Bep20Msg,
 	)
 }
 
@@ -58,7 +58,7 @@ func CreateBep20Account(ctx context.Context, in []byte) (out []byte, err error) 
 	return bscSign.CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
-func SignBepMsg(ctx context.Context, in []byte) (out []byte, err error) {
+func Bep20Msg(ctx context.Context, in []byte) (out []byte, err error) {
 	preSignData := &bsc.PreSignData{}
 	err = json.Unmarshal(in, preSignData)
 	if err != nil {
