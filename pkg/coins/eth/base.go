@@ -1,6 +1,15 @@
 package eth
 
-import "github.com/NpoolPlatform/sphinx-plugin/pkg/config"
+import (
+	"errors"
+
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
+)
+
+const (
+	ETHACCURACY   = 18
+	ERC20ACCURACY = 6
+)
 
 // USDTContract ...
 var USDTContract = func(chainet int64) string {
@@ -12,3 +21,12 @@ var USDTContract = func(chainet int64) string {
 	}
 	return ""
 }
+
+var (
+	// ErrWaitMessageOnChain ..
+	ErrWaitMessageOnChain = errors.New("wait message on chain")
+	// ErrAddrNotValid ..
+	ErrAddrNotValid = errors.New("invalid address")
+	// ErrTransactionFail ..
+	ErrTransactionFail = errors.New("eth transaction fail")
+)

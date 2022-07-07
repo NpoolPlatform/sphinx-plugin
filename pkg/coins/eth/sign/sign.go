@@ -12,7 +12,7 @@ import (
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
@@ -61,7 +61,7 @@ func CreateEthAccount(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err error) {
-	preSignData := &bsc.PreSignData{}
+	preSignData := &eth.PreSignData{}
 	err = json.Unmarshal(in, preSignData)
 	if err != nil {
 		return nil, err
@@ -81,11 +81,11 @@ func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err er
 
 	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
 	if !ok {
-		return nil, errors.New("invalid bsc amount")
+		return nil, errors.New("invalid eth amount")
 	}
 
 	if amountBig.Cmp(common.Big0) <= 0 {
-		return nil, errors.New("invalid bsc amount")
+		return nil, errors.New("invalid eth amount")
 	}
 
 	chainID := big.NewInt(preSignData.ChainID)
@@ -108,7 +108,7 @@ func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err er
 	if err != nil {
 		return nil, err
 	}
-	signedData := bsc.SignedData{
+	signedData := eth.SignedData{
 		SignedTx: signedTxBuf.Bytes(),
 	}
 	out, err = json.Marshal(signedData)
