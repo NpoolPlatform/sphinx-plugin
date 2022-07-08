@@ -3,11 +3,9 @@ package trc20
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"strings"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -17,7 +15,6 @@ import (
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 )
 
 // here register plugin func
@@ -28,21 +25,21 @@ func init() {
 		sphinxproxy.TransactionType_Balance,
 		WalletBalance,
 	)
-	// coins.Register(
-	// 	sphinxplugin.CoinType_CoinTypetron,
-	// 	sphinxproxy.TransactionState_TransactionStateWait,
-	// 	PreSign,
-	// )
-	// coins.Register(
-	// 	sphinxplugin.CoinType_CoinTypetron,
-	// 	sphinxproxy.TransactionState_TransactionStateBroadcast,
-	// 	SendRawTransaction,
-	// )
-	// coins.Register(
-	// 	sphinxplugin.CoinType_CoinTypetron,
-	// 	sphinxproxy.TransactionState_TransactionStateSync,
-	// 	SyncTxState,
-	// )
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypeusdttrc20,
+		sphinxproxy.TransactionState_TransactionStateWait,
+		BuildTransaciton,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypeusdttrc20,
+		sphinxproxy.TransactionState_TransactionStateBroadcast,
+		tron_plugin.BroadcastTransaction,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypeusdttrc20,
+		sphinxproxy.TransactionState_TransactionStateSync,
+		tron_plugin.SyncTxState,
+	)
 
 	// // test
 	coins.RegisterBalance(
@@ -50,21 +47,21 @@ func init() {
 		sphinxproxy.TransactionType_Balance,
 		WalletBalance,
 	)
-	// coins.Register(
-	// 	sphinxplugin.CoinType_CoinTypettron,
-	// 	sphinxproxy.TransactionState_TransactionStateWait,
-	// 	PreSign,
-	// )
-	// coins.Register(
-	// 	sphinxplugin.CoinType_CoinTypettron,
-	// 	sphinxproxy.TransactionState_TransactionStateBroadcast,
-	// 	SendRawTransaction,
-	// )
-	// coins.Register(
-	// 	sphinxplugin.CoinType_CoinTypettron,
-	// 	sphinxproxy.TransactionState_TransactionStateSync,
-	// 	SyncTxState,
-	// )
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetusdttrc20,
+		sphinxproxy.TransactionState_TransactionStateWait,
+		BuildTransaciton,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetusdttrc20,
+		sphinxproxy.TransactionState_TransactionStateBroadcast,
+		tron_plugin.BroadcastTransaction,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetusdttrc20,
+		sphinxproxy.TransactionState_TransactionStateSync,
+		tron_plugin.SyncTxState,
+	)
 
 	// err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetron, bsc.TxFailErr)
 	// if err != nil {
@@ -105,38 +102,35 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	return out, err
 }
 
-func BuildTransaciton(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
+func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
+	baseInfo := &ct.BaseInfo{}
+	err = json.Unmarshal(in, baseInfo)
+	if err != nil {
+		return in, err
+	}
+	from := baseInfo.From
+	to := baseInfo.To
+	amount := baseInfo.Value
+	fee := tron.TRC20FeeLimit
 	contract := config.GetENV().Contract
 
-	from := req.GetMessage().GetFrom()
-	to := req.GetMessage().GetTo()
-	amount := req.GetMessage().GetValue()
-	fee := tron.TRC20FeeLimit
-
-	return BuildTransacitonS(from, to, contract, tron.TRC20ToBigInt(amount), fee)
-}
-
-// done(on chain) => true
-func SyncTxState(ctx context.Context, cid string) (pending bool, exitcode int64, err error) {
-	client := tron.Client()
-
-	txInfo, err := client.GetTransactionInfoByIDS(cid)
-
-	if txInfo == nil || err != nil {
-		return false, 0, tron.ErrWaitMessageOnChain
+	txExtension, err := BuildTransacitonS(
+		from,
+		to,
+		contract,
+		tron.TRC20ToBigInt(amount),
+		fee,
+	)
+	if err != nil {
+		return in, err
 	}
 
-	logger.Sugar().Infof("transaction info {CID: %v ,ChainResult: %v, ContractResult: %v, Fee: %v }", cid, txInfo.GetResult(), txInfo.GetReceipt().GetResult(), txInfo.GetFee())
-
-	if txInfo.GetResult() != tron_plugin.TransactionInfoSUCCESS {
-		return true, tron_plugin.TransactionInfoFAILED, fmt.Errorf("trc20 trasction fail, %v, %v", txInfo.GetResult(), txInfo.GetReceipt().GetResult())
+	signTx := &tron.SignMsgTx{
+		Base:        *baseInfo,
+		TxExtension: txExtension,
 	}
 
-	if txInfo.Receipt.GetResult() != core.Transaction_Result_SUCCESS {
-		return true, tron_plugin.TransactionInfoFAILED, fmt.Errorf("trc20 trasction fail, %v", txInfo.GetReceipt().GetResult())
-	}
-
-	return true, 0, nil
+	return json.Marshal(signTx)
 }
 
 func BalanceS(addr, contractAddress string) (*big.Int, error) {
