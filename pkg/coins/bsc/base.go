@@ -11,7 +11,7 @@ var (
 	// ErrWaitMessageOnChain ..
 	ErrWaitMessageOnChain = errors.New("wait message on chain")
 	// ErrAddrNotValid ..
-	ErrAddrNotValid = errors.New("invalid address")
+	ErrAddrNotValid = errors.New("invalid bsc address")
 	// ErrTransactionFail ..
 	ErrTransactionFail = errors.New("bsc transaction fail")
 )

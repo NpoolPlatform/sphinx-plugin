@@ -9,6 +9,7 @@ import (
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
+	tron_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
@@ -44,12 +45,12 @@ func SyncTxState(ctx context.Context, cid string) (pending bool, exitcode int64,
 
 	logger.Sugar().Infof("transaction info {CID: %v ,ChainResult: %v, ContractResult: %v, Fee: %v }", cid, txInfo.GetResult(), txInfo.GetReceipt().GetResult(), txInfo.GetFee())
 
-	if txInfo.GetResult() != tron.TransactionInfoSUCCESS {
-		return true, tron.TransactionInfoFAILED, fmt.Errorf("trc20 trasction fail, %v, %v", txInfo.GetResult(), txInfo.GetReceipt().GetResult())
+	if txInfo.GetResult() != tron_plugin.TransactionInfoSUCCESS {
+		return true, tron_plugin.TransactionInfoFAILED, fmt.Errorf("trc20 trasction fail, %v, %v", txInfo.GetResult(), txInfo.GetReceipt().GetResult())
 	}
 
 	if txInfo.Receipt.GetResult() != core.Transaction_Result_SUCCESS {
-		return true, tron.TransactionInfoFAILED, fmt.Errorf("trc20 trasction fail, %v", txInfo.GetReceipt().GetResult())
+		return true, tron_plugin.TransactionInfoFAILED, fmt.Errorf("trc20 trasction fail, %v", txInfo.GetReceipt().GetResult())
 	}
 
 	return true, 0, nil

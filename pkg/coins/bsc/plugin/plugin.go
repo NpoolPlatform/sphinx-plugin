@@ -78,7 +78,10 @@ func init() {
 		panic(err)
 	}
 
-	coins.RegisterAbortErr(bsc.ErrTransactionFail)
+	coins.RegisterAbortErr(
+		bsc.ErrTransactionFail,
+		bsc.ErrAddrNotValid,
+	)
 }
 
 func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {

@@ -30,7 +30,7 @@ var (
 	// ErrWaitMessageOnChain ..
 	ErrWaitMessageOnChain = errors.New("wait message on chain")
 	// ErrAddrNotValid ..
-	ErrAddrNotValid = errors.New("invalid address")
+	ErrAddrNotValid = errors.New("invalid eth address")
 	// ErrTransactionFail ..
 	ErrTransactionFail = errors.New("eth transaction fail")
 )
