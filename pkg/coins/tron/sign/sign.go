@@ -27,11 +27,11 @@ func init() {
 		sphinxproxy.TransactionType_WalletNew,
 		CreateTrxAccount,
 	)
-	// sign.Register(
-	// 	sphinxplugin.CoinType_CoinTypetron,
-	// 	sphinxproxy.TransactionState_TransactionStateSign,
-	// 	BscMsg,
-	// )
+	sign.Register(
+		sphinxplugin.CoinType_CoinTypetron,
+		sphinxproxy.TransactionState_TransactionStateSign,
+		SignTrxMSG,
+	)
 
 	// --------------------
 
@@ -41,11 +41,11 @@ func init() {
 		sphinxproxy.TransactionType_WalletNew,
 		CreateTrxAccount,
 	)
-	// sign.Register(
-	// 	sphinxplugin.CoinType_CoinTypettron,
-	// 	sphinxproxy.TransactionState_TransactionStateSign,
-	// 	BscMsg,
-	// )
+	sign.Register(
+		sphinxplugin.CoinType_CoinTypettron,
+		sphinxproxy.TransactionState_TransactionStateSign,
+		SignTrxMSG,
+	)
 }
 
 const s3KeyPrxfix = "tron/"
