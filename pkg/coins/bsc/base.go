@@ -13,5 +13,5 @@ var (
 	// ErrAddrNotValid ..
 	ErrAddrNotValid = errors.New("invalid address")
 	// ErrTransactionFail ..
-	ErrTransactionFail = errors.New("get status by hash, transaction fail")
+	ErrTransactionFail = errors.New("bsc transaction fail")
 )

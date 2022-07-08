@@ -3,7 +3,6 @@ package task
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
 	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -16,7 +15,7 @@ import (
 
 func init() {
 	// TODO: support from env or config dynamic set
-	if err := register("task::nonce", rand.Intn(3)+3, nonce); err != nil {
+	if err := register("task::nonce", 3, nonce); err != nil {
 		fatalf("task::nonce", "task already register")
 	}
 }

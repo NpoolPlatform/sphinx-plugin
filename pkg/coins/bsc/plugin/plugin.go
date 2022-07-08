@@ -7,7 +7,6 @@ import (
 	"errors"
 	"math"
 	"math/big"
-	"strings"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -69,12 +68,12 @@ func init() {
 		SyncTxState,
 	)
 
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypebinancecoin, IsErrStop)
+	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypebinancecoin, bsc.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetbinancecoin, IsErrStop)
+	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetbinancecoin, bsc.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
@@ -163,8 +162,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 		info.GasLimit = 300_000
 	}
 
-	out, err = json.Marshal(info)
-	return out, err
+	return json.Marshal(info)
 }
 
 // SendRawTransaction bsc
@@ -228,22 +226,4 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	return in, bsc.ErrTransactionFail
-}
-
-func IsErrStop(err error) bool {
-	if err.Error() == "" {
-		return false
-	}
-	matchedErrs := []string{
-		`intrinsic gas too low`,                      // gas low
-		`insufficient funds for gas * price + value`, // funds low
-	}
-
-	for _, v := range matchedErrs {
-		if strings.Contains(err.Error(), v) {
-			return true
-		}
-	}
-
-	return false
 }

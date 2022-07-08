@@ -3,7 +3,6 @@ package task
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
 	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -16,7 +15,7 @@ import (
 
 func init() {
 	// TODO: support from env or config dynamic set
-	if err := register("task::broadcast", rand.Intn(3)+3, broadcast); err != nil {
+	if err := register("task::broadcast", 3, broadcast); err != nil {
 		fatalf("task::broadcast", "task already register")
 	}
 }

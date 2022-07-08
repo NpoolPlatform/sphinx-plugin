@@ -1,4 +1,4 @@
-package plugin
+package eth
 
 import (
 	"context"
@@ -18,8 +18,10 @@ const (
 )
 
 var (
-	ErrGasToLow   = "intrinsic gas too low"
-	ErrFundsToLow = "insufficient funds for gas * price + value"
+	ErrGasToLow   = `intrinsic gas too low`
+	ErrFundsToLow = `insufficient funds for gas * price + value`
+	ErrNonceToLow = `nonce too low`
+	StopErrs      = []string{ErrGasToLow, ErrFundsToLow, ErrNonceToLow}
 )
 
 type EClientI interface {
@@ -45,7 +47,6 @@ func (eClients EClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Cli
 }
 
 func (eClients *EClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
-	var client *ethclient.Client
 	var err error
 	var retry bool
 	endpointmgr, err := endpoints.NewManager()
@@ -53,7 +54,10 @@ func (eClients *EClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
-		client, err = eClients.GetNode(endpointmgr)
+		client, nodeErr := eClients.GetNode(endpointmgr)
+		if nodeErr != endpoints.ErrEndpointExhausted {
+			err = nodeErr
+		}
 		if err != nil || client == nil {
 			continue
 		}
@@ -70,7 +74,6 @@ func (eClients *EClients) WithClient(ctx context.Context, fn func(ctx context.Co
 func (eClients EClients) BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
 	var ret *big.Int
 	var err error
-
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		syncRet, _err := c.SyncProgress(ctx)
 		if _err != nil {
@@ -131,7 +134,8 @@ func (eClients EClients) SendTransactionS(ctx context.Context, tx *types.Transac
 
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		err = c.SendTransaction(ctx, tx)
-		if err != nil && (strings.Contains(err.Error(), ErrFundsToLow) || strings.Contains(err.Error(), ErrGasToLow)) {
+
+		if err != nil && TxFailErr(err) {
 			return false, err
 		}
 		return true, err
@@ -160,4 +164,13 @@ func (eClients EClients) TransactionReceiptS(ctx context.Context, txHash common.
 
 func Client() EClientI {
 	return &EClients{}
+}
+
+func TxFailErr(err error) bool {
+	for _, v := range StopErrs {
+		if strings.Contains(err.Error(), v) {
+			return true
+		}
+	}
+	return false
 }

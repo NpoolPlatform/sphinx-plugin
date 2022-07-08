@@ -3,6 +3,7 @@ package task
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
@@ -62,6 +63,7 @@ func infof(prefix, template string, args ...interface{}) {
 
 func Run() {
 	for name, tf := range tworkers {
+		time.Sleep(time.Millisecond * time.Duration(100+rand.Int63n(1000)))
 		logger.Sugar().Infof("run task: %v duration: %v", name, tf.interval)
 		go tf.handle(name, tf.interval)
 	}

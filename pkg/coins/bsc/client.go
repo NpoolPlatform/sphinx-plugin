@@ -18,8 +18,10 @@ const (
 )
 
 var (
-	ErrGasToLow   = "intrinsic gas too low"
-	ErrFundsToLow = "insufficient funds for gas * price + value"
+	ErrGasToLow   = `intrinsic gas too low`
+	ErrFundsToLow = `insufficient funds for gas * price + value`
+	ErrNonceToLow = `nonce too low`
+	StopErrs      = []string{ErrGasToLow, ErrFundsToLow, ErrNonceToLow}
 )
 
 type BClientI interface {
@@ -124,7 +126,7 @@ func (bClients BClients) SendTransactionS(ctx context.Context, tx *types.Transac
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		err = c.SendTransaction(ctx, tx)
-		if err != nil && (strings.Contains(err.Error(), ErrFundsToLow) || strings.Contains(err.Error(), ErrGasToLow)) {
+		if err != nil && TxFailErr(err) {
 			return false, err
 		}
 		return true, err
@@ -155,4 +157,13 @@ func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.
 
 func Client() BClientI {
 	return &BClients{}
+}
+
+func TxFailErr(err error) bool {
+	for _, v := range StopErrs {
+		if strings.Contains(err.Error(), v) {
+			return true
+		}
+	}
+	return false
 }
