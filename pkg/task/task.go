@@ -2,29 +2,24 @@ package task
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sync"
 	"time"
 
-	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/tron"
 	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
-	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin" //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"      //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"      //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt/plugin" //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"      //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"      //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"            //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20"      //nolint
-	trc20 "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"   //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"        //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"        //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt/plugin"   //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"        //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"        //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"       //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin" //nolint
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/rpc"
@@ -230,162 +225,4 @@ func (c *pluginClient) send() {
 			}
 		}
 	}
-}
-
-// TODO: remove code under the line
-// register coin handle
-// nolint
-var handleMap = map[sphinxplugin.CoinType]func(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error{
-	sphinxplugin.CoinType_CoinTypeusdttrc20:  pluginTRC20,
-	sphinxplugin.CoinType_CoinTypetusdttrc20: pluginTRC20,
-
-	sphinxplugin.CoinType_CoinTypetron:  pluginTRX,
-	sphinxplugin.CoinType_CoinTypettron: pluginTRX,
-}
-
-var _ = func(c *pluginClient, req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) {
-	hf, ok := handleMap[req.GetCoinType()]
-	if !ok {
-		logger.Sugar().Errorf("not register handle for %v", req.GetCoinType())
-		resp.RPCExitMessage = fmt.Sprintf("not register handle for %v", req.GetCoinType())
-		goto dirct
-	}
-
-	if err := hf(req, resp); err != nil {
-		logger.Sugar().Errorf("plugin deal error: %v", err)
-		resp.RPCExitMessage = err.Error()
-		goto dirct
-	}
-
-	logger.Sugar().Infof(
-		"sphinx plugin recv info TransactionID: %v TransactionType: %v CoinType: %v done",
-		req.GetTransactionID(),
-		req.GetTransactionType(),
-		req.GetCoinType(),
-	)
-
-dirct:
-	c.sendChannel <- resp
-}
-
-// nolint
-func pluginTRC20(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
-	defer cancel()
-
-	switch req.GetTransactionType() {
-	case sphinxproxy.TransactionType_Balance:
-		bl, err := trc20.WalletBalance(ctx, req.GetAddress())
-		if err != nil {
-			return err
-		}
-
-		f := tron.TRC20ToBigFloat(bl)
-		resp.Balance, _ = f.Float64()
-		resp.BalanceStr = f.Text('f', tron.TRC20ACCURACY)
-		// case sphinxplugin.TransactionType_PreSign:
-		// 	txExtension, err := trc20.BuildTransaciton(ctx, req)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	txData, err := json.Marshal(txExtension)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	resp.Message = req.GetMessage()
-		// 	if resp.GetMessage() == nil {
-		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
-		// 	}
-		// 	resp.Message.TxData = txData
-		// case sphinxplugin.TransactionType_Broadcast:
-		// 	tx := &api.TransactionExtention{}
-		// 	txData := req.GetMessage().GetTxData()
-		// 	err := json.Unmarshal(txData, tx)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	err = tron.BroadcastTransaction(ctx, tx.Transaction)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.CID = common.BytesToHexString(tx.GetTxid())
-		// case sphinxplugin.TransactionType_SyncMsgState:
-		pending, exitcode, err := tron.SyncTxState(ctx, req.GetCID())
-		if exitcode == tron.TransactionInfoFAILED {
-			resp.ExitCode = exitcode
-			return nil
-		}
-
-		if err != nil {
-			return err
-		}
-		if !pending {
-			return tron.ErrWaitMessageOnChain
-		}
-	}
-	return nil
-}
-
-// nolint
-func pluginTRX(req *sphinxproxy.ProxyPluginRequest, resp *sphinxproxy.ProxyPluginResponse) error {
-	ctx, cancel := context.WithTimeout(context.Background(), sconst.GrpcTimeout)
-	defer cancel()
-
-	switch req.GetTransactionType() {
-	case sphinxproxy.TransactionType_Balance:
-		bl, err := tron.WalletBalance(ctx, req.GetAddress())
-		if err != nil {
-			return err
-		}
-
-		f := tron.TRXToBigFloat(bl)
-		resp.Balance, _ = f.Float64()
-		resp.BalanceStr = f.Text('f', tron.TRXACCURACY)
-		// case sphinxplugin.TransactionType_PreSign:
-		// 	txExtension, err := tron.BuildTransaciton(ctx, req)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	txData, err := json.Marshal(txExtension)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	resp.Message = req.GetMessage()
-		// 	if resp.GetMessage() == nil {
-		// 		resp.Message = &sphinxplugin.UnsignedMessage{}
-		// 	}
-		// 	resp.Message.TxData = txData
-		// case sphinxplugin.TransactionType_Broadcast:
-		// 	tx := &api.TransactionExtention{}
-		// 	txData := req.GetMessage().GetTxData()
-		// 	err := json.Unmarshal(txData, tx)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	err = tron.BroadcastTransaction(ctx, tx.Transaction)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	resp.CID = common.BytesToHexString(tx.GetTxid())
-		// case sphinxplugin.TransactionType_SyncMsgState:
-		pending, exitcode, err := tron.SyncTxState(ctx, req.GetCID())
-		if exitcode == tron.TransactionInfoFAILED {
-			resp.ExitCode = exitcode
-			return nil
-		}
-
-		if err != nil {
-			return err
-		}
-		if !pending {
-			return tron.ErrWaitMessageOnChain
-		}
-	}
-	return nil
 }

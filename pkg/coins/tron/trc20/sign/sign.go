@@ -7,7 +7,6 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	tron "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/sign"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 )
 
 func init() {
@@ -40,8 +39,8 @@ func init() {
 
 const s3KeyPrxfix = "usdttrc20/"
 
-func SignTrc20MSG(ctx context.Context, transaction *core.Transaction, from string) (*core.Transaction, error) {
-	return tron.SignTronMSG(ctx, s3KeyPrxfix, transaction, from)
+func SignTrc20MSG(ctx context.Context, in []byte) (out []byte, err error) {
+	return tron.SignTronMSG(ctx, s3KeyPrxfix, in)
 }
 
 func CreateTrc20Account(ctx context.Context, in []byte) (out []byte, err error) {

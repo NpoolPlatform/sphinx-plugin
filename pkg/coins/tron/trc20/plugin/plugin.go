@@ -2,24 +2,107 @@ package trc20
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	tron_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
+	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 )
 
-func WalletBalance(ctx context.Context, wallet string) (balance *big.Int, err error) {
-	contract := config.GetENV().Contract
+// here register plugin func
+func init() {
+	// // main
+	coins.RegisterBalance(
+		sphinxplugin.CoinType_CoinTypeusdttrc20,
+		sphinxproxy.TransactionType_Balance,
+		WalletBalance,
+	)
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypetron,
+	// 	sphinxproxy.TransactionState_TransactionStateWait,
+	// 	PreSign,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypetron,
+	// 	sphinxproxy.TransactionState_TransactionStateBroadcast,
+	// 	SendRawTransaction,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypetron,
+	// 	sphinxproxy.TransactionState_TransactionStateSync,
+	// 	SyncTxState,
+	// )
 
-	return BalanceS(wallet, contract)
+	// // test
+	coins.RegisterBalance(
+		sphinxplugin.CoinType_CoinTypetusdttrc20,
+		sphinxproxy.TransactionType_Balance,
+		WalletBalance,
+	)
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypettron,
+	// 	sphinxproxy.TransactionState_TransactionStateWait,
+	// 	PreSign,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypettron,
+	// 	sphinxproxy.TransactionState_TransactionStateBroadcast,
+	// 	SendRawTransaction,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypettron,
+	// 	sphinxproxy.TransactionState_TransactionStateSync,
+	// 	SyncTxState,
+	// )
+
+	// err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetron, bsc.TxFailErr)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypettron, bsc.TxFailErr)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// coins.RegisterAbortErr(
+	// 	bsc.ErrTransactionFail,
+	// 	bsc.ErrAddrNotValid,
+	// )
+}
+
+func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+	wbReq := &ct.WalletBalanceRequest{}
+	err = json.Unmarshal(in, wbReq)
+	if err != nil {
+		return in, err
+	}
+	contract := config.GetENV().Contract
+	bl, err := BalanceS(wbReq.Address, contract)
+	if err != nil {
+		return in, err
+	}
+
+	f := tron.TRC20ToBigFloat(bl)
+	wbResp := &ct.WalletBalanceResponse{}
+
+	wbResp.Balance, _ = f.Float64()
+	wbResp.BalanceStr = f.Text('f', tron.TRC20ACCURACY)
+
+	out, err = json.Marshal(wbResp)
+
+	return out, err
 }
 
 func BuildTransaciton(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) (*api.TransactionExtention, error) {
