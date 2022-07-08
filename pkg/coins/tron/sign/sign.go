@@ -10,13 +10,13 @@ import (
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/ethereum/go-ethereum/crypto"
 	addr "github.com/fbsobreira/gotron-sdk/pkg/address"
 
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -50,41 +50,51 @@ func init() {
 
 const s3KeyPrxfix = "tron/"
 
-func SignTrxMSG(ctx context.Context, transaction *core.Transaction, from string) (*core.Transaction, error) {
-	return SignTronMSG(ctx, s3KeyPrxfix, transaction, from)
+func SignTrxMSG(ctx context.Context, in []byte) (out []byte, err error) {
+	return SignTronMSG(ctx, s3KeyPrxfix, in)
 }
 
 func CreateTrxAccount(ctx context.Context, in []byte) (out []byte, err error) {
 	return CreateTronAccount(ctx, s3KeyPrxfix, in)
 }
 
-func SignTronMSG(ctx context.Context, s3Strore string, transaction *core.Transaction, from string) (*core.Transaction, error) {
-	pk, err := oss.GetObject(ctx, s3Strore+from, true)
+func SignTronMSG(ctx context.Context, s3Strore string, in []byte) (out []byte, err error) {
+	signMsgTx := &tron.SignMsgTx{}
+	err = json.Unmarshal(in, signMsgTx)
 	if err != nil {
-		return nil, err
+		return in, err
+	}
+
+	pk, err := oss.GetObject(ctx, s3Strore+signMsgTx.Base.From, true)
+	if err != nil {
+		return in, err
 	}
 
 	fromPri := string(pk)
 
 	privateBytes, err := hex.DecodeString(fromPri)
 	if err != nil {
-		return nil, err
+		return in, err
 	}
+	transaction := signMsgTx.TxExtension.Transaction
 	priv := crypto.ToECDSAUnsafe(privateBytes)
-
 	rawData, err := proto.Marshal(transaction.GetRawData())
 	if err != nil {
 		return nil, fmt.Errorf("proto marshal tx raw data error: %v", err)
 	}
+
 	h256h := sha256.New()
 	h256h.Write(rawData)
 	hash := h256h.Sum(nil)
+
 	signature, err := crypto.Sign(hash, priv)
 	if err != nil {
 		return nil, fmt.Errorf("sign error: %v", err)
 	}
+
 	transaction.Signature = append(transaction.Signature, signature)
-	return transaction, nil
+	signedMsg := &tron.BroadcastRequest{TxExtension: signMsgTx.TxExtension}
+	return json.Marshal(signedMsg)
 }
 
 func CreateTronAccount(ctx context.Context, s3Strore string, in []byte) (out []byte, err error) {
