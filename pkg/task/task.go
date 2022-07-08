@@ -8,6 +8,7 @@ import (
 	"time"
 
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/plugin/tron"
 	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
@@ -21,8 +22,9 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt/plugin" //nolint
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"      //nolint
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"      //nolint
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"            //nolint
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20"      //nolint
+	trc20 "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/rpc"
