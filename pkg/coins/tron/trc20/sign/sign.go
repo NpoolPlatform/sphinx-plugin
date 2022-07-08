@@ -13,7 +13,7 @@ import (
 func init() {
 	// main
 	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypeusdterc20,
+		sphinxplugin.CoinType_CoinTypeusdttrc20,
 		sphinxproxy.TransactionType_WalletNew,
 		CreateTrc20Account,
 	)
@@ -27,7 +27,7 @@ func init() {
 
 	// test
 	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypetusdterc20,
+		sphinxplugin.CoinType_CoinTypetusdttrc20,
 		sphinxproxy.TransactionType_WalletNew,
 		CreateTrc20Account,
 	)
