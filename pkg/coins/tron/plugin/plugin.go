@@ -11,6 +11,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
+	"github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 )
 
@@ -147,7 +148,7 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 		return in, errors.New(string(result.GetMessage()))
 	}
 
-	bResp := &ct.BroadcastInfo{TxID: string(bReq.TxExtension.GetTxid())}
+	bResp := &ct.BroadcastInfo{TxID: common.BytesToHexString(bReq.TxExtension.GetTxid())}
 
 	if result.Result {
 		return json.Marshal(bResp)
