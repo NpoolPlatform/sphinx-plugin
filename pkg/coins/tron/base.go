@@ -33,6 +33,12 @@ var (
 	ErrAddressEmpty    = errors.New("address is empty")
 	ErrAddressInvalid  = errors.New("address is invalid")
 	ErrAccountNotFound = errors.New("account not found")
+	// ErrWaitMessageOnChain ..
+	ErrWaitMessageOnChain = errors.New("wait message on chain")
+	// ErrAddrNotValid ..
+	ErrAddrNotValid = errors.New("invalid address")
+	// ErrTransactionFail ..
+	ErrTransactionFail = errors.New("transaction fail")
 )
 
 // feeLimit-10^6=1trx

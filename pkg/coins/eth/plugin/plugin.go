@@ -76,15 +76,10 @@ func init() {
 		panic(err)
 	}
 
-	coins.RegisterAbortErr(eth.ErrTransactionFail)
-}
-
-type PreSignInfo struct {
-	ChainID    int64
-	ContractID string
-	Nonce      uint64
-	GasPrice   int64
-	GasLimit   int64
+	coins.RegisterAbortErr(
+		eth.ErrTransactionFail,
+		eth.ErrAddrNotValid,
+	)
 }
 
 func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {

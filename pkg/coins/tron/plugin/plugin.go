@@ -1,4 +1,4 @@
-package tron
+package plugin
 
 import (
 	"context"
@@ -7,18 +7,72 @@ import (
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 )
 
-var (
-	// ErrWaitMessageOnChain ..
-	ErrWaitMessageOnChain = errors.New("wait message on chain")
-	// ErrAddrNotValid ..
-	ErrAddrNotValid = errors.New("invalid address")
-	// ErrTransactionFail ..
-	ErrTransactionFail = errors.New("transaction fail")
-)
+// here register plugin func
+func init() {
+	// // main
+	// coins.RegisterBalance(
+	// 	sphinxplugin.CoinType_CoinTypetron,
+	// 	sphinxproxy.TransactionType_Balance,
+	// 	WalletBalance,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypetron,
+	// 	sphinxproxy.TransactionState_TransactionStateWait,
+	// 	PreSign,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypetron,
+	// 	sphinxproxy.TransactionState_TransactionStateBroadcast,
+	// 	SendRawTransaction,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypetron,
+	// 	sphinxproxy.TransactionState_TransactionStateSync,
+	// 	SyncTxState,
+	// )
+
+	// // test
+	// coins.RegisterBalance(
+	// 	sphinxplugin.CoinType_CoinTypettron,
+	// 	sphinxproxy.TransactionType_Balance,
+	// 	WalletBalance,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypettron,
+	// 	sphinxproxy.TransactionState_TransactionStateWait,
+	// 	PreSign,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypettron,
+	// 	sphinxproxy.TransactionState_TransactionStateBroadcast,
+	// 	SendRawTransaction,
+	// )
+	// coins.Register(
+	// 	sphinxplugin.CoinType_CoinTypettron,
+	// 	sphinxproxy.TransactionState_TransactionStateSync,
+	// 	SyncTxState,
+	// )
+
+	// err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetron, bsc.TxFailErr)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypettron, bsc.TxFailErr)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// coins.RegisterAbortErr(
+	// 	bsc.ErrTransactionFail,
+	// 	bsc.ErrAddrNotValid,
+	// )
+}
 
 // redefine Code ,because github.com/fbsobreira/gotron-sdk/pkg/proto/core/Tron.pb.go line 564 spelling err
 const (
@@ -27,7 +81,7 @@ const (
 )
 
 func WalletBalance(ctx context.Context, wallet string) (balance int64, err error) {
-	client := Client()
+	client := tron.Client()
 	return client.TRXBalanceS(wallet)
 }
 
@@ -36,13 +90,13 @@ func BuildTransaciton(ctx context.Context, req *sphinxproxy.ProxyPluginRequest) 
 	to := req.GetMessage().GetTo()
 	amount := req.GetMessage().GetValue()
 
-	client := Client()
+	client := tron.Client()
 
-	return client.TRXTransferS(from, to, TRXToInt(amount))
+	return client.TRXTransferS(from, to, tron.TRXToInt(amount))
 }
 
 func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (err error) {
-	client := Client()
+	client := tron.Client()
 
 	result, err := client.BroadcastS(transaction)
 	if err != nil {
@@ -59,12 +113,12 @@ func BroadcastTransaction(ctx context.Context, transaction *core.Transaction) (e
 
 // done(on chain) => true
 func SyncTxState(ctx context.Context, cid string) (pending bool, exitcode int64, err error) {
-	client := Client()
+	client := tron.Client()
 
 	txInfo, err := client.GetTransactionInfoByIDS(cid)
 
 	if txInfo == nil || err != nil {
-		return false, 0, ErrWaitMessageOnChain
+		return false, 0, tron.ErrWaitMessageOnChain
 	}
 
 	logger.Sugar().Infof("transaction info {CID: %v ,ChainResult: %v, TxResult: %v, Fee: %v }", cid, txInfo.GetResult(), txInfo.GetReceipt().GetResult(), txInfo.GetFee())
