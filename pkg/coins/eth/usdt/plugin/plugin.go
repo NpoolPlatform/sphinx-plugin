@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"strings"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
+	eth_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt"
 	plugin_types "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
@@ -31,21 +30,21 @@ func init() {
 		sphinxproxy.TransactionType_Balance,
 		WalletBalance,
 	)
-	// 	coins.Register(
-	// 		sphinxplugin.CoinType_CoinTypeusdterc20,
-	// 		sphinxproxy.TransactionState_TransactionStateWait,
-	// 		PreSign,
-	// 	)
-	// 	coins.Register(
-	// 		sphinxplugin.CoinType_CoinTypeusdterc20,
-	// 		sphinxproxy.TransactionState_TransactionStateBroadcast,
-	// 		SendRawTransaction,
-	// 	)
-	// 	coins.Register(
-	// 		sphinxplugin.CoinType_CoinTypeusdterc20,
-	// 		sphinxproxy.TransactionState_TransactionStateSync,
-	// 		SyncTxState,
-	// 	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypeusdterc20,
+		sphinxproxy.TransactionState_TransactionStateWait,
+		eth_plugin.PreSign,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypeusdterc20,
+		sphinxproxy.TransactionState_TransactionStateBroadcast,
+		eth_plugin.SendRawTransaction,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypeusdterc20,
+		sphinxproxy.TransactionState_TransactionStateSync,
+		eth_plugin.SyncTxState,
+	)
 
 	// test
 	coins.RegisterBalance(
@@ -53,28 +52,28 @@ func init() {
 		sphinxproxy.TransactionType_Balance,
 		WalletBalance,
 	)
-	// 	coins.Register(
-	// 		sphinxplugin.CoinType_CoinTypetusdterc20,
-	// 		sphinxproxy.TransactionState_TransactionStateWait,
-	// 		PreSign,
-	// 	)
-	// 	coins.Register(
-	// 		sphinxplugin.CoinType_CoinTypetusdterc20,
-	// 		sphinxproxy.TransactionState_TransactionStateBroadcast,
-	// 		SendRawTransaction,
-	// 	)
-	// 	coins.Register(
-	// 		sphinxplugin.CoinType_CoinTypetusdterc20,
-	// 		sphinxproxy.TransactionState_TransactionStateSync,
-	// 		SyncTxState,
-	// 	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetusdterc20,
+		sphinxproxy.TransactionState_TransactionStateWait,
+		eth_plugin.PreSign,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetusdterc20,
+		sphinxproxy.TransactionState_TransactionStateBroadcast,
+		eth_plugin.SendRawTransaction,
+	)
+	coins.Register(
+		sphinxplugin.CoinType_CoinTypetusdterc20,
+		sphinxproxy.TransactionState_TransactionStateSync,
+		eth_plugin.SyncTxState,
+	)
 
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypeusdterc20, IsErrStop)
+	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypeusdterc20, eth.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetusdterc20, IsErrStop)
+	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetusdterc20, eth.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
@@ -125,9 +124,9 @@ func ERC20Balance(ctx context.Context, addr string, client *ethclient.Client) (*
 	}, nil
 }
 
-// WalletBalance ..
+// walletBalance ..
 func walletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
-	eClient := plugin.Client()
+	eClient := eth.Client()
 
 	var err error
 	var ret *BigUSDT
@@ -185,22 +184,4 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	out, err = json.Marshal(wbResp)
 
 	return out, err
-}
-
-func IsErrStop(err error) bool {
-	if err.Error() == "" {
-		return false
-	}
-	matchedErrs := []string{
-		`intrinsic gas too low`,                      // gas low
-		`insufficient funds for gas * price + value`, // funds low
-	}
-
-	for _, v := range matchedErrs {
-		if strings.Contains(err.Error(), v) {
-			return true
-		}
-	}
-
-	return false
 }

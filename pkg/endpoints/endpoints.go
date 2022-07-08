@@ -24,6 +24,8 @@ type Manager struct {
 	currentCursor int
 }
 
+var ErrEndpointExhausted = fmt.Errorf("fail peek,all endpoints is peeked")
+
 func init() {
 	// read endpoints from env
 	_publicAddrs, _ := env.LookupEnv(env.ENVCOINPUBLICAPI)
@@ -58,7 +60,7 @@ func ShuffleOrder(n int) []int {
 
 func NewManager() (*Manager, error) {
 	if len(allAddrs) == 0 {
-		return nil, fmt.Errorf("invalid addresses setting")
+		panic("invalid addresses setting,addresses length 0")
 	}
 
 	localOrder := ShuffleOrder(len(localAddrs))
@@ -76,7 +78,7 @@ func NewManager() (*Manager, error) {
 
 func (m *Manager) Peek() (addr string, isLocal bool, err error) {
 	if m.currentCursor >= len(m.peekOrder) {
-		return "", false, fmt.Errorf("fail peek,all endpoints is peeked")
+		return "", false, ErrEndpointExhausted
 	}
 
 	addr = allAddrs[m.peekOrder[m.currentCursor]]
