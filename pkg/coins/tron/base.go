@@ -30,15 +30,13 @@ var (
 )
 
 var (
-	ErrAddressEmpty    = errors.New("address is empty")
-	ErrAddressInvalid  = errors.New("address is invalid")
-	ErrAccountNotFound = errors.New("account not found")
+	ErrAddressEmpty = errors.New("tron address is empty")
 	// ErrWaitMessageOnChain ..
-	ErrWaitMessageOnChain = errors.New("wait message on chain")
+	ErrWaitMessageOnChain = errors.New("wait message on tron-chain")
 	// ErrAddrNotValid ..
-	ErrAddrNotValid = errors.New("invalid address")
+	ErrInvalidAddr = errors.New("invalid tron address")
 	// ErrTransactionFail ..
-	ErrTransactionFail = errors.New("transaction fail")
+	ErrTransactionFail = errors.New("tron transaction fail")
 )
 
 // feeLimit-10^6=1trx
@@ -70,7 +68,7 @@ func ValidAddress(input string) error {
 	} else if len(input) == 28 {
 		address, err = base64.StdEncoding.DecodeString(input)
 	} else {
-		return ErrAddressInvalid
+		return ErrInvalidAddr
 	}
 
 	if err == nil {
@@ -126,10 +124,10 @@ func decodeFromBase58Check(input string) ([]byte, error) {
 	}
 	address := decode58Check(input)
 	if address == nil {
-		return nil, ErrAddressInvalid
+		return nil, ErrInvalidAddr
 	}
 	if err := validFormat(address); err != nil {
-		return nil, ErrAddressInvalid
+		return nil, ErrInvalidAddr
 	}
 	return address, nil
 }
