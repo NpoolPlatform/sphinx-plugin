@@ -72,7 +72,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
