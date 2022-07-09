@@ -63,20 +63,16 @@ func init() {
 		tron_plugin.SyncTxState,
 	)
 
-	// err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetron, bsc.TxFailErr)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypeusdttrc20, tron.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
 
-	// err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypettron, bsc.TxFailErr)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetusdttrc20, tron.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
 
-	// coins.RegisterAbortErr(
-	// 	bsc.ErrTransactionFail,
-	// 	bsc.ErrAddrNotValid,
-	// )
 }
 
 func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
@@ -145,7 +141,7 @@ func BalanceS(addr, contractAddress string) (*big.Int, error) {
 		ret, err = c.TRC20ContractBalance(addr, contractAddress)
 		return true, err
 	})
-	if err != nil && strings.Contains(err.Error(), tron.ErrAccountNotFound.Error()) {
+	if err != nil && strings.Contains(err.Error(), tron.ErrInvalidAddr.Error()) {
 		return tron.EmptyTRC20, nil
 	}
 	return ret, err

@@ -55,10 +55,10 @@ func (eClients *EClients) WithClient(ctx context.Context, fn func(ctx context.Co
 	}
 	for i := 0; i < MaxRetries; i++ {
 		client, nodeErr := eClients.GetNode(endpointmgr)
-		if nodeErr != endpoints.ErrEndpointExhausted {
+		if err == nil || nodeErr != endpoints.ErrEndpointExhausted {
 			err = nodeErr
 		}
-		if err != nil || client == nil {
+		if nodeErr != nil || client == nil {
 			continue
 		}
 		defer client.Close()

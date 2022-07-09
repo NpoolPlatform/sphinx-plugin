@@ -22,6 +22,12 @@ const (
 	MaxRetries = 3
 )
 
+var (
+	ErrTxExpired  = `Transaction expired`
+	ErrFundsToLow = `balance is not sufficient`
+	StopErrs      = []string{ErrTxExpired, ErrFundsToLow}
+)
+
 type TClientI interface {
 	TRXBalanceS(addr string) (int64, error)
 	TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error)
@@ -134,14 +140,19 @@ func (tClients *TClients) SyncProgress(ip, port string) (*SyncingResponse, error
 func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
 	var err error
 	var retry bool
-	var client *tronclient.GrpcClient
 
 	endpointmgr, err := endpoints.NewManager()
 	if err != nil {
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
-		client, err = tClients.GetGRPCClient(endpointmgr)
+		client, nodeErr := tClients.GetGRPCClient(endpointmgr)
+		if err == nil || nodeErr != endpoints.ErrEndpointExhausted {
+			err = nodeErr
+		}
+		if nodeErr != nil || client == nil {
+			continue
+		}
 		if err != nil {
 			continue
 		}
@@ -169,7 +180,7 @@ func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
 		ret = acc.GetBalance()
 		return false, nil
 	})
-	if err != nil && strings.Contains(err.Error(), ErrAccountNotFound.Error()) {
+	if err != nil && strings.Contains(err.Error(), ErrInvalidAddr.Error()) {
 		return EmptyTRX, nil
 	}
 	return ret, nil
@@ -215,4 +226,13 @@ func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionI
 
 func Client() TClientI {
 	return &TClients{}
+}
+
+func TxFailErr(err error) bool {
+	for _, v := range StopErrs {
+		if strings.Contains(err.Error(), v) {
+			return true
+		}
+	}
+	return false
 }

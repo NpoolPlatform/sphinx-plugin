@@ -47,7 +47,6 @@ func (bClients BClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Cli
 }
 
 func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
-	var client *ethclient.Client
 	var err error
 	var retry bool
 	endpointmgr, err := endpoints.NewManager()
@@ -55,8 +54,11 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
-		client, err = bClients.GetNode(endpointmgr)
-		if err != nil {
+		client, nodeErr := bClients.GetNode(endpointmgr)
+		if err == nil || nodeErr != endpoints.ErrEndpointExhausted {
+			err = nodeErr
+		}
+		if nodeErr != nil || client == nil {
 			continue
 		}
 		defer client.Close()
