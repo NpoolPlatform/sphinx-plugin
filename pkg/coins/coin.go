@@ -2,6 +2,7 @@ package coins
 
 import (
 	"strings"
+	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 )
@@ -94,6 +95,36 @@ var (
 
 		sphinxplugin.CoinType_CoinTypebinanceusd:  "BUSD",
 		sphinxplugin.CoinType_CoinTypetbinanceusd: "BUSD",
+	}
+
+	// default sync time for waitting transaction on chain
+	SyncTime = map[sphinxplugin.CoinType]time.Duration{
+		sphinxplugin.CoinType_CoinTypefilecoin:  time.Second * 20,
+		sphinxplugin.CoinType_CoinTypetfilecoin: time.Second * 20,
+
+		sphinxplugin.CoinType_CoinTypebitcoin:  time.Minute * 7,
+		sphinxplugin.CoinType_CoinTypetbitcoin: time.Minute * 7,
+
+		sphinxplugin.CoinType_CoinTypeethereum:  time.Second * 12,
+		sphinxplugin.CoinType_CoinTypetethereum: time.Second * 12,
+
+		sphinxplugin.CoinType_CoinTypeusdterc20:  time.Second * 12,
+		sphinxplugin.CoinType_CoinTypetusdterc20: time.Second * 12,
+
+		sphinxplugin.CoinType_CoinTypesolana:  time.Second * 1,
+		sphinxplugin.CoinType_CoinTypetsolana: time.Second * 1,
+
+		sphinxplugin.CoinType_CoinTypeusdttrc20:  time.Second * 2,
+		sphinxplugin.CoinType_CoinTypetusdttrc20: time.Second * 2,
+
+		sphinxplugin.CoinType_CoinTypetron:  time.Second * 2,
+		sphinxplugin.CoinType_CoinTypettron: time.Second * 2,
+
+		sphinxplugin.CoinType_CoinTypebinancecoin:  time.Second * 4,
+		sphinxplugin.CoinType_CoinTypetbinancecoin: time.Second * 4,
+
+		sphinxplugin.CoinType_CoinTypebinanceusd:  time.Second * 4,
+		sphinxplugin.CoinType_CoinTypetbinanceusd: time.Second * 4,
 	}
 )
 
