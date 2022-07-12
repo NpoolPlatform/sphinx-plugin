@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"strings"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/ethereum/go-ethereum/common"
@@ -15,13 +14,6 @@ import (
 const (
 	MinNodeNum = 1
 	MaxRetries = 3
-)
-
-var (
-	ErrGasToLow   = `intrinsic gas too low`
-	ErrFundsToLow = `insufficient funds for gas * price + value`
-	ErrNonceToLow = `nonce too low`
-	StopErrs      = []string{ErrGasToLow, ErrFundsToLow, ErrNonceToLow}
 )
 
 type BClientI interface {
@@ -159,13 +151,4 @@ func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.
 
 func Client() BClientI {
 	return &BClients{}
-}
-
-func TxFailErr(err error) bool {
-	for _, v := range StopErrs {
-		if strings.Contains(err.Error(), v) {
-			return true
-		}
-	}
-	return false
 }

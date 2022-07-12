@@ -15,13 +15,13 @@ import (
 
 func init() {
 	// TODO: support from env or config dynamic set
-	if err := register("task::broadcast", int(3*time.Second.Nanoseconds()), broadcast); err != nil {
+	if err := register("task::broadcast", 3*time.Second, broadcast); err != nil {
 		fatalf("task::broadcast", "task already register")
 	}
 }
 
-func broadcast(name string, interval int) {
-	for range time.NewTicker(time.Duration(interval)).C {
+func broadcast(name string, interval time.Duration) {
+	for range time.NewTicker(interval).C {
 		func() {
 			conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 			if err != nil {
@@ -71,8 +71,9 @@ func broadcast(name string, interval int) {
 						name,
 						"plugin handle coinType: %v transaction type: %v id: %v use: %v",
 						transInfo.GetName(),
+						transInfo.TransactionState,
 						transInfo.GetTransactionID(),
-						time.Since(now).Seconds(),
+						time.Since(now).String(),
 					)
 
 					var (

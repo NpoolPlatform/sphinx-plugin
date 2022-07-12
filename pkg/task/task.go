@@ -196,7 +196,7 @@ func (c *pluginClient) recv() {
 				coinType,
 				transactionType,
 				transactionID,
-				time.Since(now).Seconds(),
+				time.Since(now).String(),
 			)
 
 			var resp *sphinxproxy.ProxyPluginResponse
