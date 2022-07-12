@@ -65,13 +65,6 @@ func init() {
 		sphinxproxy.TransactionState_TransactionStateSync,
 		syncTx,
 	)
-
-	coins.RegisterAbortErr(
-		env.ErrEVNCoinNetValue,
-		env.ErrAddressInvalid,
-		env.ErrAmountInvalid,
-		env.ErrInsufficientBalance,
-	)
 }
 
 // ErrWaitMessageOnChainMinConfirms ..
@@ -341,5 +334,6 @@ func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, ErrWaitMessageOnChainMinConfirms
 	}
 
-	return
+	sResp := &ct.SyncResponse{ExitCode: 0}
+	return json.Marshal(sResp)
 }

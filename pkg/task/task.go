@@ -12,14 +12,26 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"   //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"        //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"        //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt/plugin"   //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"        //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"        //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"       //nolint
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin" //nolint
+
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin"
+
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/rpc"
@@ -187,22 +199,40 @@ func (c *pluginClient) recv() {
 				time.Since(now).Seconds(),
 			)
 
+			var resp *sphinxproxy.ProxyPluginResponse
 			handler, err := coins.GetCoinBalancePlugin(coinType, transactionType)
 			if err != nil {
 				logger.Sugar().Errorf("GetCoinPlugin get handler error: %v", err)
+				resp = &sphinxproxy.ProxyPluginResponse{
+					TransactionType: req.GetTransactionType(),
+					CoinType:        req.GetCoinType(),
+					TransactionID:   req.GetTransactionID(),
+					RPCExitMessage:  err.Error(),
+				}
+				goto send
 			}
-			respPayload, err := handler(context.Background(), req.GetPayload())
-			if err != nil {
-				logger.Sugar().Errorf("GetCoinPlugin handle deal transaction error: %v", err)
+			{
+				respPayload, err := handler(context.Background(), req.GetPayload())
+				if err != nil {
+					logger.Sugar().Errorf("GetCoinPlugin handle deal transaction error: %v", err)
+					resp = &sphinxproxy.ProxyPluginResponse{
+						TransactionType: req.GetTransactionType(),
+						CoinType:        req.GetCoinType(),
+						TransactionID:   req.GetTransactionID(),
+						RPCExitMessage:  err.Error(),
+					}
+					goto send
+				}
+
+				resp = &sphinxproxy.ProxyPluginResponse{
+					TransactionType: req.GetTransactionType(),
+					CoinType:        req.GetCoinType(),
+					TransactionID:   req.GetTransactionID(),
+					Payload:         respPayload,
+				}
 			}
 
-			resp := &sphinxproxy.ProxyPluginResponse{
-				TransactionType: req.GetTransactionType(),
-				CoinType:        req.GetCoinType(),
-				TransactionID:   req.GetTransactionID(),
-				Payload:         respPayload,
-			}
-
+		send:
 			c.sendChannel <- resp
 		}()
 	}
