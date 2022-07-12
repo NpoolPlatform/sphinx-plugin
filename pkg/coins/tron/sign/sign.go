@@ -70,9 +70,7 @@ func SignTronMSG(ctx context.Context, s3Strore string, in []byte) (out []byte, e
 		return in, err
 	}
 
-	fromPri := string(pk)
-
-	privateBytes, err := hex.DecodeString(fromPri)
+	privateBytes, err := hex.DecodeString(string(pk))
 	if err != nil {
 		return in, err
 	}

@@ -103,18 +103,15 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return in, err
 	}
-	from := baseInfo.From
-	to := baseInfo.To
-	amount := baseInfo.Value
-	fee := tron.TRC20FeeLimit
+
 	contract := config.GetENV().Contract
 
 	txExtension, err := BuildTransacitonS(
-		from,
-		to,
+		baseInfo.From,
+		baseInfo.To,
 		contract,
-		tron.TRC20ToBigInt(amount),
-		fee,
+		tron.TRC20ToBigInt(baseInfo.Value),
+		tron.TRC20FeeLimit,
 	)
 	if err != nil {
 		return in, err
