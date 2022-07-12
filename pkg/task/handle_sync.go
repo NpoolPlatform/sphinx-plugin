@@ -25,24 +25,23 @@ func init() {
 			panic(fmt.Sprintf("task::synctx failed to read %v, %v", env.ENVCOINTYPE, err))
 		}
 		coinType := coins.CoinStr2CoinType(_coinNet, _coinType)
-		_interval = strconv.Itoa(int(coins.SyncTime[coinType].Nanoseconds()))
+		_interval = strconv.FormatInt(int64(coins.SyncTime[coinType].Seconds()), 10)
 	}
-	interval, err := strconv.Atoi(_interval)
+	interval, err := strconv.ParseInt(_interval, 10, 64)
 	if err != nil {
 		panic(fmt.Sprintf("task::synctx failed to read %v, %v", env.ENVSYNCINTERVAL, err))
 	}
 	if err := register(
 		"task::synctx",
-		interval,
-		// config.GetInt(env.ENVSYNCINTERVAL), // TODO: make sure and remove
+		time.Duration(interval*int64(time.Second)),
 		syncTx,
 	); err != nil {
 		fatalf("task::synctx", "task already register")
 	}
 }
 
-func syncTx(name string, interval int) {
-	for range time.NewTicker(time.Duration(interval)).C {
+func syncTx(name string, interval time.Duration) {
+	for range time.NewTicker(interval).C {
 		func() {
 			conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 			if err != nil {
@@ -92,8 +91,9 @@ func syncTx(name string, interval int) {
 						name,
 						"plugin handle coinType: %v transaction type: %v id: %v use: %v",
 						transInfo.GetName(),
+						transInfo.TransactionState,
 						transInfo.GetTransactionID(),
-						time.Since(now).Seconds(),
+						time.Since(now).String(),
 					)
 
 					var (

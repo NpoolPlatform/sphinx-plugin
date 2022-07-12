@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -16,14 +15,13 @@ import (
 
 func init() {
 	// TODO: support from env or config dynamic set
-	if err := register("task::nonce", int(3*time.Second.Nanoseconds()), nonce); err != nil {
+	if err := register("task::nonce", 3*time.Second, nonce); err != nil {
 		fatalf("task::nonce", "task already register")
 	}
 }
 
-func nonce(name string, interval int) {
-	for range time.NewTicker(time.Duration(interval)).C {
-		logger.Sugar().Info("sssss")
+func nonce(name string, interval time.Duration) {
+	for range time.NewTicker(interval).C {
 		func() {
 			conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 			if err != nil {
@@ -73,8 +71,9 @@ func nonce(name string, interval int) {
 						name,
 						"plugin handle coinType: %v transaction type: %v id: %v use: %v",
 						transInfo.GetName(),
+						transInfo.TransactionState,
 						transInfo.GetTransactionID(),
-						time.Since(now).Seconds(),
+						time.Since(now).String(),
 					)
 
 					preSignPayload, err := json.Marshal(types.BaseInfo{

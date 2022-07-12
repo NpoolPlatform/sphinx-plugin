@@ -17,11 +17,10 @@ const (
 )
 
 type tworker struct {
-	// unit second
-	interval int
+	interval time.Duration
 	// unit second
 	// timeout int
-	handle func(name string, interval int)
+	handle func(name string, interval time.Duration)
 }
 
 var (
@@ -32,7 +31,7 @@ var (
 
 // interval unit second
 // generate random number [3, 6)
-func register(taskName string, interval int, handle func(name string, interval int)) error {
+func register(taskName string, interval time.Duration, handle func(name string, interval time.Duration)) error {
 	if _, ok := tworkers[taskName]; ok {
 		return ErrTaskAlreadyRegister
 	}
@@ -64,7 +63,7 @@ func infof(prefix, template string, args ...interface{}) {
 func Run() {
 	for name, tf := range tworkers {
 		time.Sleep(time.Millisecond * time.Duration(500+rand.Int63n(200)))
-		logger.Sugar().Infof("run task: %v duration: %v", name, time.Duration(tf.interval).Seconds())
+		logger.Sugar().Infof("run task: %v seconds: %v", name, tf.interval.Seconds())
 		go tf.handle(name, tf.interval)
 	}
 }
