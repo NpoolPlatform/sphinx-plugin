@@ -18,12 +18,17 @@ import (
 func init() {
 	// TODO: support from env or config dynamic set [3,6)
 	_interval, ok := env.LookupEnv(env.ENVSYNCINTERVAL)
-	if !ok {
-		panic("task::synctx don`t set ENV_SYNC_INTERVAL")
+	if !ok || _interval == "" {
+		_coinNet, _coinType, err := env.CoinInfo()
+		if err != nil {
+			panic(fmt.Sprintf("task::synctx failed to read %v, %v", env.ENVCOINTYPE, err))
+		}
+		coinType := coins.CoinStr2CoinType(_coinNet, _coinType)
+		_interval = strconv.Itoa(int(coins.SyncTime[coinType].Nanoseconds()))
 	}
 	interval, err := strconv.Atoi(_interval)
 	if err != nil {
-		panic(fmt.Sprintf("task::synctx failed to read ENV_SYNC_INTERVAL, %v", err))
+		panic(fmt.Sprintf("task::synctx failed to read %v, %v", env.ENVSYNCINTERVAL, err))
 	}
 	if err := register(
 		"task::synctx",
@@ -36,7 +41,7 @@ func init() {
 }
 
 func syncTx(name string, interval int) {
-	for range time.NewTicker(time.Second * time.Duration(interval)).C {
+	for range time.NewTicker(time.Duration(interval)).C {
 		func() {
 			conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 			if err != nil {

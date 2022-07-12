@@ -77,7 +77,6 @@ func main() {
 				Aliases:     []string{"si"},
 				Usage:       "interval seconds of sync transaction on chain status",
 				EnvVars:     []string{"ENV_SYNC_INTERVAL"},
-				Required:    true,
 				Value:       0,
 				Destination: &syncInterval,
 			},

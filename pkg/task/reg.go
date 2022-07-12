@@ -63,8 +63,8 @@ func infof(prefix, template string, args ...interface{}) {
 
 func Run() {
 	for name, tf := range tworkers {
-		time.Sleep(time.Millisecond * time.Duration(100+rand.Int63n(1000)))
-		logger.Sugar().Infof("run task: %v duration: %v", name, tf.interval)
+		time.Sleep(time.Millisecond * time.Duration(500+rand.Int63n(200)))
+		logger.Sugar().Infof("run task: %v duration: %v", name, time.Duration(tf.interval).Seconds())
 		go tf.handle(name, tf.interval)
 	}
 }

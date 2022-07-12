@@ -15,13 +15,13 @@ import (
 
 func init() {
 	// TODO: support from env or config dynamic set
-	if err := register("task::broadcast", 3, broadcast); err != nil {
+	if err := register("task::broadcast", int(3*time.Second.Nanoseconds()), broadcast); err != nil {
 		fatalf("task::broadcast", "task already register")
 	}
 }
 
 func broadcast(name string, interval int) {
-	for range time.NewTicker(time.Second * time.Duration(interval)).C {
+	for range time.NewTicker(time.Duration(interval)).C {
 		func() {
 			conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 			if err != nil {
