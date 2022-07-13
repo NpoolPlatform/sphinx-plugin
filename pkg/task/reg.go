@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 )
 
 type CtxKey int
@@ -66,7 +67,7 @@ func infof(prefix, template string, args ...interface{}) {
 func Run() {
 	for name, tf := range tworkers {
 		time.Sleep(time.Millisecond * time.Duration(500+rand.Int63n(200)))
-		logger.Sugar().Infof("run task: %v seconds: %v", name, tf.interval.Seconds())
+		log.Infof("run task: %v seconds: %v", name, tf.interval.Seconds())
 		go tf.handle(name, tf.interval)
 	}
 }

@@ -8,12 +8,12 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
 	bsc_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	plugin_types "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
@@ -147,7 +147,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BEP20ACCURACY)))
 	f, exact := balance.Float64()
 	if exact != big.Exact {
-		logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		log.Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 	}
 
 	wbResp := &plugin_types.WalletBalanceResponse{

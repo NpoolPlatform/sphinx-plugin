@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
@@ -202,7 +202,7 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, tron.ErrWaitMessageOnChain
 	}
 
-	logger.Sugar().Infof("transaction info {CID: %v ,ChainResult: %v, TxResult: %v, Fee: %v }", syncReq.TxID, txInfo.GetResult(), txInfo.GetReceipt().GetResult(), txInfo.GetFee())
+	log.Infof("transaction info {CID: %v ,ChainResult: %v, TxResult: %v, Fee: %v }", syncReq.TxID, txInfo.GetResult(), txInfo.GetReceipt().GetResult(), txInfo.GetFee())
 
 	if txInfo.GetResult() != TransactionInfoSUCCESS {
 		return in, tron.ErrTransactionFail

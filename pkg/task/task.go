@@ -6,12 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
@@ -67,7 +66,7 @@ func newClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 
 	conn, pc, err := proxyClient.newProxyClient()
 	if err != nil {
-		logger.Sugar().Errorf("create new proxy client error: %w", err)
+		log.Errorf("create new proxy client error: %w", err)
 		delayNewClient(exitSig, cleanChan)
 		return
 	}
@@ -97,7 +96,7 @@ func (c *pluginClient) closeProxyClient() {
 			}
 			if c.conn != nil {
 				if err := c.conn.Close(); err != nil {
-					log.Warn("close conn error: %v", err)
+					log.Warnf("close conn error: %v", err)
 				}
 			}
 		}
@@ -108,14 +107,14 @@ func (c *pluginClient) newProxyClient() (*grpc.ClientConn, sphinxproxy.SphinxPro
 	logger.Sugar().Info("start new proxy client")
 	conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 	if err != nil {
-		logger.Sugar().Errorf("call GetGRPCConn error: %v", err)
+		log.Errorf("call GetGRPCConn error: %v", err)
 		return nil, nil, err
 	}
 
 	pClient := sphinxproxy.NewSphinxProxyClient(conn)
 	proxyClient, err := pClient.ProxyPlugin(context.Background())
 	if err != nil {
-		logger.Sugar().Errorf("call Transaction error: %v", err)
+		log.Errorf("call Transaction error: %v", err)
 		return nil, nil, err
 	}
 
@@ -144,17 +143,17 @@ func (c *pluginClient) register() {
 	for {
 		select {
 		case <-c.exitChan:
-			logger.Sugar().Info("register new coin exit")
+			log.Info("register new coin exit")
 			return
 		case <-time.After(registerCoinDuration):
 			// TODO coin net
 			coinNetwork, coinType, err := env.CoinInfo()
 			if err != nil {
-				logger.Sugar().Errorf("register new coin error: %v", err)
+				log.Errorf("register new coin error: %v", err)
 				continue
 			}
 
-			logger.Sugar().Infof("register new coin: %v for %s network", coinType, coinNetwork)
+			log.Infof("register new coin: %v for %s network", coinType, coinNetwork)
 			resp := &sphinxproxy.ProxyPluginResponse{
 				CoinType:           coins.CoinStr2CoinType(coinNetwork, coinType),
 				TransactionType:    sphinxproxy.TransactionType_RegisterCoin,
@@ -168,11 +167,11 @@ func (c *pluginClient) register() {
 }
 
 func (c *pluginClient) recv() {
-	logger.Sugar().Info("plugin client start recv")
+	log.Info("plugin client start recv")
 	for {
 		req, err := c.proxyClient.Recv()
 		if err != nil {
-			logger.Sugar().Errorf("receiver info error: %v", err)
+			log.Errorf("receiver info error: %v", err)
 			if rpc.CheckCode(err) {
 				c.closeBadConn <- struct{}{}
 				break
@@ -184,7 +183,7 @@ func (c *pluginClient) recv() {
 			transactionType := req.GetTransactionType()
 			transactionID := req.GetTransactionID()
 
-			logger.Sugar().Infof(
+			log.Infof(
 				"sphinx plugin recv info TransactionID: %v CoinType: %v TransactionType: %v",
 				transactionID,
 				transactionType,
@@ -192,7 +191,7 @@ func (c *pluginClient) recv() {
 			)
 
 			now := time.Now()
-			defer logger.Sugar().Infof(
+			defer log.Infof(
 				"plugin handle coinType: %v transaction type: %v id: %v use: %v",
 				coinType,
 				transactionType,
@@ -203,7 +202,7 @@ func (c *pluginClient) recv() {
 			var resp *sphinxproxy.ProxyPluginResponse
 			handler, err := coins.GetCoinBalancePlugin(coinType, transactionType)
 			if err != nil {
-				logger.Sugar().Errorf("GetCoinPlugin get handler error: %v", err)
+				log.Errorf("GetCoinPlugin get handler error: %v", err)
 				resp = &sphinxproxy.ProxyPluginResponse{
 					TransactionType: req.GetTransactionType(),
 					CoinType:        req.GetCoinType(),
@@ -215,7 +214,7 @@ func (c *pluginClient) recv() {
 			{
 				respPayload, err := handler(context.Background(), req.GetPayload())
 				if err != nil {
-					logger.Sugar().Errorf("GetCoinPlugin handle deal transaction error: %v", err)
+					log.Errorf("GetCoinPlugin handle deal transaction error: %v", err)
 					resp = &sphinxproxy.ProxyPluginResponse{
 						TransactionType: req.GetTransactionType(),
 						CoinType:        req.GetCoinType(),
@@ -240,16 +239,16 @@ func (c *pluginClient) recv() {
 }
 
 func (c *pluginClient) send() {
-	logger.Sugar().Info("plugin client start send")
+	log.Info("plugin client start send")
 	for {
 		select {
 		case <-c.exitChan:
-			logger.Sugar().Info("plugin client start send exit")
+			log.Info("plugin client start send exit")
 			return
 		case resp := <-c.sendChannel:
 			err := c.proxyClient.Send(resp)
 			if err != nil {
-				logger.Sugar().Errorf("send info error: %v", err)
+				log.Errorf("send info error: %v", err)
 				if rpc.CheckCode(err) {
 					c.closeBadConn <- struct{}{}
 				}
