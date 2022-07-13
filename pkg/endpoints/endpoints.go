@@ -89,6 +89,5 @@ func (m *Manager) Peek() (addr string, isLocal bool, err error) {
 		isLocal = true
 	}
 
-	// logger.Sugar().Infof("peek the endpoint: %v", addr)
 	return addr, isLocal, nil
 }

@@ -3,7 +3,7 @@ module github.com/NpoolPlatform/sphinx-plugin
 go 1.17
 
 require (
-	github.com/NpoolPlatform/go-service-framework v0.0.0-20220404143809-82c40930388a
+	github.com/NpoolPlatform/go-service-framework v0.0.0-20220713074036-182dafb1d980
 	github.com/NpoolPlatform/message v0.0.0-20220701071536-f55b9be9a40e
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
@@ -212,7 +212,7 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	go.uber.org/zap v1.21.0 // indirect
+	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220418201149-a630d4f3e7a2 // indirect

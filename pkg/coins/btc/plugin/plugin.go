@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/rpcclient"
@@ -231,7 +231,7 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 
 	if !amountflag {
 		// TODO: think how to use same error
-		logger.Sugar().Errorf(
+		log.Errorf(
 			"insufficient balance: total: %v, transfer: %v, gas: %v",
 			enoughUTXOAmount,
 			amount,
