@@ -9,6 +9,9 @@ import (
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 )
 
+type CtxKey int
+
+const PluginSN CtxKey = iota
 const (
 	// unit seconds
 	getTransactionsTimeout = 60 * time.Second
