@@ -9,3 +9,7 @@ const (
 	GrpcTimeout       = time.Second * 10
 	WaitMsgOutTimeout = time.Second * 40
 )
+
+type CtxKey int
+
+const PluginSN CtxKey = iota
