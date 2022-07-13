@@ -10,6 +10,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	pconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 )
 
@@ -49,6 +50,7 @@ func nonce(name string, interval time.Duration) {
 
 			pClient := sphinxproxy.NewSphinxProxyClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), getTransactionsTimeout)
+			ctx = context.WithValue(ctx, pconst.PluginSN, env.PluginSerialNumber())
 			defer cancel()
 
 			transInfos, err := pClient.GetTransactions(ctx, &sphinxproxy.GetTransactionsRequest{

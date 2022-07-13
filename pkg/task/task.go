@@ -86,12 +86,12 @@ func delayNewClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 
 func (c *pluginClient) closeProxyClient() {
 	c.once.Do(func() {
-		logger.Sugar().Info("close proxy conn and client")
+		log.Info("close proxy conn and client")
 		if c != nil {
 			close(c.exitChan)
 			if c.proxyClient != nil {
 				if err := c.proxyClient.CloseSend(); err != nil {
-					logger.Sugar().Warnf("close proxy conn and client error: %v", err)
+					log.Warnf("close proxy conn and client error: %v", err)
 				}
 			}
 			if c.conn != nil {
@@ -104,7 +104,7 @@ func (c *pluginClient) closeProxyClient() {
 }
 
 func (c *pluginClient) newProxyClient() (*grpc.ClientConn, sphinxproxy.SphinxProxy_ProxyPluginClient, error) {
-	logger.Sugar().Info("start new proxy client")
+	log.Info("start new proxy client")
 	conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 	if err != nil {
 		log.Errorf("call GetGRPCConn error: %v", err)
@@ -118,7 +118,7 @@ func (c *pluginClient) newProxyClient() (*grpc.ClientConn, sphinxproxy.SphinxPro
 		return nil, nil, err
 	}
 
-	logger.Sugar().Info("start new proxy client ok")
+	log.Info("start new proxy client ok")
 	return conn, proxyClient, nil
 }
 

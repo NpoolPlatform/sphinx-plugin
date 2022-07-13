@@ -10,9 +10,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 )
 
-type CtxKey int
-
-const PluginSN CtxKey = iota
 const (
 	// unit seconds
 	getTransactionsTimeout = 60 * time.Second
