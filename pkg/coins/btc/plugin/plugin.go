@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -145,7 +146,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 
 	_out := ct.WalletBalanceResponse{
 		Balance:    balance.ToBTC(),
-		BalanceStr: balance.String(),
+		BalanceStr: strconv.FormatFloat(balance.ToUnit(btcutil.AmountBTC), 'f', -int(btcutil.AmountBTC+8), 64), // process reference is ‘balance.String()’
 	}
 
 	return json.Marshal(_out)
@@ -242,19 +243,19 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 
 	fromAddr, err := btcutil.DecodeAddress(from, btc.BTCNetMap[info.ENV])
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
+		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	fromScript, err := txscript.PayToAddrScript(fromAddr)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
+		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	// 构建输出和找零
 	// BTC 的最小精度是1e-8
 	changeAmount, err := btcutil.NewAmount(enoughUTXOAmount - amount - btc.BTCGas)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAmountInvalid.Error(), err)
+		return in, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
 	}
 
 	if changeAmount.ToBTC() > 0 {
@@ -263,17 +264,17 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 
 	toAddr, err := btcutil.DecodeAddress(to, btc.BTCNetMap[info.ENV])
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
+		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	toScript, err := txscript.PayToAddrScript(toAddr)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
+		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	tAccount, err := btcutil.NewAmount(amount)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAmountInvalid.Error(), err)
+		return in, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
 	}
 
 	msgTx.AddTxOut(wire.NewTxOut(int64(tAccount), toScript))
