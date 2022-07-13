@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -85,12 +86,12 @@ func delayNewClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 
 func (c *pluginClient) closeProxyClient() {
 	c.once.Do(func() {
-		log.Info("close plugin conn and client")
+		logger.Sugar().Info("close proxy conn and client")
 		if c != nil {
 			close(c.exitChan)
 			if c.proxyClient != nil {
 				if err := c.proxyClient.CloseSend(); err != nil {
-					log.Warnf("close plugin conn and client error: %v", err)
+					logger.Sugar().Warnf("close proxy conn and client error: %v", err)
 				}
 			}
 			if c.conn != nil {
@@ -103,7 +104,7 @@ func (c *pluginClient) closeProxyClient() {
 }
 
 func (c *pluginClient) newProxyClient() (*grpc.ClientConn, sphinxproxy.SphinxProxy_ProxyPluginClient, error) {
-	log.Info("start new plugin client")
+	logger.Sugar().Info("start new proxy client")
 	conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 	if err != nil {
 		log.Errorf("call GetGRPCConn error: %v", err)
@@ -117,7 +118,7 @@ func (c *pluginClient) newProxyClient() (*grpc.ClientConn, sphinxproxy.SphinxPro
 		return nil, nil, err
 	}
 
-	log.Info("start new plugin client ok")
+	logger.Sugar().Info("start new proxy client ok")
 	return conn, proxyClient, nil
 }
 
@@ -125,10 +126,10 @@ func (c *pluginClient) watch(exitSig chan os.Signal, cleanChan chan struct{}) {
 	for {
 		select {
 		case <-c.closeBadConn:
-			log.Info("start watch plugin client")
+			logger.Sugar().Info("start watch proxy client")
 			<-c.closeBadConn
 			c.closeProxyClient()
-			log.Info("start watch plugin client exit")
+			logger.Sugar().Info("start watch proxy client exit")
 			delayNewClient(exitSig, cleanChan)
 		case <-exitSig:
 			c.closeProxyClient()
@@ -154,10 +155,11 @@ func (c *pluginClient) register() {
 
 			log.Infof("register new coin: %v for %s network", coinType, coinNetwork)
 			resp := &sphinxproxy.ProxyPluginResponse{
-				CoinType:        coins.CoinStr2CoinType(coinNetwork, coinType),
-				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
-				ENV:             coinNetwork,
-				Unit:            coins.CoinUnit[coins.CoinStr2CoinType(coinNetwork, coinType)],
+				CoinType:           coins.CoinStr2CoinType(coinNetwork, coinType),
+				TransactionType:    sphinxproxy.TransactionType_RegisterCoin,
+				ENV:                coinNetwork,
+				Unit:               coins.CoinUnit[coins.CoinStr2CoinType(coinNetwork, coinType)],
+				PluginSerialNumber: env.PluginSerialNumber(),
 			}
 			c.sendChannel <- resp
 		}

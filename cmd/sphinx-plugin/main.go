@@ -26,6 +26,7 @@ var (
 	contract     string
 	logDir       string
 	logLevel     string
+	serialNumber string
 )
 
 func main() {
@@ -107,6 +108,16 @@ func main() {
 				Value:       "/var/log",
 				DefaultText: "/var/log",
 				Destination: &logDir,
+			},
+			// serial number
+			&cli.StringFlag{
+				Name:        "serial-number",
+				Aliases:     []string{"sn"},
+				Usage:       "identify different plugin",
+				EnvVars:     []string{"ENV_SERIAL_NUMBER"},
+				Value:       "sn_not_set",
+				DefaultText: "sn_not_set",
+				Destination: &serialNumber,
 			},
 		},
 		Commands: commands,

@@ -32,6 +32,9 @@ const (
 	// for tron
 	ENVCOINJSONRPCLOCALAPI  = "ENV_COIN_JSONRPC_LOCAL_API"
 	ENVCOINJSONRPCPUBLICAPI = "ENV_COIN_JSONRPC_PUBLIC_API"
+
+	// for serial number
+	ENVSERIALNUMBER = "ENV_SERIAL_NUMBER"
 )
 
 var (
@@ -85,4 +88,11 @@ func CoinInfo() (networkType, coinType string, err error) {
 		return
 	}
 	return
+}
+
+func PluginSerialNumber() string {
+	if v, ok := LookupEnv(ENVSERIALNUMBER); ok {
+		return v
+	}
+	return "sn_not_set"
 }
