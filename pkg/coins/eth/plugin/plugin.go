@@ -8,11 +8,11 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -106,7 +106,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	balance.Quo(balance, big.NewFloat(math.Pow10(eth.ETHACCURACY)))
 	f, exact := balance.Float64()
 	if exact != big.Exact {
-		logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		log.Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 	}
 
 	wbResp := &ct.WalletBalanceResponse{
@@ -225,7 +225,7 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
-	logger.Sugar().Infof("transaction info: TxHash %v, GasUsed %v, Status %v.", receipt.TxHash, receipt.GasUsed, receipt.Status == 1)
+	log.Infof("transaction info: TxHash %v, GasUsed %v, Status %v.", receipt.TxHash, receipt.GasUsed, receipt.Status == 1)
 
 	sResp := &ct.SyncResponse{ExitCode: 0}
 	out, err = json.Marshal(sResp)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/task"
 	cli "github.com/urfave/cli/v2"
 )
@@ -31,7 +32,7 @@ var runCmd = &cli.Command{
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 		task.Plugin(sigs, cleanChan)
 		<-cleanChan
-		logger.Sugar().Info("graceful shutdown plugin service")
+		log.Info("graceful shutdown plugin service")
 		return nil
 	},
 }

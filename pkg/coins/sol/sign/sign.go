@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	bin "github.com/gagliardetto/binary"
@@ -108,7 +108,7 @@ func signTx(ctx context.Context, in []byte) (out []byte, err error) {
 
 	lamports, accuracy := sol.ToLarm(value)
 	if accuracy != big.Exact {
-		logger.Sugar().Warnf("transafer sol amount not accuracy: from %v-> to %v", value, lamports)
+		log.Warnf("transafer sol amount not accuracy: from %v-> to %v", value, lamports)
 	}
 
 	// build tx

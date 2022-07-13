@@ -6,12 +6,12 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/filecoin-project/go-address"
@@ -137,7 +137,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	balance.Quo(balance, big.NewFloat(0).SetUint64(build.FilecoinPrecision))
 	f, exact := balance.Float64()
 	if exact != big.Exact {
-		logger.Sugar().Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
+		log.Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
 	}
 
 	_out := ct.WalletBalanceResponse{

@@ -9,8 +9,10 @@ import (
 	"github.com/NpoolPlatform/go-service-framework/pkg/version"
 	"github.com/NpoolPlatform/sphinx-plugin/cmd/usdt"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	banner "github.com/common-nighthawk/go-figure"
 	cli "github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 )
 
 const (
@@ -110,13 +112,17 @@ func main() {
 		Commands: commands,
 	}
 
-	err = logger.Init(logger.DebugLevel, filepath.Join(config.GetENV().LogDir, "sphinx-plugin.log"))
+	err = logger.Init(
+		logger.DebugLevel,
+		filepath.Join(config.GetENV().LogDir, "sphinx-plugin.log"),
+		zap.AddCallerSkip(1),
+	)
 	if err != nil {
 		panic(fmt.Errorf("fail to init logger: %v", err))
 	}
 
 	err = app.Run(os.Args)
 	if err != nil {
-		logger.Sugar().Errorf("fail to run %v: %v", serviceName, err)
+		log.Errorf("fail to run %v: %v", serviceName, err)
 	}
 }

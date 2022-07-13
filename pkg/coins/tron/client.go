@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
@@ -69,13 +69,13 @@ func (tClients *TClients) GetGRPCClient(endpointmgr *endpoints.Manager) (*troncl
 	if err != nil {
 		return nil, err
 	}
-	strs := strings.Split(endpoint, ":")
 
 	if isLocal {
+		strs := strings.Split(endpoint, ":")
 		port := jsonAPIMap[strs[0]]
 		syncRet, _err := tClients.SyncProgress(strs[0], port)
 		if _err != nil {
-			logger.Sugar().Error(_err)
+			log.Error(_err)
 			return nil, _err
 		}
 
