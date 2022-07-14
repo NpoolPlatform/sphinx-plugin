@@ -1,7 +1,11 @@
 package constant
 
 import (
+	"context"
+	"strings"
 	"time"
+
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -10,6 +14,17 @@ const (
 	WaitMsgOutTimeout = time.Second * 40
 )
 
-type CtxKey int
+func SetPluginSN(ctx context.Context, pluginSN string) context.Context {
+	md := metadata.New(map[string]string{"_pluginsn": pluginSN})
+	return metadata.NewOutgoingContext(ctx, md)
+}
 
-const PluginSN CtxKey = iota
+func GetPluginSN(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		if v, ok := md["_pluginsn"]; ok {
+			return strings.Join(v, "-")
+		}
+	}
+	return "pluginSN not set"
+}
