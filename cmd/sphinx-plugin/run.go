@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/task"
 	cli "github.com/urfave/cli/v2"
@@ -25,8 +26,12 @@ var runCmd = &cli.Command{
 		return logger.Sync()
 	},
 	Action: func(c *cli.Context) error {
-		task.Run()
+		log.Infof(
+			"run plugin wanIP: %v, Position %v",
+			config.GetENV().WanIP,
+			config.GetENV().Position)
 
+		task.Run()
 		sigs := make(chan os.Signal, 1)
 		cleanChan := make(chan struct{})
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
