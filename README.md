@@ -78,7 +78,7 @@
 | all                              | ENV_COIN_TYPE               |              |                                       |
 | all                              | ENV_SYNC_INTERVAL           |              | optional,交易状态同步间隔周期(s)         |
 | all                              | ENV_WAN_IP                  |              | plugin的wan-ip                        |
-| all                              | ENV_POSITION                |              | plugin的位置信息                        |
+| all                              | ENV_POSITION                |              | plugin的位置信息(如NewYork_NO2)         |
 | fil btc sol eth/erc20 tron/trc20 | ENV_COIN_LOCAL_API          | ip:port      | 多个地址使用,分割                        |
 | eth/erc20 tron/trc20             | ENV_COIN_PUBLIC_API         | ip:port      | 多个地址使用,分割                        |
 | tron/trc20                       | ENV_COIN_JSONRPC_LOCAL_API  | ip:port      | 多个地址使用,分割                        |
