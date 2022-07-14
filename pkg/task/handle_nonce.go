@@ -50,7 +50,7 @@ func nonce(name string, interval time.Duration) {
 
 			pClient := sphinxproxy.NewSphinxProxyClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), getTransactionsTimeout)
-			ctx = context.WithValue(ctx, pconst.PluginSN, env.PluginSerialNumber())
+			ctx = pconst.SetPluginSN(ctx, env.PluginSerialNumber())
 			defer cancel()
 
 			transInfos, err := pClient.GetTransactions(ctx, &sphinxproxy.GetTransactionsRequest{
@@ -69,14 +69,16 @@ func nonce(name string, interval time.Duration) {
 					defer cancel()
 
 					now := time.Now()
-					defer infof(
-						name,
-						"plugin handle coinType: %v transaction type: %v id: %v use: %v",
-						transInfo.GetName(),
-						transInfo.TransactionState,
-						transInfo.GetTransactionID(),
-						time.Since(now).String(),
-					)
+					defer func() {
+						infof(
+							name,
+							"plugin handle coinType: %v transaction type: %v id: %v use: %v",
+							transInfo.GetName(),
+							transInfo.TransactionState,
+							transInfo.GetTransactionID(),
+							time.Since(now).String(),
+						)
+					}()
 
 					preSignPayload, err := json.Marshal(types.BaseInfo{
 						ENV:      coinNetwork,
