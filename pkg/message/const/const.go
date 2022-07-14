@@ -2,9 +2,11 @@ package constant
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -14,17 +16,26 @@ const (
 	WaitMsgOutTimeout = time.Second * 40
 )
 
-func SetPluginSN(ctx context.Context, pluginSN string) context.Context {
-	md := metadata.New(map[string]string{"_pluginsn": pluginSN})
+func SetPluginInfo(ctx context.Context) context.Context {
+	md := metadata.New(
+		map[string]string{
+			"_pluginwanip":    config.GetENV().WanIP,
+			"_pluginposition": config.GetENV().Position,
+		})
 	return metadata.NewOutgoingContext(ctx, md)
 }
 
-func GetPluginSN(ctx context.Context) string {
+func GetPluginInfo(ctx context.Context) string {
+	pluginInfo := ""
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
-		if v, ok := md["_pluginsn"]; ok {
-			return strings.Join(v, "-")
+		if v, ok := md["_pluginposition"]; ok {
+			pluginInfo = strings.Join(v, "_")
 		}
+		if v, ok := md["_pluginwanip"]; ok {
+			pluginInfo = fmt.Sprintf("%v-%v", pluginInfo, strings.Join(v, "_"))
+		}
+		return pluginInfo
 	}
-	return "pluginSN not set"
+	return "pluginInfo-not-set"
 }

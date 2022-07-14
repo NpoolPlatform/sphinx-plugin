@@ -50,7 +50,7 @@ func broadcast(name string, interval time.Duration) {
 
 			pClient := sphinxproxy.NewSphinxProxyClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), getTransactionsTimeout)
-			ctx = pconst.SetPluginSN(ctx, env.PluginSerialNumber())
+			ctx = pconst.SetPluginInfo(ctx)
 			defer cancel()
 
 			transInfos, err := pClient.GetTransactions(ctx, &sphinxproxy.GetTransactionsRequest{

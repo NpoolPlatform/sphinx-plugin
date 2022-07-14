@@ -155,11 +155,12 @@ func (c *pluginClient) register() {
 
 			log.Infof("register new coin: %v for %s network", coinType, coinNetwork)
 			resp := &sphinxproxy.ProxyPluginResponse{
-				CoinType:           coins.CoinStr2CoinType(coinNetwork, coinType),
-				TransactionType:    sphinxproxy.TransactionType_RegisterCoin,
-				ENV:                coinNetwork,
-				Unit:               coins.CoinUnit[coins.CoinStr2CoinType(coinNetwork, coinType)],
-				PluginSerialNumber: env.PluginSerialNumber(),
+				CoinType:        coins.CoinStr2CoinType(coinNetwork, coinType),
+				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
+				ENV:             coinNetwork,
+				Unit:            coins.CoinUnit[coins.CoinStr2CoinType(coinNetwork, coinType)],
+				PluginWanIP:     config.GetENV().WanIP,
+				PluginPosition:  config.GetENV().Position,
 			}
 			c.sendChannel <- resp
 		}
@@ -169,52 +170,47 @@ func (c *pluginClient) register() {
 func (c *pluginClient) recv() {
 	log.Info("plugin client start recv")
 	for {
-		req, err := c.proxyClient.Recv()
-		if err != nil {
-			log.Errorf("receiver info error: %v", err)
-			if rpc.CheckCode(err) {
-				c.closeBadConn <- struct{}{}
-				break
-			}
-		}
-
-		go func() {
-			coinType := req.GetCoinType()
-			transactionType := req.GetTransactionType()
-			transactionID := req.GetTransactionID()
-
-			log.Infof(
-				"sphinx plugin recv info TransactionID: %v CoinType: %v TransactionType: %v",
-				transactionID,
-				transactionType,
-				coinType,
-			)
-
-			now := time.Now()
-			defer log.Infof(
-				"plugin handle coinType: %v transaction type: %v id: %v use: %v",
-				coinType,
-				transactionType,
-				transactionID,
-				time.Since(now).String(),
-			)
-
-			var resp *sphinxproxy.ProxyPluginResponse
-			handler, err := coins.GetCoinBalancePlugin(coinType, transactionType)
+		select {
+		case <-c.exitChan:
+			log.Info("plugin client start recv exit")
+			return
+		default:
+			req, err := c.proxyClient.Recv()
 			if err != nil {
-				log.Errorf("GetCoinPlugin get handler error: %v", err)
-				resp = &sphinxproxy.ProxyPluginResponse{
-					TransactionType: req.GetTransactionType(),
-					CoinType:        req.GetCoinType(),
-					TransactionID:   req.GetTransactionID(),
-					RPCExitMessage:  err.Error(),
+				log.Errorf("receiver info error: %v", err)
+				if rpc.CheckCode(err) {
+					c.closeBadConn <- struct{}{}
+					break
 				}
-				goto send
 			}
-			{
-				respPayload, err := handler(context.Background(), req.GetPayload())
+
+			go func() {
+				coinType := req.GetCoinType()
+				transactionType := req.GetTransactionType()
+				transactionID := req.GetTransactionID()
+
+				log.Infof(
+					"sphinx plugin recv info TransactionID: %v CoinType: %v TransactionType: %v",
+					transactionID,
+					transactionType,
+					coinType,
+				)
+
+				now := time.Now()
+				defer func() {
+					log.Infof(
+						"plugin handle coinType: %v transaction type: %v id: %v use: %v",
+						coinType,
+						transactionType,
+						transactionID,
+						time.Since(now).String(),
+					)
+				}()
+
+				var resp *sphinxproxy.ProxyPluginResponse
+				handler, err := coins.GetCoinBalancePlugin(coinType, transactionType)
 				if err != nil {
-					log.Errorf("GetCoinPlugin handle deal transaction error: %v", err)
+					log.Errorf("GetCoinPlugin get handler error: %v", err)
 					resp = &sphinxproxy.ProxyPluginResponse{
 						TransactionType: req.GetTransactionType(),
 						CoinType:        req.GetCoinType(),
@@ -223,18 +219,31 @@ func (c *pluginClient) recv() {
 					}
 					goto send
 				}
+				{
+					respPayload, err := handler(context.Background(), req.GetPayload())
+					if err != nil {
+						log.Errorf("GetCoinPlugin handle deal transaction error: %v", err)
+						resp = &sphinxproxy.ProxyPluginResponse{
+							TransactionType: req.GetTransactionType(),
+							CoinType:        req.GetCoinType(),
+							TransactionID:   req.GetTransactionID(),
+							RPCExitMessage:  err.Error(),
+						}
+						goto send
+					}
 
-				resp = &sphinxproxy.ProxyPluginResponse{
-					TransactionType: req.GetTransactionType(),
-					CoinType:        req.GetCoinType(),
-					TransactionID:   req.GetTransactionID(),
-					Payload:         respPayload,
+					resp = &sphinxproxy.ProxyPluginResponse{
+						TransactionType: req.GetTransactionType(),
+						CoinType:        req.GetCoinType(),
+						TransactionID:   req.GetTransactionID(),
+						Payload:         respPayload,
+					}
 				}
-			}
 
-		send:
-			c.sendChannel <- resp
-		}()
+			send:
+				c.sendChannel <- resp
+			}()
+		}
 	}
 }
 

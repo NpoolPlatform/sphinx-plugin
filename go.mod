@@ -3,8 +3,8 @@ module github.com/NpoolPlatform/sphinx-plugin
 go 1.17
 
 require (
-	github.com/NpoolPlatform/go-service-framework v0.0.0-20220404143809-82c40930388a
-	github.com/NpoolPlatform/message v0.0.0-20220713071535-17bb55165171
+	github.com/NpoolPlatform/go-service-framework v0.0.0-20220713074036-182dafb1d980
+	github.com/NpoolPlatform/message v0.0.0-20220714095839-2f1e941833fa
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be

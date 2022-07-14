@@ -26,7 +26,8 @@ var (
 	contract     string
 	logDir       string
 	logLevel     string
-	serialNumber string
+	wanIP        string
+	position     string
 )
 
 func main() {
@@ -51,13 +52,23 @@ func main() {
 		Usage:       usageText,
 		Before: func(ctx *cli.Context) error {
 			// TODO: elegent set or get env
-			config.SetENV(config.ENVInfo{
+			config.SetENV(&config.ENVInfo{
 				Proxy:        proxyAddress,
 				SyncInterval: syncInterval,
 				Contract:     contract,
 				LogDir:       logDir,
 				LogLevel:     logLevel,
+				WanIP:        wanIP,
+				Position:     position,
 			})
+			err := logger.Init(
+				logger.DebugLevel,
+				filepath.Join(config.GetENV().LogDir, "sphinx-plugin.log"),
+				zap.AddCallerSkip(1),
+			)
+			if err != nil {
+				panic(fmt.Errorf("fail to init logger: %v", err))
+			}
 			return nil
 		},
 		Flags: []cli.Flag{
@@ -109,27 +120,30 @@ func main() {
 				DefaultText: "/var/log",
 				Destination: &logDir,
 			},
-			// serial number
+			// wan ip
 			&cli.StringFlag{
-				Name:        "serial-number",
-				Aliases:     []string{"sn"},
-				Usage:       "identify different plugin",
-				EnvVars:     []string{"ENV_SERIAL_NUMBER"},
-				Value:       "sn_not_set",
-				DefaultText: "sn_not_set",
-				Destination: &serialNumber,
+				Name:        "wan-ip",
+				Aliases:     []string{"w"},
+				Usage:       "wan ip",
+				EnvVars:     []string{"ENV_WAN_IP"},
+				Required:    true,
+				Value:       "",
+				DefaultText: "",
+				Destination: &wanIP,
+			},
+			// position
+			&cli.StringFlag{
+				Name:        "position",
+				Aliases:     []string{"po"},
+				Usage:       "position",
+				EnvVars:     []string{"ENV_POSITION"},
+				Required:    true,
+				Value:       "",
+				DefaultText: "",
+				Destination: &position,
 			},
 		},
 		Commands: commands,
-	}
-
-	err = logger.Init(
-		logger.DebugLevel,
-		filepath.Join(config.GetENV().LogDir, "sphinx-plugin.log"),
-		zap.AddCallerSkip(1),
-	)
-	if err != nil {
-		panic(fmt.Errorf("fail to init logger: %v", err))
 	}
 
 	err = app.Run(os.Args)

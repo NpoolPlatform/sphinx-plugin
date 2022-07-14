@@ -63,7 +63,7 @@ func GetInt(key string) int {
 	return viper.GetStringMap(rootConfig)[key].(int)
 }
 
-var global ENVInfo
+var global *ENVInfo
 
 type ENVInfo struct {
 	Proxy        string
@@ -71,12 +71,14 @@ type ENVInfo struct {
 	Contract     string
 	LogDir       string
 	LogLevel     string
+	WanIP        string
+	Position     string
 }
 
-func SetENV(info ENVInfo) {
+func SetENV(info *ENVInfo) {
 	global = info
 }
 
-func GetENV() ENVInfo {
+func GetENV() *ENVInfo {
 	return global
 }
