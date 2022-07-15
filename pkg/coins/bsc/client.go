@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/ethereum/go-ethereum/common"
@@ -13,9 +12,8 @@ import (
 )
 
 const (
-	MinNodeNum       = 1
-	MaxRetries       = 3
-	RetriesSleepTime = 1 * time.Second
+	MinNodeNum = 1
+	MaxRetries = 3
 )
 
 type BClientI interface {

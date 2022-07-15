@@ -71,15 +71,6 @@ func init() {
 		syncTx,
 	)
 
-	// register err fsm
-	coins.RegisterAbortErr(
-		env.ErrEVNCoinNet,
-		env.ErrEVNCoinNetValue,
-		env.ErrAddressInvalid,
-		env.ErrSignTypeInvalid,
-		env.ErrCIDInvalid,
-	)
-
 	// register err not a value handle
 	// coins.RegisterAbortFuncErr(
 	// 	sphinxplugin.CoinType_CoinTypefilecoin,

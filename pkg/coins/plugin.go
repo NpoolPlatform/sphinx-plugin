@@ -7,6 +7,7 @@ import (
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 )
 
 var (
@@ -75,7 +76,13 @@ var (
 	ErrAbortErrorFuncAlreadyRegister = errors.New("abort error func already register")
 
 	// TODO: think how to check not value error
-	abortErrs     = make(map[error]struct{})
+	abortErrs = map[error]struct{}{
+		env.ErrEVNCoinNet:      {},
+		env.ErrEVNCoinNetValue: {},
+		env.ErrAddressInvalid:  {},
+		env.ErrSignTypeInvalid: {},
+		env.ErrCIDInvalid:      {},
+	}
 	abortFuncErrs = make(map[sphinxplugin.CoinType]func(error) bool)
 )
 
