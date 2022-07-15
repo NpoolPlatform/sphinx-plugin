@@ -66,12 +66,7 @@ func init() {
 	)
 
 	// register err fsm
-	err := coins.RegisterAbortErr(
-		env.ErrEVNCoinNet,
-		env.ErrEVNCoinNetValue,
-		env.ErrAddressInvalid,
-		env.ErrSignTypeInvalid,
-		env.ErrCIDInvalid,
+	coins.RegisterAbortErr(
 		sol.ErrSolTransactionFailed,
 	)
 }

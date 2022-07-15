@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -137,8 +136,6 @@ func syncTx(name string, interval time.Duration) {
 						}
 					}
 
-				done:
-					logger.Sugar().Errorf("ssssssss %-v", syncInfo)
 					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
 						TransactionID:        transInfo.GetTransactionID(),
 						TransactionState:     tState,
