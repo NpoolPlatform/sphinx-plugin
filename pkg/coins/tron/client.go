@@ -29,12 +29,6 @@ var (
 	StopErrs      = []string{ErrTxExpired, ErrFundsToLow}
 )
 
-var (
-	ErrTxExpired  = `Transaction expired`
-	ErrFundsToLow = `balance is not sufficient`
-	StopErrs      = []string{ErrTxExpired, ErrFundsToLow}
-)
-
 type TClientI interface {
 	TRXBalanceS(addr string) (int64, error)
 	TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error)
