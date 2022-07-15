@@ -147,6 +147,9 @@ func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
+		if i > 0 {
+			time.Sleep(time.Second)
+		}
 		client, nodeErr := tClients.GetGRPCClient(endpointmgr)
 		if err == nil || nodeErr != endpoints.ErrEndpointExhausted {
 			err = nodeErr

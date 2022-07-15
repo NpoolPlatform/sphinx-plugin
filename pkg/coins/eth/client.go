@@ -56,6 +56,9 @@ func (eClients *EClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
+		if i > 0 {
+			time.Sleep(time.Second)
+		}
 		client, nodeErr := eClients.GetNode(endpointmgr)
 		if err == nil || nodeErr != endpoints.ErrEndpointExhausted {
 			err = nodeErr

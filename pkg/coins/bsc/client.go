@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/ethereum/go-ethereum/common"
@@ -46,6 +47,9 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
+		if i > 0 {
+			time.Sleep(time.Second)
+		}
 		client, nodeErr := bClients.GetNode(endpointmgr)
 		if err == nil || nodeErr != endpoints.ErrEndpointExhausted {
 			err = nodeErr
