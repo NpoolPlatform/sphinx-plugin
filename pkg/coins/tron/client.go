@@ -187,7 +187,7 @@ func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
 	if err != nil && strings.Contains(err.Error(), ErrInvalidAddr.Error()) {
 		return EmptyTRX, nil
 	}
-	return ret, nil
+	return ret, err
 }
 
 func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
