@@ -29,9 +29,9 @@ type BClientI interface {
 	WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error
 }
 
-type BClients struct{}
+type bClients struct{}
 
-func (bClients BClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error) {
+func (bClients bClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error) {
 	endpoint, _, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (bClients BClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Cli
 	return ethclient.Dial(endpoint)
 }
 
-func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
+func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
 	var err error
 	var retry bool
 	endpointmgr, err := endpoints.NewManager()
@@ -57,8 +57,10 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		if nodeErr != nil || client == nil {
 			continue
 		}
-		defer client.Close()
+
 		retry, err = fn(ctx, client)
+		client.Close()
+
 		if err == nil || !retry {
 			return err
 		}
@@ -66,7 +68,7 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(ctx context.Co
 	return err
 }
 
-func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
+func (bClients bClients) BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
 	var ret *big.Int
 	var err error
 
@@ -87,7 +89,7 @@ func (bClients BClients) BalanceAtS(ctx context.Context, account common.Address,
 	return ret, err
 }
 
-func (bClients BClients) PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error) {
+func (bClients bClients) PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error) {
 	var ret uint64
 	var err error
 
@@ -98,7 +100,7 @@ func (bClients BClients) PendingNonceAtS(ctx context.Context, account common.Add
 	return ret, err
 }
 
-func (bClients BClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
+func (bClients bClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
 	var ret *big.Int
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
@@ -109,7 +111,7 @@ func (bClients BClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
 	return ret, err
 }
 
-func (bClients BClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error) {
+func (bClients bClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error) {
 	var ret *big.Int
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
@@ -120,7 +122,7 @@ func (bClients BClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error)
 	return ret, err
 }
 
-func (bClients BClients) SendTransactionS(ctx context.Context, tx *types.Transaction) error {
+func (bClients bClients) SendTransactionS(ctx context.Context, tx *types.Transaction) error {
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		err = c.SendTransaction(ctx, tx)
@@ -133,7 +135,7 @@ func (bClients BClients) SendTransactionS(ctx context.Context, tx *types.Transac
 	return err
 }
 
-func (bClients BClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
+func (bClients bClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		tx, isPending, err = c.TransactionByHash(ctx, hash)
 		return true, err
@@ -142,7 +144,7 @@ func (bClients BClients) TransactionByHashS(ctx context.Context, hash common.Has
 	return tx, isPending, err
 }
 
-func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+func (bClients bClients) TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
 	var ret *types.Receipt
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
@@ -154,5 +156,5 @@ func (bClients BClients) TransactionReceiptS(ctx context.Context, txHash common.
 }
 
 func Client() BClientI {
-	return &BClients{}
+	return &bClients{}
 }

@@ -1,7 +1,7 @@
 package endpoints
 
 import (
-	"fmt"
+	"errors"
 	"math/rand"
 	"strings"
 
@@ -24,7 +24,7 @@ type Manager struct {
 	currentCursor int
 }
 
-var ErrEndpointExhausted = fmt.Errorf("fail peek,all endpoints is peeked")
+var ErrEndpointExhausted = errors.New("fail peek,all endpoints is peeked")
 
 func init() {
 	// read endpoints from env

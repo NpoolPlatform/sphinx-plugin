@@ -28,7 +28,7 @@ func init() {
 	coins.RegisterBalance(
 		sphinxplugin.CoinType_CoinTypebinanceusd,
 		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
+		walletBalance,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypebinanceusd,
@@ -50,7 +50,7 @@ func init() {
 	coins.RegisterBalance(
 		sphinxplugin.CoinType_CoinTypetbinanceusd,
 		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
+		walletBalance,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetbinanceusd,
@@ -83,7 +83,7 @@ var (
 	ErrAccountAddrInvalid  = errors.New("account address is invalid")
 )
 
-func Bep20Balance(ctx context.Context, addr string, client bind.ContractBackend) (*big.Int, error) {
+func bep20Balance(ctx context.Context, addr string, client bind.ContractBackend) (*big.Int, error) {
 	contract := config.GetENV().Contract
 	if !common.IsHexAddress(contract) {
 		return nil, ErrContractAddrInvalid
@@ -104,7 +104,7 @@ func Bep20Balance(ctx context.Context, addr string, client bind.ContractBackend)
 	}, common.HexToAddress(addr))
 }
 
-func walletBalance(ctx context.Context, addr string) (*big.Int, error) {
+func _walletBalance(ctx context.Context, addr string) (*big.Int, error) {
 	var ret *big.Int
 	var err error
 	client := bsc.Client()
@@ -119,7 +119,7 @@ func walletBalance(ctx context.Context, addr string) (*big.Int, error) {
 				syncRet.CurrentBlock, syncRet.HighestBlock,
 			)
 		}
-		ret, err = Bep20Balance(ctx, addr, c)
+		ret, err = bep20Balance(ctx, addr, c)
 
 		return true, err
 	})
@@ -127,14 +127,14 @@ func walletBalance(ctx context.Context, addr string) (*big.Int, error) {
 	return ret, err
 }
 
-func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	wbReq := &plugin_types.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
 		return nil, err
 	}
 
-	bl, err := walletBalance(ctx, wbReq.Address)
+	bl, err := _walletBalance(ctx, wbReq.Address)
 	if err != nil {
 		return nil, err
 	}

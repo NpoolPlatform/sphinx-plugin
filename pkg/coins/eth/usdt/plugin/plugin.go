@@ -28,7 +28,7 @@ func init() {
 	coins.RegisterBalance(
 		sphinxplugin.CoinType_CoinTypeusdterc20,
 		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
+		walletBalance,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypeusdterc20,
@@ -50,7 +50,7 @@ func init() {
 	coins.RegisterBalance(
 		sphinxplugin.CoinType_CoinTypetusdterc20,
 		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
+		walletBalance,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetusdterc20,
@@ -125,7 +125,7 @@ func ERC20Balance(ctx context.Context, addr string, client *ethclient.Client) (*
 }
 
 // walletBalance ..
-func walletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
+func _walletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 	eClient := eth.Client()
 
 	var err error
@@ -154,14 +154,14 @@ func walletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 	return ret, err
 }
 
-func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	wbReq := &plugin_types.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
 		return nil, err
 	}
 
-	bl, err := walletBalance(ctx, wbReq.Address)
+	bl, err := _walletBalance(ctx, wbReq.Address)
 	if err != nil {
 		return nil, err
 	}

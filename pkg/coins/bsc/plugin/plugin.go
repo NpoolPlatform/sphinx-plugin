@@ -28,7 +28,7 @@ func init() {
 	coins.RegisterBalance(
 		sphinxplugin.CoinType_CoinTypebinancecoin,
 		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
+		walletBalance,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypebinancecoin,
@@ -50,7 +50,7 @@ func init() {
 	coins.RegisterBalance(
 		sphinxplugin.CoinType_CoinTypetbinancecoin,
 		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
+		walletBalance,
 	)
 	coins.Register(
 		sphinxplugin.CoinType_CoinTypetbinancecoin,
@@ -84,7 +84,7 @@ func init() {
 	)
 }
 
-func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	wbReq := &ct.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
