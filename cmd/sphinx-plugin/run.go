@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/task"
@@ -23,13 +24,15 @@ var runCmd = &cli.Command{
 	Aliases: []string{"r"},
 	Usage:   "Run Sphinx Plugin daemon",
 	After: func(c *cli.Context) error {
+		plugin.Close()
 		return logger.Sync()
 	},
 	Action: func(c *cli.Context) error {
 		log.Infof(
 			"run plugin wanIP: %v, Position %v",
 			config.GetENV().WanIP,
-			config.GetENV().Position)
+			config.GetENV().Position,
+		)
 
 		task.Run()
 		sigs := make(chan os.Signal, 1)
