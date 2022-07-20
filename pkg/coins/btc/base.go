@@ -28,11 +28,11 @@ var BTCNetMap = map[string]*chaincfg.Params{
 var ErrWaitMessageOnChainMinConfirms = errors.New("wait message on chain min confirms")
 
 var (
-	ErrFundsTooLow    = `insufficient balance`
-	ErrListUnspendErr = `list unspent address fail`
-	StopErrs          = []string{
-		ErrFundsTooLow,
-		ErrListUnspendErr,
+	fundsTooLow    = `insufficient balance`
+	listUnspendErr = `list unspent address fail`
+	stopErrMsg     = []string{
+		fundsTooLow,
+		listUnspendErr,
 		env.ErrEVNCoinNetValue.Error(),
 		env.ErrAddressInvalid.Error(),
 		env.ErrAmountInvalid.Error(),
@@ -40,7 +40,11 @@ var (
 )
 
 func TxFailErr(err error) bool {
-	for _, v := range StopErrs {
+	if err == nil {
+		return false
+	}
+
+	for _, v := range stopErrMsg {
 		if strings.Contains(err.Error(), v) {
 			return true
 		}

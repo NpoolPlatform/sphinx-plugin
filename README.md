@@ -11,14 +11,9 @@
   - [命令](#命令)
   - [最佳实践](#最佳实践)
   - [环境变量](#环境变量)
-  - [Plugin Features](#plugin-features)
-    - [multiple-endpoints](#multiple-endpoints)
     - [wallet-status-check](#wallet-status-check)
     - [account-check](#account-check)
     - [ethereum 部署](#ethereum-部署)
-    - [TRC20部署](#trc20部署)
-    - [solana 部署](#solana-部署)
-    - [部署](#部署)
     - [升级说明](#升级说明)
     - [推荐](#推荐)
     - [说明](#说明)
@@ -72,51 +67,57 @@
 
 ## 环境变量
 
-| 币种                             | 变量名称                      | 支持的值      | 说明                                   |
-|:---------------------------------|:----------------------------|:-------------|:--------------------------------------|
-| all                              | ENV_COIN_NET                | main or test |                                       |
-| all                              | ENV_COIN_TYPE               |              |                                       |
-| all                              | ENV_SYNC_INTERVAL           |              | optional,交易状态同步间隔周期(s)         |
-| all                              | ENV_WAN_IP                  |              | plugin的wan-ip                        |
-| all                              | ENV_POSITION                |              | plugin的位置信息(如NewYork_NO2)         |
-| fil btc sol eth/erc20 tron/trc20 | ENV_COIN_LOCAL_API          | ip:port      | 多个地址使用,分割                        |
-| eth/erc20 tron/trc20             | ENV_COIN_PUBLIC_API         | ip:port      | 多个地址使用,分割                        |
-| tron/trc20                       | ENV_COIN_JSONRPC_LOCAL_API  | ip:port      | 多个地址使用,分割                        |
-| tron/trc20                       | ENV_COIN_JSONRPC_PUBLIC_API | ip:port      | 多个地址使用,分割                        |
-| usdterc20 trc20 busdbep20        | ENV_CONTRACT                |              | 填写trc20的合约地址                     |
-| filecoin                         | ENV_COIN_TOKEN              |              |                                       |
-| bitcoin                          | ENV_COIN_USER               |              |                                       |
-| bitcoin                          | ENV_COIN_PASS               |              |                                       |
+| 币种     | 变量名称            | 支持的值     | 说明                             |
+|:---------|:--------------------|:-------------|:---------------------------------|
+| comm     | ENV_COIN_NET        | main or test |                                  |
+|          | ENV_COIN_TYPE       |              |                                  |
+|          | ENV_SYNC_INTERVAL   |              | optional,交易状态同步间隔周期(s) |
+|          | ENV_WAN_IP          |              | plugin的wan-ip                   |
+|          | ENV_POSITION        |              | plugin的位置信息(如NewYork_NO2)  |
+|          | ENV_COIN_LOCAL_API  | ip:port      | 多个地址使用,分割                |
+|          | ENV_COIN_PUBLIC_API | ip:port      | 多个地址使用,分割                |
+| erc20    | ENV_CONTRACT        |              | 合约币种的合约地址               |
+
+配置说明
+
+对于合约地址配置说明
+
+钱包地址配置格式:
+  **url|auth,url|auth,url|auth**
+
+- 不需要认证
+
+  ````conf
+    auth 格式
+    示例: https://127.0.0.1:8080|
+  ````
+
+- 账号密码体系
+
+  ````conf
+    auth 格式
+    user@password
+    示例: https://127.0.0.1:8080|root@3306
+  ```
+
+- token 体系
+
+  ````conf
+    auth 格式
+    token
+    示例: https://127.0.0.1:8080|token
+  ```
 
 交易上链状态查询默认周期
 
-|           币种         | 默认值   |  出块时间  |
-|:----------------------:|:--------:|:--------:|
-|        filecoin        |    20s   |   30s    |
-|        bitcoin         |   7min   |  10min   |
-|         solana         |    1s    |   0.4s   |
-|   ethereum/usdterc20   |    12s   |  10~20s  |
-| binancecoin/binanceusd |    4s    |    5s    |
-|     tron/usdttrc20     |    2s    |    3s    |
-
-1. **ENV_COIN_LOCAL_API/ENV_COIN_PUBLIC_API** 钱包服务的 **ipv4** 、 **ipv6** 地址或是域名
-2. **ENV_COIN_TOKEN** filecoin 钱包服务的 **token**
-
-## Plugin Features
-
-由于币种之间差异，会造成plugin在每个币种的功能存在差异
-
-此部分记录当前版本plugin特性对各币种的支持情况
-
-### multiple-endpoints
-
-每个plugin可配置多个节点地址（可提供账户余额、交易状态、链状态等相关API的地址）
-
-相关环境变量：ENV_COIN_LOCAL_API、ENV_COIN_PUBLIC_API
-
-eth/erc20 tron/trc20 bsc/bep20 支持配置多个地址并使用","分割
-
-fil btc sol 只支持配置ENV_COIN_LOCAL_API环境变量，且仅支持配置单节点
+|          币种          | 默认值 | 出块时间 |
+|:----------------------:|:------:|:--------:|
+|        filecoin        |  20s   |   30s    |
+|        bitcoin         |  7min  |  10min   |
+|         solana         |   1s   |   0.4s   |
+|   ethereum/usdterc20   |  12s   |  10~20s  |
+| binancecoin/binanceusd |   4s   |    5s    |
+|     tron/usdttrc20     |   2s   |    3s    |
 
 ### wallet-status-check
 
@@ -151,24 +152,6 @@ tron/trc20 在获取balance时检测账户格式，与波场HTTP-API提供的wal
    2. 上述的命令会返回合约的**ID**,设置到配置文件**ENV_CONTRACT**的值
 
    3. 部署支持 ethereum/usdterc20 的 plugin
-
-### 部署
-
-```conf
-# mkdir -p /etc/SphinxPlugin
-# cp cmd/sphinx-plugin/SphinxPlugin.viper.yaml /etc/SphinxPlugin/
-# cat /etc/SphinxPlugin/SphinxPlugin.viper.yaml
----
-config:
-  hostname: "sphinx-plugin.npool.top"
-  http_port: 50170
-  grpc_port: 50171
-  prometheus_port: 50172
-  appid: "89089012783789789719823798127398"
-  logdir: "/var/log"
-  apolloAccessKey: "0147fb70b815403790e8634b899fac07"
-  sphinx_proxy_addr: "sphinx.proxy.api.npool.top:8080,sphinx.proxy.api.xpool.top:8080"
-```
 
 ### 升级说明
 

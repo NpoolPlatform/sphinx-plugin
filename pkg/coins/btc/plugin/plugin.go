@@ -196,7 +196,7 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 		[]btcutil.Address{_addr},
 	)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", btc.ErrListUnspendErr, err)
+		return in, err
 	}
 
 	// 构建新的交易

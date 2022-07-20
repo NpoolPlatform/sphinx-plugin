@@ -20,14 +20,18 @@ var (
 )
 
 var (
-	ErrGasTooLow   = `intrinsic gas too low`
-	ErrFundsTooLow = `insufficient funds for gas * price + value`
-	ErrNonceToLow  = `nonce too low`
-	StopErrs       = []string{ErrGasTooLow, ErrFundsTooLow, ErrNonceToLow}
+	gasTooLow   = `intrinsic gas too low`
+	fundsTooLow = `insufficient funds for gas * price + value`
+	nonceToLow  = `nonce too low`
+	stopErrMsg  = []string{gasTooLow, fundsTooLow, nonceToLow}
 )
 
 func TxFailErr(err error) bool {
-	for _, v := range StopErrs {
+	if err == nil {
+		return false
+	}
+
+	for _, v := range stopErrMsg {
 		if strings.Contains(err.Error(), v) {
 			return true
 		}
