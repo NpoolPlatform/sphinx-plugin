@@ -135,11 +135,13 @@ func BalanceS(addr, contractAddress string) (*big.Int, error) {
 	client := tron.Client()
 	err = client.WithClient(func(c *tronclient.GrpcClient) (bool, error) {
 		ret, err = c.TRC20ContractBalance(addr, contractAddress)
+		if err != nil && strings.Contains(err.Error(), tron.AddressNotActive) {
+			ret = tron.EmptyTRC20
+			return false, nil
+		}
 		return true, err
 	})
-	if err != nil && strings.Contains(err.Error(), tron.ErrInvalidAddr.Error()) {
-		return tron.EmptyTRC20, nil
-	}
+
 	return ret, err
 }
 

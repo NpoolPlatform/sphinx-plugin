@@ -53,7 +53,7 @@ func getConn(target string) (*grpc.ClientConn, error) {
 
 	connState := conn.GetState()
 	if connState != connectivity.Idle && connState != connectivity.Ready {
-		return nil, err
+		return nil, fmt.Errorf("get conn state not ready: %v", connState)
 	}
 
 	return conn, nil

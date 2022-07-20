@@ -66,7 +66,7 @@ func newClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 
 	conn, pc, err := proxyClient.newProxyClient()
 	if err != nil {
-		log.Errorf("create new proxy client error: %w", err)
+		log.Errorf("create new proxy client error: %v", err)
 		delayNewClient(exitSig, cleanChan)
 		return
 	}
