@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
+	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
+
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
@@ -91,9 +94,27 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return in, err
 	}
+
+	if err := tron.ValidAddress(wbReq.Address); err != nil {
+		return in, err
+	}
+
 	client := tron.Client()
 
-	bl, err := client.TRXBalanceS(wbReq.Address)
+	var bl int64
+	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
+		acc, err := cli.GetAccount(wbReq.Address)
+		if err != nil && strings.Contains(err.Error(), tron.AddressNotActive) {
+			bl = tron.EmptyTRX
+			return false, nil
+		}
+		if err != nil {
+			return true, err
+		}
+		bl = acc.GetBalance()
+		return false, nil
+	})
+
 	if err != nil {
 		return in, err
 	}
@@ -113,8 +134,11 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return in, err
 	}
+
 	from := baseInfo.From
 	to := baseInfo.To
+	amount := tron.TRXToInt(baseInfo.Value)
+
 	err = tron.ValidAddress(from)
 	if err != nil {
 		return in, err
@@ -123,11 +147,15 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return in, err
 	}
-	amount := baseInfo.Value
 
 	client := tron.Client()
 
-	txExtension, err := client.TRXTransferS(from, to, tron.TRXToInt(amount))
+	var txExtension *api.TransactionExtention
+	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
+		txExtension, err = cli.Transfer(from, to, amount)
+		return true, err
+	})
+
 	if err != nil {
 		return in, err
 	}
@@ -150,7 +178,15 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 	client := tron.Client()
 	transaction := bReq.TxExtension.Transaction
 	bReq.TxExtension.GetTxid()
-	result, err := client.BroadcastS(transaction)
+	var result *api.Return
+	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
+		result, err = cli.Broadcast(transaction)
+		if err != nil && result.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
+			return false, err
+		}
+		return true, err
+	})
+
 	if err != nil {
 		return in, err
 	}
@@ -196,7 +232,11 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 	client := tron.Client()
 
-	txInfo, err := client.GetTransactionInfoByIDS(syncReq.TxID)
+	var txInfo *core.TransactionInfo
+	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
+		txInfo, err = cli.GetTransactionInfoByID(syncReq.TxID)
+		return true, err
+	})
 
 	if txInfo == nil || err != nil {
 		return in, tron.ErrWaitMessageOnChain

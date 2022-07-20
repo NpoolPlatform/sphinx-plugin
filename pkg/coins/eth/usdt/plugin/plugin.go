@@ -131,17 +131,6 @@ func _walletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 	var err error
 	var ret *BigUSDT
 	err = eClient.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		syncRet, _err := c.SyncProgress(ctx)
-		if _err != nil {
-			return true, _err
-		}
-		if syncRet != nil {
-			return true, fmt.Errorf(
-				"node is syncing ,current block %v ,highest block %v ",
-				syncRet.CurrentBlock, syncRet.HighestBlock,
-			)
-		}
-
 		ret, err = ERC20Balance(ctx, addr, c)
 		if err == nil && ret != nil {
 			return false, nil
