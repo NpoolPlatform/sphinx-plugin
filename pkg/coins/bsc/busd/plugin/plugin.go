@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"math/big"
 
@@ -109,16 +108,6 @@ func _walletBalance(ctx context.Context, addr string) (*big.Int, error) {
 	var err error
 	client := bsc.Client()
 	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		syncRet, err := c.SyncProgress(ctx)
-		if err != nil {
-			return true, err
-		}
-		if syncRet != nil && syncRet.CurrentBlock < syncRet.HighestBlock {
-			return true, fmt.Errorf(
-				"node is syncing ,current block %v ,highest block %v ",
-				syncRet.CurrentBlock, syncRet.HighestBlock,
-			)
-		}
 		ret, err = bep20Balance(ctx, addr, c)
 
 		return true, err

@@ -67,16 +67,16 @@
 
 ## 环境变量
 
-| 币种     | 变量名称            | 支持的值     | 说明                             |
-|:---------|:--------------------|:-------------|:---------------------------------|
-| comm     | ENV_COIN_NET        | main or test |                                  |
-|          | ENV_COIN_TYPE       |              |                                  |
-|          | ENV_SYNC_INTERVAL   |              | optional,交易状态同步间隔周期(s) |
-|          | ENV_WAN_IP          |              | plugin的wan-ip                   |
-|          | ENV_POSITION        |              | plugin的位置信息(如NewYork_NO2)  |
-|          | ENV_COIN_LOCAL_API  | ip:port      | 多个地址使用,分割                |
-|          | ENV_COIN_PUBLIC_API | ip:port      | 多个地址使用,分割                |
-| erc20    | ENV_CONTRACT        |              | 合约币种的合约地址               |
+| 币种  | 变量名称            | 支持的值     | 说明                             |
+|:------|:--------------------|:-------------|:---------------------------------|
+| comm  | ENV_COIN_NET        | main or test |                                  |
+|       | ENV_COIN_TYPE       |              |                                  |
+|       | ENV_SYNC_INTERVAL   |              | optional,交易状态同步间隔周期(s) |
+|       | ENV_WAN_IP          |              | plugin的wan-ip                   |
+|       | ENV_POSITION        |              | plugin的位置信息(如NewYork_NO2)  |
+|       | ENV_COIN_LOCAL_API  |              | 多个地址使用,分割                |
+|       | ENV_COIN_PUBLIC_API |              | 多个地址使用,分割                |
+| erc20 | ENV_CONTRACT        |              | 合约币种的合约地址               |
 
 配置说明
 

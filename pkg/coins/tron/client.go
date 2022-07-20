@@ -2,6 +2,7 @@ package tron
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,8 +13,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 	"google.golang.org/grpc"
 )
 
@@ -23,17 +22,14 @@ const (
 	RetriesSleepTime = 1 * time.Second
 )
 
-var (
-	ErrTxExpired  = `Transaction expired`
-	ErrFundsToLow = `balance is not sufficient`
-	StopErrs      = []string{ErrTxExpired, ErrFundsToLow}
+const (
+	TxExpired  = `Transaction expired`
+	FundsToLow = `balance is not sufficient`
 )
 
+var StopErrs = []string{TxExpired, FundsToLow}
+
 type TClientI interface {
-	TRXBalanceS(addr string) (int64, error)
-	TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error)
-	BroadcastS(tx *core.Transaction) (*api.Return, error)
-	GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error)
 	GetGRPCClient(endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error)
 	WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error
 }
@@ -139,8 +135,10 @@ func (tClients *TClients) SyncProgress(ip, port string) (*SyncingResponse, error
 }
 
 func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
-	var err error
-	var retry bool
+	var (
+		err, apiErr error
+		retry       bool
+	)
 
 	endpointmgr, err := endpoints.NewManager()
 	if err != nil {
@@ -150,15 +148,13 @@ func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		if i > 0 {
 			time.Sleep(time.Second)
 		}
-		client, nodeErr := tClients.GetGRPCClient(endpointmgr)
-		if err == nil || nodeErr != endpoints.ErrEndpointExhausted {
-			err = nodeErr
+		client, err := tClients.GetGRPCClient(endpointmgr)
+		if errors.Is(err, endpoints.ErrEndpointExhausted) {
+			return apiErr
 		}
-		if nodeErr != nil || client == nil {
-			continue
-		}
+
 		if err != nil {
-			continue
+			return err
 		}
 		retry, err = fn(client)
 		client.Stop()
@@ -168,65 +164,6 @@ func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		}
 	}
 	return err
-}
-
-func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
-	ret := EmptyTRX
-	if err := ValidAddress(addr); err != nil {
-		return ret, err
-	}
-
-	err := tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
-		acc, err := client.GetAccount(addr)
-		if err != nil && strings.Contains(err.Error(), AddressNotActive) {
-			ret = EmptyTRX
-			return false, nil
-		}
-		if err != nil {
-			return true, err
-		}
-		ret = acc.GetBalance()
-		return false, nil
-	})
-	return ret, err
-}
-
-func (tClients *TClients) TRXTransferS(from, to string, amount int64) (*api.TransactionExtention, error) {
-	var ret *api.TransactionExtention
-	var err error
-	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
-		ret, err = client.Transfer(from, to, amount)
-		return true, err
-	})
-
-	return ret, err
-}
-
-func (tClients *TClients) BroadcastS(tx *core.Transaction) (*api.Return, error) {
-	var ret *api.Return
-	var err error
-
-	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
-		ret, err = client.Broadcast(tx)
-		if err != nil && ret.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
-			return false, err
-		}
-		return true, err
-	})
-
-	return ret, err
-}
-
-func (tClients *TClients) GetTransactionInfoByIDS(id string) (*core.TransactionInfo, error) {
-	var ret *core.TransactionInfo
-	var err error
-
-	err = tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
-		ret, err = client.GetTransactionInfoByID(id)
-		return true, err
-	})
-
-	return ret, err
 }
 
 func Client() TClientI {

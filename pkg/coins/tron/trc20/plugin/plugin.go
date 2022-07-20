@@ -3,7 +3,6 @@ package trc20
 import (
 	"context"
 	"encoding/json"
-	"math/big"
 	"strings"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -81,7 +80,21 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 	contract := config.GetENV().Contract
-	bl, err := BalanceS(wbReq.Address, contract)
+
+	bl := tron.EmptyTRC20
+	if err := tron.ValidAddress(wbReq.Address); err != nil {
+		return in, err
+	}
+
+	client := tron.Client()
+	err = client.WithClient(func(c *tronclient.GrpcClient) (bool, error) {
+		bl, err = c.TRC20ContractBalance(wbReq.Address, contract)
+		if err != nil && strings.Contains(err.Error(), tron.AddressNotActive) {
+			bl = tron.EmptyTRC20
+			return false, nil
+		}
+		return true, err
+	})
 	if err != nil {
 		return in, err
 	}
@@ -106,52 +119,25 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 
 	contract := config.GetENV().Contract
 
-	txExtension, err := BuildTransacitonS(
-		baseInfo.From,
-		baseInfo.To,
-		contract,
-		tron.TRC20ToBigInt(baseInfo.Value),
-		tron.TRC20FeeLimit,
-	)
+	var txExtension *api.TransactionExtention
+	client := tron.Client()
+	err = client.WithClient(func(c *tronclient.GrpcClient) (bool, error) {
+		txExtension, err = c.TRC20Send(
+			baseInfo.From,
+			baseInfo.To,
+			contract,
+			tron.TRC20ToBigInt(baseInfo.Value),
+			tron.TRC20FeeLimit,
+		)
+		return true, err
+	})
 	if err != nil {
 		return in, err
 	}
-
 	signTx := &tron.SignMsgTx{
 		Base:        *baseInfo,
 		TxExtension: txExtension,
 	}
 
 	return json.Marshal(signTx)
-}
-
-func BalanceS(addr, contractAddress string) (*big.Int, error) {
-	var err error
-	ret := tron.EmptyTRC20
-	if err := tron.ValidAddress(addr); err != nil {
-		return ret, err
-	}
-
-	client := tron.Client()
-	err = client.WithClient(func(c *tronclient.GrpcClient) (bool, error) {
-		ret, err = c.TRC20ContractBalance(addr, contractAddress)
-		if err != nil && strings.Contains(err.Error(), tron.AddressNotActive) {
-			ret = tron.EmptyTRC20
-			return false, nil
-		}
-		return true, err
-	})
-
-	return ret, err
-}
-
-func BuildTransacitonS(from, to, contract string, amount *big.Int, feeLimit int64) (*api.TransactionExtention, error) {
-	var ret *api.TransactionExtention
-	var err error
-	client := tron.Client()
-	err = client.WithClient(func(c *tronclient.GrpcClient) (bool, error) {
-		ret, err = c.TRC20Send(from, to, contract, amount, feeLimit)
-		return true, err
-	})
-	return ret, err
 }

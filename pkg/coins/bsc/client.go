@@ -2,6 +2,7 @@ package bsc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -25,23 +26,44 @@ type BClientI interface {
 	SendTransactionS(ctx context.Context, tx *types.Transaction) error
 	TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error)
 	TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
-	GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error)
+	GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (*ethclient.Client, error)
 	WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error
 }
 
 type bClients struct{}
 
-func (bClients bClients) GetNode(endpointmgr *endpoints.Manager) (*ethclient.Client, error) {
+func (bClients bClients) GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (*ethclient.Client, error) {
 	endpoint, _, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}
-	return ethclient.Dial(endpoint)
+	cli, err := ethclient.DialContext(ctx, endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	syncRet, _err := cli.SyncProgress(ctx)
+	if _err != nil {
+		cli.Close()
+		return nil, _err
+	}
+
+	if syncRet != nil {
+		cli.Close()
+		return nil, fmt.Errorf(
+			"node is syncing ,current block %v ,highest block %v ",
+			syncRet.CurrentBlock, syncRet.HighestBlock,
+		)
+	}
+
+	return cli, nil
 }
 
 func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error {
-	var err error
-	var retry bool
+	var (
+		apiErr, err error
+		retry       bool
+	)
 	endpointmgr, err := endpoints.NewManager()
 	if err != nil {
 		return err
@@ -50,19 +72,21 @@ func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		if i > 0 {
 			time.Sleep(time.Second)
 		}
-		client, nodeErr := bClients.GetNode(endpointmgr)
-		if err == nil || nodeErr != endpoints.ErrEndpointExhausted {
-			err = nodeErr
-		}
-		if nodeErr != nil || client == nil {
-			continue
+
+		client, err := bClients.GetNode(ctx, endpointmgr)
+		if errors.Is(err, endpoints.ErrEndpointExhausted) {
+			return apiErr
 		}
 
-		retry, err = fn(ctx, client)
+		if err != nil {
+			return err
+		}
+
+		retry, apiErr = fn(ctx, client)
 		client.Close()
 
-		if err == nil || !retry {
-			return err
+		if !retry {
+			return apiErr
 		}
 	}
 	return err
@@ -73,16 +97,6 @@ func (bClients bClients) BalanceAtS(ctx context.Context, account common.Address,
 	var err error
 
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		syncRet, syncErr := c.SyncProgress(ctx)
-		if syncErr != nil {
-			return true, syncErr
-		}
-		if syncRet != nil && syncRet.CurrentBlock < syncRet.HighestBlock {
-			return true, fmt.Errorf(
-				"node is syncing ,current block %v ,highest block %v ",
-				syncRet.CurrentBlock, syncRet.HighestBlock,
-			)
-		}
 		ret, err = c.BalanceAt(ctx, account, blockNumber)
 		return true, err
 	})

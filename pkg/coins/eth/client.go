@@ -20,12 +20,13 @@ const (
 	RetriesSleepTime = 1 * time.Second
 )
 
-var (
+const (
 	gasToLow   = `intrinsic gas too low`
 	fundsToLow = `insufficient funds for gas * price + value`
 	nonceToLow = `nonce too low`
-	stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
 )
+
+var stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
 
 type EClientI interface {
 	BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
