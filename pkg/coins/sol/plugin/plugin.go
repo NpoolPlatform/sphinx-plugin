@@ -94,12 +94,12 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
-	api, err := client(ctx)
-	if err != nil {
-		return in, err
-	}
-
-	bl, err := api.GetBalance(ctx, pubKey, rpc.CommitmentFinalized)
+	client := sol.Client()
+	var bl *rpc.GetBalanceResult
+	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
+		bl, err = cli.GetBalance(ctx, pubKey, rpc.CommitmentFinalized)
+		return false, err
+	})
 	if err != nil {
 		return in, err
 	}
@@ -124,12 +124,13 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
-	api, err := client(ctx)
-	if err != nil {
-		return in, err
-	}
+	client := sol.Client()
 
-	recentBlockHash, err := api.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
+	var recentBlockHash *rpc.GetLatestBlockhashResult
+	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
+		recentBlockHash, err = cli.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
+		return false, err
+	})
 	if err != nil {
 		return in, err
 	}
@@ -158,12 +159,15 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, sol.ErrSolSignatureWrong
 	}
 
-	api, err := client(ctx)
+	client := sol.Client()
 	if err != nil {
 		return in, err
 	}
-
-	cid, err := api.SendTransaction(ctx, tx)
+	var cid solana.Signature
+	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
+		cid, err = cli.SendTransaction(ctx, tx)
+		return false, err
+	})
 	if err != nil {
 		sResp := &ct.SyncResponse{}
 		sResp.ExitCode = -1
@@ -196,19 +200,22 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	ctx, cancel := context.WithTimeout(ctx, sconst.WaitMsgOutTimeout)
 	defer cancel()
 
-	api, err := client(ctx)
+	client := sol.Client()
+	var chainMsg *rpc.GetTransactionResult
+	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
+		chainMsg, err = cli.GetTransaction(
+			ctx,
+			signature,
+			&rpc.GetTransactionOpts{
+				Encoding:   solana.EncodingBase58,
+				Commitment: rpc.CommitmentFinalized,
+			})
+		return false, err
+	})
 	if err != nil {
 		return in, err
 	}
 
-	// TODO double-spend
-	chainMsg, err := api.GetTransaction(
-		ctx,
-		signature,
-		&rpc.GetTransactionOpts{
-			Encoding:   solana.EncodingBase58,
-			Commitment: rpc.CommitmentFinalized,
-		})
 	if err != nil {
 		return in, sol.ErrSolBlockNotFound
 	}
