@@ -178,15 +178,16 @@ func (tClients *TClients) TRXBalanceS(addr string) (int64, error) {
 
 	err := tClients.WithClient(func(client *tronclient.GrpcClient) (bool, error) {
 		acc, err := client.GetAccount(addr)
+		if err != nil && strings.Contains(err.Error(), AddressNotActive) {
+			ret = EmptyTRX
+			return false, nil
+		}
 		if err != nil {
 			return true, err
 		}
 		ret = acc.GetBalance()
 		return false, nil
 	})
-	if err != nil && strings.Contains(err.Error(), ErrInvalidAddr.Error()) {
-		return EmptyTRX, nil
-	}
 	return ret, err
 }
 

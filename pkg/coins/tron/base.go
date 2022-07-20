@@ -30,7 +30,8 @@ var (
 )
 
 var (
-	ErrAddressEmpty = errors.New("tron address is empty")
+	AddressNotActive = `account not found`
+	ErrAddressEmpty  = errors.New("tron address is empty")
 	// ErrWaitMessageOnChain ..
 	ErrWaitMessageOnChain = errors.New("wait message on tron-chain")
 	// ErrAddrNotValid ..
