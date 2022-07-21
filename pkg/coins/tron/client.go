@@ -174,6 +174,7 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 			return err
 		}
 		retry, err = fn(client)
+		logger.Sugar().Infof("sssssssssss6,%v", err)
 		client.Stop()
 
 		if err == nil || !retry {
