@@ -1,17 +1,17 @@
 package tron
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"google.golang.org/grpc"
 )
@@ -23,18 +23,18 @@ const (
 )
 
 const (
-	TxExpired  = `Transaction expired`
-	FundsToLow = `balance is not sufficient`
+	txExpired  = `Transaction expired`
+	fundsToLow = `balance is not sufficient`
 )
 
-var StopErrs = []string{TxExpired, FundsToLow}
+var stopErrs = []string{txExpired, fundsToLow}
 
 type TClientI interface {
-	GetGRPCClient(endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error)
+	GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error)
 	WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error
 }
 
-type TClients struct{}
+type tClients struct{}
 
 var jsonAPIMap map[string]string
 
@@ -60,7 +60,7 @@ func init() {
 	}
 }
 
-func (tClients *TClients) GetGRPCClient(endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error) {
+func (tClients *tClients) GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error) {
 	endpoint, isLocal, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
@@ -69,9 +69,12 @@ func (tClients *TClients) GetGRPCClient(endpointmgr *endpoints.Manager) (*troncl
 	if isLocal {
 		strs := strings.Split(endpoint, ":")
 		port := jsonAPIMap[strs[0]]
-		syncRet, _err := tClients.SyncProgress(strs[0], port)
+
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+
+		syncRet, _err := tClients.SyncProgress(ctx, strs[0], port)
 		if _err != nil {
-			log.Error(_err)
 			return nil, _err
 		}
 
@@ -83,7 +86,7 @@ func (tClients *TClients) GetGRPCClient(endpointmgr *endpoints.Manager) (*troncl
 		}
 	}
 
-	ntc := tronclient.NewGrpcClientWithTimeout(endpoint, 6*time.Second)
+	ntc := tronclient.NewGrpcClientWithTimeout(endpoint, timeout)
 	err = ntc.Start(grpc.WithInsecure())
 	if err != nil {
 		return nil, err
@@ -103,30 +106,41 @@ type SyncingResponse struct {
 	Result SyncBlock
 }
 
+var client = &http.Client{
+	Transport: &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   5 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout:   5 * time.Second,
+		ResponseHeaderTimeout: 5 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	},
+}
+
 // SyncProgress retrieves the current progress of the sync algorithm. If there's
 // no sync currently running, it returns nil.
-func (tClients *TClients) SyncProgress(ip, port string) (*SyncingResponse, error) {
+func (tClients *tClients) SyncProgress(ctx context.Context, ip, port string) (*SyncingResponse, error) {
 	addr := fmt.Sprintf("http://%v:%v/jsonrpc", ip, port)
+	req, err := http.NewRequest(http.MethodPost, addr, strings.NewReader(`{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":64}`))
+	if err != nil {
+		return nil, err
+	}
 
-	contentType := "application/json"
-	body := strings.NewReader(`{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":64}`)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.Post(addr, contentType, body)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
+	syncRes := SyncingResponse{}
+	if err := json.NewDecoder(resp.Body).Decode(&syncRes); err != nil {
 		return nil, err
 	}
 
-	var syncRes SyncingResponse
-	err = json.Unmarshal(data, &syncRes)
-	if err != nil {
-		return nil, err
-	}
 	if syncRes.Result.CurrentBlock >= syncRes.Result.HighestBlock {
 		return nil, nil
 	}
@@ -134,7 +148,7 @@ func (tClients *TClients) SyncProgress(ip, port string) (*SyncingResponse, error
 	return &syncRes, nil
 }
 
-func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
+func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error {
 	var (
 		err, apiErr error
 		retry       bool
@@ -144,11 +158,12 @@ func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 	if err != nil {
 		return err
 	}
+
 	for i := 0; i < MaxRetries; i++ {
 		if i > 0 {
 			time.Sleep(time.Second)
 		}
-		client, err := tClients.GetGRPCClient(endpointmgr)
+		client, err := tClients.GetGRPCClient(6*time.Second, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			return apiErr
 		}
@@ -163,15 +178,20 @@ func (tClients *TClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 			return err
 		}
 	}
+
 	return err
 }
 
 func Client() TClientI {
-	return &TClients{}
+	return &tClients{}
 }
 
 func TxFailErr(err error) bool {
-	for _, v := range StopErrs {
+	if err == nil {
+		return false
+	}
+
+	for _, v := range stopErrs {
 		if strings.Contains(err.Error(), v) {
 			return true
 		}
