@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 
@@ -157,6 +158,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	info := &eth.PreSignData{
+		CoinType:   baseInfo.CoinType,
 		ChainID:    chainID.Int64(),
 		ContractID: contractID,
 		Nonce:      nonce,
@@ -175,12 +177,13 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 // SendRawTransaction eth/usdt
-func SendRawTransaction(ctx context.Context, in []byte) (out []byte, err error) {
+func SendRawTransaction(ctx context.Context, in []byte) ([]byte, error) {
 	signedData := &eth.SignedData{}
-	err = json.Unmarshal(in, signedData)
+	err := json.Unmarshal(in, signedData)
 	if err != nil {
 		return in, err
 	}
+	fmt.Println("rlp: ", signedData.SignedTx)
 	client := eth.Client()
 
 	tx := new(types.Transaction)
@@ -196,11 +199,8 @@ func SendRawTransaction(ctx context.Context, in []byte) (out []byte, err error) 
 	broadcastedData := ct.BroadcastInfo{
 		TxID: tx.Hash().Hex(),
 	}
-	out, err = json.Marshal(broadcastedData)
-	if err != nil {
-		return in, err
-	}
-	return out, err
+
+	return json.Marshal(broadcastedData)
 }
 
 // SyncTxState done(on chain) => true

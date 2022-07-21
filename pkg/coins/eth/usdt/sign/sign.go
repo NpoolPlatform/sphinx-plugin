@@ -61,7 +61,6 @@ func CreateBrc20Account(ctx context.Context, in []byte) (out []byte, err error) 
 func Message(ctx context.Context, in []byte) (out []byte, err error) {
 	preSignData := &eth.PreSignData{}
 	err = json.Unmarshal(in, preSignData)
-	fmt.Println("sssssssss:", preSignData)
 	if err != nil {
 		return in, err
 	}
@@ -124,7 +123,7 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 	signedData := eth.SignedData{
 		SignedTx: signedTxBuf.Bytes(),
 	}
-	out, err = json.Marshal(signedData)
 
-	return out, err
+	fmt.Println("rlp: ", signedData.SignedTx)
+	return json.Marshal(signedData)
 }
