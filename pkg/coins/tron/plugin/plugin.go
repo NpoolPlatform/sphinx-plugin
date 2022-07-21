@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -153,11 +153,13 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 
 	var txExtension *api.TransactionExtention
 	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
+		_, err := cli.GetAccount(from)
+		if err != nil {
+			return false, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
+		}
 		txExtension, err = cli.Transfer(from, to, amount)
 		return true, err
 	})
-	logger.Sugar().Infof("sssssssssss1%v", err)
-	logger.Sugar().Infof("sssssssssss2%v", txExtension)
 	if err != nil {
 		return in, err
 	}

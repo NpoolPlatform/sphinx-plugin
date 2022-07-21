@@ -62,8 +62,8 @@ func (sClients *SClients) WithClient(ctx context.Context, fn func(c *rpc.Client)
 
 		retry, apiErr = fn(client)
 
-		if err == nil || !retry {
-			return err
+		if apiErr == nil || !retry {
+			return apiErr
 		}
 	}
 	return err

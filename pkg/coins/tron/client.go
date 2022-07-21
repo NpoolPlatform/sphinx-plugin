@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
@@ -24,11 +23,13 @@ const (
 )
 
 const (
-	txExpired  = `Transaction expired`
-	fundsToLow = `balance is not sufficient`
+	txExpired        = `Transaction expired`
+	fundsToLow       = `balance is not sufficient`
+	AddressNotActive = `account not found`
+	AddressInvalid   = `account is invalid`
 )
 
-var stopErrs = []string{txExpired, fundsToLow}
+var stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive}
 
 type TClientI interface {
 	GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error)
@@ -165,20 +166,19 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 			time.Sleep(time.Second)
 		}
 		client, err := tClients.GetGRPCClient(6*time.Second, endpointmgr)
-		logger.Sugar().Infof("sssssssssss5,%v", err)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			return apiErr
 		}
 
 		if err != nil {
-			return err
+			continue
 		}
-		retry, err = fn(client)
-		logger.Sugar().Infof("sssssssssss6,%v", err)
+
+		retry, apiErr = fn(client)
 		client.Stop()
 
-		if err == nil || !retry {
-			return err
+		if apiErr == nil || !retry {
+			return apiErr
 		}
 	}
 

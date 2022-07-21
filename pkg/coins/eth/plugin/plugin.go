@@ -224,7 +224,6 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return in, err
 	}
-
 	log.Infof("transaction info: TxHash %v, GasUsed %v, Status %v.", receipt.TxHash, receipt.GasUsed, receipt.Status == 1)
 
 	sResp := &ct.SyncResponse{ExitCode: 0}
