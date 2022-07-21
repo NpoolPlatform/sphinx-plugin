@@ -5,10 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"math/big"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -183,7 +183,7 @@ func SendRawTransaction(ctx context.Context, in []byte) ([]byte, error) {
 	if err != nil {
 		return in, err
 	}
-	fmt.Println("rlp: ", signedData.SignedTx)
+	logger.Sugar().Errorf("rlp: %v", signedData.SignedTx)
 	client := eth.Client()
 
 	tx := new(types.Transaction)

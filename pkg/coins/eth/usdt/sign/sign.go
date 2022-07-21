@@ -5,11 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"math/big"
 	"strings"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	ethSign "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/sign"
@@ -124,6 +124,6 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 		SignedTx: signedTxBuf.Bytes(),
 	}
 
-	fmt.Println("rlp: ", signedData.SignedTx)
+	logger.Sugar().Errorf("rlp: %v", signedData.SignedTx)
 	return json.Marshal(signedData)
 }
