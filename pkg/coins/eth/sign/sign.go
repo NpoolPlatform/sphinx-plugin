@@ -32,7 +32,7 @@ func init() {
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypeethereum,
 		sphinxproxy.TransactionState_TransactionStateSign,
-		EthMsg,
+		ethMsg,
 	)
 
 	// --------------------
@@ -46,26 +46,26 @@ func init() {
 	sign.Register(
 		sphinxplugin.CoinType_CoinTypetethereum,
 		sphinxproxy.TransactionState_TransactionStateSign,
-		EthMsg,
+		ethMsg,
 	)
 }
 
 const s3KeyPrxfix = "ethereum/"
 
-func EthMsg(ctx context.Context, in []byte) (out []byte, err error) {
-	return Message(ctx, s3KeyPrxfix, in)
+func ethMsg(ctx context.Context, in []byte) (out []byte, err error) {
+	return message(ctx, s3KeyPrxfix, in)
 }
 
 func CreateEthAccount(ctx context.Context, in []byte) (out []byte, err error) {
 	return CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
-func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err error) {
+func message(ctx context.Context, s3Store string, in []byte) ([]byte, error) {
 	preSignData := &eth.PreSignData{}
-	err = json.Unmarshal(in, preSignData)
-	if err != nil {
+	if err := json.Unmarshal(in, preSignData); err != nil {
 		return nil, err
 	}
+
 	pk, err := oss.GetObject(ctx, s3Store+preSignData.From, true)
 	if err != nil {
 		return nil, err
@@ -108,11 +108,12 @@ func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err er
 	if err != nil {
 		return nil, err
 	}
+
 	signedData := eth.SignedData{
-		SignedTx: signedTxBuf.Bytes(),
+		SignedTx: hex.EncodeToString(signedTxBuf.Bytes()),
 	}
-	out, err = json.Marshal(signedData)
-	return out, err
+
+	return json.Marshal(signedData)
 }
 
 func CreateAccount(ctx context.Context, s3Store string, in []byte) (out []byte, err error) {
@@ -142,6 +143,7 @@ func CreateAccount(ctx context.Context, s3Store string, in []byte) (out []byte, 
 	if err != nil {
 		return nil, err
 	}
+
 	_out := &ct.NewAccountResponse{Address: address}
 	out, err = json.Marshal(_out)
 	if err != nil {

@@ -15,7 +15,7 @@ type PreSignData struct {
 }
 
 type SignedData struct {
-	SignedTx []byte `json:"signed_tx"`
+	SignedTx string `json:"signed_tx"`
 }
 
 type BroadcastedData struct {

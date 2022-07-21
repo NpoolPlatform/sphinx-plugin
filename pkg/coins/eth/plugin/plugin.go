@@ -3,12 +3,12 @@ package plugin
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"math"
 	"math/big"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -183,12 +183,17 @@ func SendRawTransaction(ctx context.Context, in []byte) ([]byte, error) {
 	if err != nil {
 		return in, err
 	}
-	logger.Sugar().Errorf("rlp: %v", signedData.SignedTx)
+
 	client := eth.Client()
 
 	tx := new(types.Transaction)
 
-	if err := rlp.Decode(bytes.NewReader(signedData.SignedTx), tx); err != nil {
+	rawByteTx, err := hex.DecodeString(signedData.SignedTx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := rlp.Decode(bytes.NewReader(rawByteTx), tx); err != nil {
 		return in, err
 	}
 
@@ -224,7 +229,6 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return in, err
 	}
-	log.Infof("transaction info: TxHash %v, GasUsed %v, Status %v.", receipt.TxHash, receipt.GasUsed, receipt.Status == 1)
 
 	sResp := &ct.SyncResponse{ExitCode: 0}
 	out, err = json.Marshal(sResp)

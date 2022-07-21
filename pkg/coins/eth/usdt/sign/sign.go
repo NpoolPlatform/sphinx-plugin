@@ -3,13 +3,13 @@ package sign
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"math"
 	"math/big"
 	"strings"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	ethSign "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/sign"
@@ -121,9 +121,8 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	signedData := eth.SignedData{
-		SignedTx: signedTxBuf.Bytes(),
+		SignedTx: hex.EncodeToString(signedTxBuf.Bytes()),
 	}
 
-	logger.Sugar().Errorf("rlp: %v", signedData.SignedTx)
 	return json.Marshal(signedData)
 }
