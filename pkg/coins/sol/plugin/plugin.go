@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -175,7 +176,7 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		if err != nil {
 			return in, err
 		}
-		return out, sol.ErrSolTransactionFailed
+		return out, fmt.Errorf("%v,%v", sol.ErrSolTransactionFailed, err)
 	}
 
 	_out := ct.SyncRequest{
