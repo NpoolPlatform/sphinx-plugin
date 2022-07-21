@@ -17,6 +17,8 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/crypto"
+	lotus_api "github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/api/v0api"
 	"github.com/filecoin-project/lotus/build"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/specs-actors/actors/builtin"
@@ -110,12 +112,13 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	api, err := client()
-	if err != nil {
-		return nil, err
-	}
+	api := fil.Client()
+	var chainBalance types.BigInt
+	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
+		chainBalance, err = cli.WalletBalance(ctx, from)
+		return true, err
+	})
 
-	chainBalance, err := api.WalletBalance(ctx, from)
 	if err != nil {
 		return nil, err
 	}
@@ -161,12 +164,12 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	api, err := client()
-	if err != nil {
-		return nil, err
-	}
-
-	_nonce, err := api.MpoolGetNonce(ctx, from)
+	api := fil.Client()
+	var _nonce uint64
+	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
+		_nonce, err = cli.MpoolGetNonce(ctx, from)
+		return true, err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -240,12 +243,12 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		},
 	}
 
-	api, err := client()
-	if err != nil {
-		return nil, err
-	}
-
-	_cid, err := api.MpoolPush(ctx, signMsg)
+	api := fil.Client()
+	var _cid cid.Cid
+	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
+		_cid, err = cli.MpoolPush(ctx, signMsg)
+		return true, err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -274,11 +277,6 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	// TODO in main init
 	address.CurrentNetwork = fil.FILNetMap[v]
 
-	api, err := client()
-	if err != nil {
-		return nil, err
-	}
-
 	_cid, err := cid.Decode(info.TxID)
 	if err != nil {
 		return nil, env.ErrCIDInvalid
@@ -287,8 +285,13 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	ctx, cancel := context.WithTimeout(ctx, sconst.WaitMsgOutTimeout)
 	defer cancel()
 
+	api := fil.Client()
 	// 1. check message out
-	mp, err := api.MpoolPending(ctx, types.EmptyTSK)
+	var mp []*types.SignedMessage
+	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
+		mp, err = cli.MpoolPending(ctx, types.EmptyTSK)
+		return true, err
+	})
 	if err != nil {
 		return
 	}
@@ -297,7 +300,11 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	// 2. check message on chain
-	chainMsg, err := api.StateSearchMsg(ctx, _cid)
+	var chainMsg *lotus_api.MsgLookup
+	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
+		chainMsg, err = cli.StateSearchMsg(ctx, _cid)
+		return true, err
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -93,7 +93,7 @@ func syncTx(name string, interval time.Duration) {
 							name,
 							"plugin handle coinType: %v transaction type: %v id: %v use: %v",
 							transInfo.GetName(),
-							transInfo.TransactionState,
+							transInfo.GetTransactionState(),
 							transInfo.GetTransactionID(),
 							time.Since(now).String(),
 						)

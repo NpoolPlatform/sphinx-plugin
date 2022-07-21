@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -155,7 +156,8 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 		txExtension, err = cli.Transfer(from, to, amount)
 		return true, err
 	})
-
+	logger.Sugar().Infof("sssssssssss1%v", err)
+	logger.Sugar().Infof("sssssssssss2%v", txExtension)
 	if err != nil {
 		return in, err
 	}

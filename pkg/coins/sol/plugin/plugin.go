@@ -212,12 +212,9 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 			})
 		return false, err
 	})
-	if err != nil {
-		return in, err
-	}
 
 	if err != nil {
-		return in, sol.ErrSolBlockNotFound
+		return in, err
 	}
 
 	if chainMsg != nil && chainMsg.Meta.Err != nil {
