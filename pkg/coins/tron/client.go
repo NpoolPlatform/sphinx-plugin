@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
@@ -164,6 +165,7 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 			time.Sleep(time.Second)
 		}
 		client, err := tClients.GetGRPCClient(6*time.Second, endpointmgr)
+		logger.Sugar().Infof("sssssssssss5,%v", err)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			return apiErr
 		}
