@@ -67,7 +67,7 @@ func checkRemove(target string) (conn *grpc.ClientConn, err error) {
 		}
 	}()
 
-	cli := grpc_health_v1.NewHealthClient(conn)
+	cli := grpc_health_v1.NewHealthClient(_conn.(*grpc.ClientConn))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
