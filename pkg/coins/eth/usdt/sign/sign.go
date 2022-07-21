@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 	"strings"
@@ -60,6 +61,7 @@ func CreateBrc20Account(ctx context.Context, in []byte) (out []byte, err error) 
 func Message(ctx context.Context, in []byte) (out []byte, err error) {
 	preSignData := &eth.PreSignData{}
 	err = json.Unmarshal(in, preSignData)
+	fmt.Println("sssssssss:", preSignData)
 	if err != nil {
 		return in, err
 	}

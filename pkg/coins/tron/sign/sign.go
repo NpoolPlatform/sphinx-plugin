@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -65,7 +64,6 @@ func SignTronMSG(ctx context.Context, s3Strore string, in []byte) (out []byte, e
 	if err != nil {
 		return in, err
 	}
-	logger.Sugar().Infof("sssssssssss3%v", signMsgTx)
 
 	pk, err := oss.GetObject(ctx, s3Strore+signMsgTx.Base.From, true)
 	if err != nil {
