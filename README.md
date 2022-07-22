@@ -29,7 +29,7 @@
 - [x] 自定义错误处理
 - [ ] 链路追踪
 - [ ] 监控
-- [ ] 上报meta信息到proxy
+- [x] 上报meta信息到proxy
 - [ ] 优化配置
 - [ ] 现在相同地址的并发处理
 - [ ] payload 同步到 redis
@@ -83,13 +83,13 @@
 对于合约地址配置说明
 
 钱包地址配置格式:
-  **url|auth,url|auth,url|auth**
+  **'url|auth,url|auth,url|auth'**
 
 - 不需要认证
 
   ````conf
     auth 格式
-    示例: https://127.0.0.1:8080|
+    示例: https://127.0.0.1:8080
   ````
 
 - 账号密码体系

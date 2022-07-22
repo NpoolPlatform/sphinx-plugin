@@ -85,7 +85,7 @@ func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		retry, apiErr = fn(ctx, client)
 		client.Close()
 
-		if !retry {
+		if apiErr != nil || !retry {
 			return apiErr
 		}
 	}
@@ -98,7 +98,7 @@ func (bClients bClients) BalanceAtS(ctx context.Context, account common.Address,
 
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.BalanceAt(ctx, account, blockNumber)
-		return true, err
+		return false, err
 	})
 	return ret, err
 }
@@ -109,7 +109,7 @@ func (bClients bClients) PendingNonceAtS(ctx context.Context, account common.Add
 
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.PendingNonceAt(ctx, account)
-		return true, err
+		return false, err
 	})
 	return ret, err
 }
@@ -119,7 +119,7 @@ func (bClients bClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.NetworkID(ctx)
-		return true, err
+		return false, err
 	})
 
 	return ret, err
@@ -130,7 +130,7 @@ func (bClients bClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error)
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.SuggestGasPrice(ctx)
-		return true, err
+		return false, err
 	})
 
 	return ret, err
@@ -143,7 +143,7 @@ func (bClients bClients) SendTransactionS(ctx context.Context, tx *types.Transac
 		if err != nil && TxFailErr(err) {
 			return false, err
 		}
-		return true, err
+		return false, err
 	})
 
 	return err

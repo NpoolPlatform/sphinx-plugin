@@ -13,6 +13,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/txscript"
@@ -77,21 +78,6 @@ func init() {
 	}
 }
 
-func WalletIsSync(cli *rpcclient.Client) (bool, error) {
-	rets, err := cli.GetBlockChainInfo()
-	if err != nil {
-		return false, err
-	}
-
-	if rets.Headers < rets.Blocks {
-		return false, fmt.Errorf(
-			"wallet is not completed synchronization, current height %v, heightest height %v",
-			rets.Headers, rets.Blocks)
-	}
-
-	return true, nil
-}
-
 // walletBalance ..
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.WalletBalanceRequest{}
@@ -99,18 +85,16 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	cli, err := client()
-	if err != nil {
-		return nil, err
+	client := btc.Client()
+	_err := client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
+		err = cli.ImportAddressRescan(info.Address, "", false)
+		return false, nil
+	})
+	if _err != nil {
+		return nil, _err
 	}
-	defer cli.Shutdown()
-
-	if synced, err := WalletIsSync(cli); !synced {
-		return nil, err
-	}
-
 	// create new address not auto import to wallet
-	if err := cli.ImportAddressRescan(info.Address, "", false); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -127,7 +111,11 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	unspents, err := cli.ListUnspentMinMaxAddresses(btc.DefaultMinConfirms, btc.DefaultMaxConfirms, []btcutil.Address{_addr})
+	var unspents []btcjson.ListUnspentResult
+	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
+		unspents, err = cli.ListUnspentMinMaxAddresses(btc.DefaultMinConfirms, btc.DefaultMaxConfirms, []btcutil.Address{_addr})
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -184,17 +172,17 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
 	}
 
-	cli, err := client()
-	if err != nil {
-		return in, err
-	}
-	defer cli.Shutdown()
+	client := btc.Client()
 
-	listUnspentResult, err := cli.ListUnspentMinMaxAddresses(
-		btc.DefaultMinConfirms,
-		btc.DefaultMaxConfirms,
-		[]btcutil.Address{_addr},
-	)
+	var listUnspentResult []btcjson.ListUnspentResult
+	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
+		listUnspentResult, err = cli.ListUnspentMinMaxAddresses(
+			btc.DefaultMinConfirms,
+			btc.DefaultMaxConfirms,
+			[]btcutil.Address{_addr},
+		)
+		return false, err
+	})
 	if err != nil {
 		return in, err
 	}
@@ -296,13 +284,12 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
-	cli, err := client()
-	if err != nil {
-		return in, err
-	}
-	defer cli.Shutdown()
-
-	_hash, err := cli.SendRawTransaction(info, false)
+	client := btc.Client()
+	var _hash *chainhash.Hash
+	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
+		_hash, err = cli.SendRawTransaction(info, false)
+		return false, err
+	})
 	if err != nil {
 		return in, err
 	}
@@ -321,18 +308,21 @@ func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
-	cli, err := client()
+	client := btc.Client()
+	var txHash *chainhash.Hash
+	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
+		txHash, err = chainhash.NewHashFromStr(info.TxID)
+		return false, err
+	})
 	if err != nil {
 		return in, err
 	}
-	defer cli.Shutdown()
 
-	txHash, err := chainhash.NewHashFromStr(info.TxID)
-	if err != nil {
-		return in, err
-	}
-
-	transactionResult, err := cli.GetTransaction(txHash)
+	var transactionResult *btcjson.GetTransactionResult
+	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
+		transactionResult, err = cli.GetTransaction(txHash)
+		return false, err
+	})
 	if err != nil {
 		return in, err
 	}
