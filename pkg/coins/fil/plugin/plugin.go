@@ -292,10 +292,10 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 		return false, err
 	})
 	if err != nil {
-		return
+		return nil, err
 	}
-	if !includeCID(_cid, mp) {
-		return
+	if includeCID(_cid, mp) {
+		return nil, env.ErrWaitMessageOnChain
 	}
 
 	// 2. check message on chain
