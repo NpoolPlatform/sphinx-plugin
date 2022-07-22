@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -17,31 +16,33 @@ import (
 )
 
 func init() {
-	// TODO: support from env or config dynamic set [3,6)
-	_interval, ok := env.LookupEnv(env.ENVSYNCINTERVAL)
-	if !ok || _interval == "" {
-		_coinNet, _coinType, err := env.CoinInfo()
-		if err != nil {
-			panic(fmt.Sprintf("task::synctx failed to read %v, %v", env.ENVCOINTYPE, err))
-		}
-		coinType := coins.CoinStr2CoinType(_coinNet, _coinType)
-		_interval = strconv.FormatInt(int64(coins.SyncTime[coinType].Seconds()), 10)
-	}
-	interval, err := strconv.ParseInt(_interval, 10, 64)
-	if err != nil {
-		panic(fmt.Sprintf("task::synctx failed to read %v, %v", env.ENVSYNCINTERVAL, err))
-	}
 	if err := register(
 		"task::synctx",
-		time.Duration(interval*int64(time.Second)),
+		// TODO register not set duration
+		0,
 		syncTx,
 	); err != nil {
 		fatalf("task::synctx", "task already register")
 	}
 }
 
-func syncTx(name string, interval time.Duration) {
-	for range time.NewTicker(interval).C {
+func calcDuration() time.Duration {
+	du := config.GetENV().SyncInterval
+	if du > 0 {
+		return time.Duration(du) * time.Second
+	}
+
+	_coinNet, _coinType, err := env.CoinInfo()
+	if err != nil {
+		panic(fmt.Sprintf("task::synctx failed to read %v, %v", env.ENVCOINTYPE, err))
+	}
+
+	coinType := coins.CoinStr2CoinType(_coinNet, _coinType)
+	return coins.SyncTime[coinType]
+}
+
+func syncTx(name string, _interval time.Duration) {
+	for range time.NewTicker(calcDuration()).C {
 		func() {
 			conn, err := client.GetGRPCConn(config.GetENV().Proxy)
 			if err != nil {

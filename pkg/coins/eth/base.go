@@ -29,8 +29,10 @@ var USDTContract = func(chainet int64) string {
 var (
 	// ErrWaitMessageOnChain ..
 	ErrWaitMessageOnChain = errors.New("wait message on chain")
-	// ErrAddrNotValid ..
-	ErrAddrNotValid = errors.New("invalid eth address")
+	// ErrAddrInvalid ..
+	ErrAddrInvalid = errors.New("invalid eth address")
+	// ErrContractInvalid ..
+	ErrContractInvalid = errors.New("invalid contract address")
 	// ErrTransactionFail ..
 	ErrTransactionFail = errors.New("eth transaction fail")
 )

@@ -91,7 +91,7 @@ func ERC20Balance(ctx context.Context, addr string, client *ethclient.Client) (*
 	}
 
 	if !common.IsHexAddress(addr) {
-		return nil, eth.ErrAddrNotValid
+		return nil, eth.ErrAddrInvalid
 	}
 
 	tetherERC20Token, err := usdt.NewTetherToken(common.HexToAddress(eth.USDTContract(chainID.Int64())), client)

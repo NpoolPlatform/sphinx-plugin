@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/task"
 	cli "github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 )
 
 func init() {
@@ -24,6 +27,97 @@ var runCmd = &cli.Command{
 	Usage:   "Run Sphinx Plugin daemon",
 	After: func(c *cli.Context) error {
 		return logger.Sync()
+	},
+	Before: func(ctx *cli.Context) error {
+		// TODO: elegent set or get env
+		config.SetENV(&config.ENVInfo{
+			Proxy:        proxyAddress,
+			SyncInterval: syncInterval,
+			Contract:     contract,
+			LogDir:       logDir,
+			LogLevel:     logLevel,
+			WanIP:        wanIP,
+			Position:     position,
+		})
+		err := logger.Init(
+			logger.DebugLevel,
+			filepath.Join(config.GetENV().LogDir, "sphinx-plugin.log"),
+			zap.AddCallerSkip(1),
+		)
+		if err != nil {
+			panic(fmt.Errorf("fail to init logger: %v", err))
+		}
+		return nil
+	},
+	Flags: []cli.Flag{
+		// proxy address
+		&cli.StringFlag{
+			Name:        "proxy",
+			Aliases:     []string{"p"},
+			Usage:       "address of sphinx proxy",
+			EnvVars:     []string{"ENV_PROXY"},
+			Required:    true,
+			Value:       "",
+			Destination: &proxyAddress,
+		},
+		// sync interval
+		&cli.Int64Flag{
+			Name:        "sync-interval",
+			Aliases:     []string{"si"},
+			Usage:       "interval seconds of sync transaction on chain status",
+			EnvVars:     []string{"ENV_SYNC_INTERVAL"},
+			Value:       0,
+			Destination: &syncInterval,
+		},
+		// contract id
+		&cli.StringFlag{
+			Name:        "contract",
+			Aliases:     []string{"c"},
+			Usage:       "id of contract",
+			EnvVars:     []string{"ENV_CONTRACT"},
+			Value:       "",
+			Destination: &contract,
+		},
+		// log level
+		&cli.StringFlag{
+			Name:        "level",
+			Aliases:     []string{"L"},
+			Usage:       "level support debug|info|warning|error",
+			EnvVars:     []string{"ENV_LOG_LEVEL"},
+			Value:       "debug",
+			DefaultText: "debug",
+			Destination: &logLevel,
+		},
+		// log path
+		&cli.StringFlag{
+			Name:        "log",
+			Aliases:     []string{"l"},
+			Usage:       "log dir",
+			EnvVars:     []string{"ENV_LOG_DIR"},
+			Value:       "/var/log",
+			DefaultText: "/var/log",
+			Destination: &logDir,
+		},
+		// wan ip
+		&cli.StringFlag{
+			Name:        "wan-ip",
+			Aliases:     []string{"w"},
+			Usage:       "wan ip",
+			EnvVars:     []string{"ENV_WAN_IP"},
+			Required:    true,
+			Value:       "",
+			Destination: &wanIP,
+		},
+		// position
+		&cli.StringFlag{
+			Name:        "position",
+			Aliases:     []string{"po"},
+			Usage:       "position",
+			EnvVars:     []string{"ENV_POSITION"},
+			Required:    true,
+			Value:       "",
+			Destination: &position,
+		},
 	},
 	Action: func(c *cli.Context) error {
 		log.Infof(

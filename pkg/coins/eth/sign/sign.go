@@ -110,7 +110,7 @@ func message(ctx context.Context, s3Store string, in []byte) ([]byte, error) {
 	}
 
 	signedData := eth.SignedData{
-		SignedTx: hex.EncodeToString(signedTxBuf.Bytes()),
+		SignedTx: signedTxBuf.Bytes(),
 	}
 
 	return json.Marshal(signedData)
