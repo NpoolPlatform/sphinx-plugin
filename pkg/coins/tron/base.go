@@ -5,11 +5,11 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"math/big"
 	"strings"
 
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/shopspring/decimal"
 )
@@ -27,16 +27,6 @@ var (
 var (
 	AddressSize            = 42
 	AddressPreFixByte byte = 0x41
-)
-
-var (
-	ErrAddressEmpty = errors.New("tron address is empty")
-	// ErrWaitMessageOnChain ..
-	ErrWaitMessageOnChain = errors.New("wait message on tron-chain")
-	// ErrAddrNotValid ..
-	ErrInvalidAddr = errors.New("invalid tron address")
-	// ErrTransactionFail ..
-	ErrTransactionFail = errors.New("tron transaction fail")
 )
 
 // feeLimit-10^6=1trx
@@ -68,7 +58,7 @@ func ValidAddress(input string) error {
 	} else if len(input) == 28 {
 		address, err = base64.StdEncoding.DecodeString(input)
 	} else {
-		return ErrInvalidAddr
+		return env.ErrAddressInvalid
 	}
 
 	if err == nil {
@@ -80,7 +70,7 @@ func ValidAddress(input string) error {
 
 func validFormat(address []byte) error {
 	if len(address) == 0 {
-		return ErrAddressEmpty
+		return env.ErrAddressInvalid
 	}
 	if len(address) != AddressSize/2 {
 		return fmt.Errorf("address length need %v but %v", AddressSize, len(address))
@@ -93,7 +83,7 @@ func validFormat(address []byte) error {
 
 func fromHexString(input string) ([]byte, error) {
 	if input == "" {
-		return nil, ErrAddressEmpty
+		return nil, env.ErrAddressInvalid
 	}
 	input = strings.TrimPrefix(input, "0x")
 	if len(input)%2 != 0 {
@@ -120,14 +110,14 @@ func decode58Check(input string) []byte {
 
 func decodeFromBase58Check(input string) ([]byte, error) {
 	if input == "" {
-		return nil, ErrAddressEmpty
+		return nil, env.ErrAddressInvalid
 	}
 	address := decode58Check(input)
 	if address == nil {
-		return nil, ErrInvalidAddr
+		return nil, env.ErrAddressInvalid
 	}
 	if err := validFormat(address); err != nil {
-		return nil, ErrInvalidAddr
+		return nil, env.ErrAddressInvalid
 	}
 	return address, nil
 }

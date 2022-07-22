@@ -66,11 +66,6 @@ func init() {
 		syncTx,
 	)
 
-	// register err fsm
-	// coins.RegisterAbortErr(
-	// 	sol.ErrSolTransactionFailed,
-	// )
-
 	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypesolana, sol.TxFailErr)
 	if err != nil {
 		panic(err)

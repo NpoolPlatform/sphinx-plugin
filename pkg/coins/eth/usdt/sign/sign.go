@@ -3,7 +3,6 @@ package sign
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"math"
@@ -121,7 +120,7 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	signedData := eth.SignedData{
-		SignedTx: hex.EncodeToString(signedTxBuf.Bytes()),
+		SignedTx: signedTxBuf.Bytes(),
 	}
 
 	return json.Marshal(signedData)

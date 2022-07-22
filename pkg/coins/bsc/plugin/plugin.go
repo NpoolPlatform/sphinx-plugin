@@ -11,6 +11,7 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 
 	bsc "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
@@ -77,33 +78,28 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	coins.RegisterAbortErr(
-		bsc.ErrTransactionFail,
-		bsc.ErrAddrNotValid,
-	)
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	wbReq := &ct.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	client := bsc.Client()
 
 	if !common.IsHexAddress(wbReq.Address) {
-		return in, bsc.ErrAddrNotValid
+		return nil, env.ErrAddressInvalid
 	}
 
 	bl, err := client.BalanceAtS(ctx, common.HexToAddress(wbReq.Address), nil)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	balance, ok := big.NewFloat(0).SetString(bl.String())
 	if !ok {
-		return in, errors.New("convert balance string to float64 error")
+		return nil, errors.New("convert balance string to float64 error")
 	}
 
 	balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
@@ -125,27 +121,27 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	baseInfo := &ct.BaseInfo{}
 	err = json.Unmarshal(in, baseInfo)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	client := bsc.Client()
 
 	if !common.IsHexAddress(baseInfo.From) {
-		return in, bsc.ErrAddrNotValid
+		return nil, env.ErrAddressInvalid
 	}
 
 	chainID, err := client.NetworkIDS(ctx)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	nonce, err := client.PendingNonceAtS(ctx, common.HexToAddress(baseInfo.From))
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	gasPrice, err := client.SuggestGasPriceS(ctx)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	info := &bsc.PreSignData{
@@ -173,18 +169,18 @@ func SendRawTransaction(ctx context.Context, in []byte) (out []byte, err error) 
 	signedData := &bsc.SignedData{}
 	err = json.Unmarshal(in, signedData)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	client := bsc.Client()
 
 	tx := new(types.Transaction)
 
 	if err := rlp.Decode(bytes.NewReader(signedData.SignedTx), tx); err != nil {
-		return in, err
+		return nil, err
 	}
 
 	if err := client.SendTransactionS(ctx, tx); err != nil {
-		return in, err
+		return nil, err
 	}
 
 	broadcastedData := ct.BroadcastInfo{
@@ -199,34 +195,32 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 	broadcastedData := &ct.BroadcastInfo{}
 	err = json.Unmarshal(in, broadcastedData)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	client := bsc.Client()
 
 	_, isPending, err := client.TransactionByHashS(ctx, common.HexToHash(broadcastedData.TxID))
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	if isPending {
-		return in, bsc.ErrWaitMessageOnChain
+		return nil, env.ErrWaitMessageOnChain
 	}
 
 	receipt, err := client.TransactionReceiptS(ctx, common.HexToHash(broadcastedData.TxID))
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
-	log.Infof("transaction info: TxHash %v, GasUsed %v, Status %v.", receipt.TxHash, receipt.GasUsed, receipt.Status == 1)
+	if receipt.Status == types.ReceiptStatusSuccessful {
+		sResp := &ct.SyncResponse{ExitCode: 0}
+		out, err = json.Marshal(sResp)
+		if err != nil {
+			return nil, err
+		}
 
-	sResp := &ct.SyncResponse{ExitCode: 0}
-	out, err = json.Marshal(sResp)
-	if err != nil {
-		return in, err
-	}
-
-	if receipt.Status == 1 {
 		return out, nil
 	}
 
-	return in, bsc.ErrTransactionFail
+	return nil, env.ErrTransactionFail
 }
