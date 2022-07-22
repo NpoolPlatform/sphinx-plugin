@@ -111,7 +111,7 @@ func (eClients eClients) BalanceAtS(ctx context.Context, account common.Address,
 	var err error
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.BalanceAt(ctx, account, blockNumber)
-		return true, err
+		return false, err
 	})
 
 	return ret, err
@@ -123,7 +123,7 @@ func (eClients eClients) PendingNonceAtS(ctx context.Context, account common.Add
 
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.PendingNonceAt(ctx, account)
-		return true, err
+		return false, err
 	})
 
 	return ret, err
@@ -135,7 +135,7 @@ func (eClients eClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
 
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.NetworkID(ctx)
-		return true, err
+		return false, err
 	})
 
 	return ret, err
@@ -147,7 +147,7 @@ func (eClients eClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error)
 
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.SuggestGasPrice(ctx)
-		return true, err
+		return false, err
 	})
 
 	return ret, err
@@ -181,7 +181,7 @@ func (eClients eClients) TransactionReceiptS(ctx context.Context, txHash common.
 	var err error
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.TransactionReceipt(ctx, txHash)
-		return true, err
+		return false, err
 	})
 	return ret, err
 }

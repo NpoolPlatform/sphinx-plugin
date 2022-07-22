@@ -116,7 +116,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	var chainBalance types.BigInt
 	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
 		chainBalance, err = cli.WalletBalance(ctx, from)
-		return true, err
+		return false, err
 	})
 
 	if err != nil {
@@ -168,7 +168,7 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 	var _nonce uint64
 	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
 		_nonce, err = cli.MpoolGetNonce(ctx, from)
-		return true, err
+		return false, err
 	})
 	if err != nil {
 		return nil, err
@@ -247,7 +247,7 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	var _cid cid.Cid
 	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
 		_cid, err = cli.MpoolPush(ctx, signMsg)
-		return true, err
+		return false, err
 	})
 	if err != nil {
 		return nil, err
@@ -290,7 +290,7 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	var mp []*types.SignedMessage
 	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
 		mp, err = cli.MpoolPending(ctx, types.EmptyTSK)
-		return true, err
+		return false, err
 	})
 	if err != nil {
 		return
@@ -303,7 +303,7 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	var chainMsg *lotus_api.MsgLookup
 	err = api.WithClient(ctx, func(cli v0api.FullNode) (bool, error) {
 		chainMsg, err = cli.StateSearchMsg(ctx, _cid)
-		return true, err
+		return false, err
 	})
 	if err != nil {
 		return nil, err

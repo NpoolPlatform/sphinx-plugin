@@ -75,7 +75,6 @@ func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNo
 		}
 
 		if err != nil {
-			closer()
 			return err
 		}
 

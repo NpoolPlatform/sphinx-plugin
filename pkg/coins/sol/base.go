@@ -3,6 +3,7 @@ package sol
 import (
 	"errors"
 	"math/big"
+	"strings"
 
 	solana "github.com/gagliardetto/solana-go"
 )
@@ -18,8 +19,13 @@ var (
 	// ErrSolBlockNotFound ..
 	ErrSolBlockNotFound = errors.New("not found confirmed block in solana chain")
 	// ErrSolSignatureWrong ..
-	ErrSolSignatureWrong    = errors.New("solana signature is wrong or failed")
-	ErrSolTransactionFailed = errors.New("sol transaction failed")
+	ErrSolSignatureWrong = errors.New("solana signature is wrong or failed")
+)
+
+var (
+	lamportsLow          = `Transfer: insufficient lamports`
+	SolTransactionFailed = `sol transaction failed`
+	stopErrMsg           = []string{lamportsLow, SolTransactionFailed}
 )
 
 func ToSol(larm uint64) *big.Float {
@@ -36,4 +42,17 @@ func ToLarm(value float64) (uint64, big.Accuracy) {
 		big.NewFloat(0).SetFloat64(value),
 		big.NewFloat(0).SetUint64(solana.LAMPORTS_PER_SOL),
 	).Uint64()
+}
+
+func TxFailErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	for _, v := range stopErrMsg {
+		if strings.Contains(err.Error(), v) {
+			return true
+		}
+	}
+	return false
 }
