@@ -93,7 +93,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 			bl = tron.EmptyTRC20
 			return false, nil
 		}
-		return true, err
+		return false, err
 	})
 	if err != nil {
 		return in, err
@@ -129,7 +129,7 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 			tron.TRC20ToBigInt(baseInfo.Value),
 			tron.TRC20FeeLimit,
 		)
-		return true, err
+		return false, err
 	})
 	if err != nil {
 		return in, err

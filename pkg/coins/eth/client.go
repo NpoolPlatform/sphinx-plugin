@@ -171,7 +171,7 @@ func (eClients eClients) SendTransactionS(ctx context.Context, tx *types.Transac
 func (eClients eClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		tx, isPending, err = c.TransactionByHash(ctx, hash)
-		return true, err
+		return false, err
 	})
 	return tx, isPending, err
 }

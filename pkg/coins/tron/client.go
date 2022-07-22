@@ -167,7 +167,10 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		}
 		client, err := tClients.GetGRPCClient(6*time.Second, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			return apiErr
+			if apiErr != nil {
+				return apiErr
+			}
+			return err
 		}
 
 		if err != nil {

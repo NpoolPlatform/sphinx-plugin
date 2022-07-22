@@ -53,11 +53,14 @@ func (sClients *SClients) WithClient(ctx context.Context, fn func(c *rpc.Client)
 
 		client, err := sClients.GetNode(ctx, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			return apiErr
+			if apiErr != nil {
+				return apiErr
+			}
+			return err
 		}
 
 		if err != nil {
-			return err
+			continue
 		}
 
 		retry, apiErr = fn(client)

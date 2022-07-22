@@ -71,11 +71,14 @@ func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNo
 
 		client, closer, err := fClients.GetNode(ctx, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			return apiErr
+			if apiErr != nil {
+				return apiErr
+			}
+			return err
 		}
 
 		if err != nil {
-			return err
+			continue
 		}
 
 		retry, apiErr = fn(client)

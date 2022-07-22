@@ -75,11 +75,13 @@ func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Co
 
 		client, err := bClients.GetNode(ctx, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			return apiErr
-		}
-
-		if err != nil {
+			if apiErr != nil {
+				return apiErr
+			}
 			return err
+		}
+		if err != nil {
+			continue
 		}
 
 		retry, apiErr = fn(ctx, client)
@@ -152,7 +154,7 @@ func (bClients bClients) SendTransactionS(ctx context.Context, tx *types.Transac
 func (bClients bClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		tx, isPending, err = c.TransactionByHash(ctx, hash)
-		return true, err
+		return false, err
 	})
 
 	return tx, isPending, err
@@ -163,7 +165,7 @@ func (bClients bClients) TransactionReceiptS(ctx context.Context, txHash common.
 	var err error
 	err = bClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.TransactionReceipt(ctx, txHash)
-		return true, err
+		return false, err
 	})
 
 	return ret, err

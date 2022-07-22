@@ -212,6 +212,10 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
+	if receipt == nil {
+		return nil, env.ErrWaitMessageOnChain
+	}
+
 	if receipt.Status == types.ReceiptStatusSuccessful {
 		sResp := &ct.SyncResponse{ExitCode: 0}
 		out, err = json.Marshal(sResp)
