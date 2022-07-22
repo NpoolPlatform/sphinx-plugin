@@ -74,6 +74,10 @@ func createAccount(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	err = oss.PutObject(ctx, s3KeyPrxfix+addr, account.PrivateKey, true)
+	if err != nil {
+		return nil, err
+	}
+
 	return out, err
 }
 

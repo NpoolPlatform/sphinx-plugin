@@ -67,9 +67,19 @@ func init() {
 	)
 
 	// register err fsm
-	coins.RegisterAbortErr(
-		sol.ErrSolTransactionFailed,
-	)
+	// coins.RegisterAbortErr(
+	// 	sol.ErrSolTransactionFailed,
+	// )
+
+	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypesolana, sol.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
+
+	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetsolana, sol.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
@@ -172,11 +182,11 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		sResp := &ct.SyncResponse{}
 		sResp.ExitCode = -1
-		out, err := json.Marshal(sResp)
-		if err != nil {
-			return in, err
+		out, mErr := json.Marshal(sResp)
+		if mErr != nil {
+			return in, mErr
 		}
-		return out, fmt.Errorf("%v,%v", sol.ErrSolTransactionFailed, err)
+		return out, err
 	}
 
 	_out := ct.SyncRequest{
@@ -221,11 +231,11 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	if chainMsg != nil && chainMsg.Meta.Err != nil {
 		sResp := &ct.SyncResponse{}
 		sResp.ExitCode = -1
-		out, err := json.Marshal(sResp)
-		if err != nil {
-			return in, err
+		out, mErr := json.Marshal(sResp)
+		if mErr != nil {
+			return in, mErr
 		}
-		return out, sol.ErrSolTransactionFailed
+		return out, fmt.Errorf("%v,%v", sol.SolTransactionFailed, err)
 	}
 
 	if chainMsg != nil && chainMsg.Meta.Err == nil {
