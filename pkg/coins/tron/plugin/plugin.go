@@ -152,7 +152,7 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 			return false, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
 		}
 		txExtension, err = cli.Transfer(from, to, amount)
-		return true, err
+		return false, err
 	})
 	if err != nil {
 		return in, err
@@ -233,7 +233,7 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 	var txInfo *core.TransactionInfo
 	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
 		txInfo, err = cli.GetTransactionInfoByID(syncReq.TxID)
-		return true, err
+		return false, err
 	})
 
 	if txInfo == nil || err != nil {
