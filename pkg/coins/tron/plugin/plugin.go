@@ -136,11 +136,11 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 
 	err = tron.ValidAddress(from)
 	if err != nil {
-		return in, err
+		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
 	}
 	err = tron.ValidAddress(to)
 	if err != nil {
-		return in, err
+		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
 	}
 
 	client := tron.Client()

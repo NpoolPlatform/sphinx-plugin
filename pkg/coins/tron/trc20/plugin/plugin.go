@@ -3,6 +3,7 @@ package trc20
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -117,7 +118,21 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
+	err = tron.ValidAddress(baseInfo.From)
+	if err != nil {
+		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
+	}
+
+	err = tron.ValidAddress(baseInfo.To)
+	if err != nil {
+		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
+	}
+
 	contract := config.GetENV().Contract
+	err = tron.ValidAddress(contract)
+	if err != nil {
+		return in, fmt.Errorf("contract %v, %v, %v", contract, tron.AddressInvalid, err)
+	}
 
 	var txExtension *api.TransactionExtention
 	client := tron.Client()

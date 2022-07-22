@@ -29,6 +29,15 @@ var (
 	AddressPreFixByte byte = 0x41
 )
 
+const (
+	txExpired        = `Transaction expired`
+	fundsToLow       = `balance is not sufficient`
+	AddressNotActive = `account not found`
+	AddressInvalid   = `address is invalid`
+)
+
+var stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive}
+
 // feeLimit-10^6=1trx
 const TRC20FeeLimit int64 = 15000000
 
@@ -120,4 +129,17 @@ func decodeFromBase58Check(input string) ([]byte, error) {
 		return nil, env.ErrAddressInvalid
 	}
 	return address, nil
+}
+
+func TxFailErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	for _, v := range stopErrs {
+		if strings.Contains(err.Error(), v) {
+			return true
+		}
+	}
+	return false
 }

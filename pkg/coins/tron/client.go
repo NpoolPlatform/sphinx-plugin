@@ -22,15 +22,6 @@ const (
 	RetriesSleepTime = 1 * time.Second
 )
 
-const (
-	txExpired        = `Transaction expired`
-	fundsToLow       = `balance is not sufficient`
-	AddressNotActive = `account not found`
-	AddressInvalid   = `account is invalid`
-)
-
-var stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive}
-
 type TClientI interface {
 	GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error)
 	WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error
@@ -190,17 +181,4 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 
 func Client() TClientI {
 	return &tClients{}
-}
-
-func TxFailErr(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	for _, v := range stopErrs {
-		if strings.Contains(err.Error(), v) {
-			return true
-		}
-	}
-	return false
 }
