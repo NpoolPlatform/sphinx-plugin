@@ -1,6 +1,8 @@
 package fil
 
 import (
+	"strings"
+
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/filecoin-project/go-address"
@@ -14,6 +16,11 @@ var FILNetMap = map[string]address.Network{
 	coins.CoinNetMain: address.Mainnet,
 	coins.CoinNetTest: address.Testnet,
 }
+
+var (
+	FilTxFaild = `fil tx faild`
+	stopErrMsg = []string{FilTxFaild}
+)
 
 func SignType(signType string) (crypto.SigType, error) {
 	switch signType {
@@ -37,4 +44,17 @@ func AttoFIL2FIL(value float64) (float64, bool) {
 	return decimal.NewFromFloat(value).
 		Div(decimal.NewFromInt(int64(build.FilecoinPrecision))).
 		Float64()
+}
+
+func TxFailErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	for _, v := range stopErrMsg {
+		if strings.Contains(err.Error(), v) {
+			return true
+		}
+	}
+	return false
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
@@ -72,6 +73,16 @@ func init() {
 		sphinxproxy.TransactionState_TransactionStateSync,
 		syncTx,
 	)
+
+	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypefilecoin, fil.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
+
+	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetfilecoin, fil.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
@@ -302,8 +313,16 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, env.ErrWaitMessageOnChain
 	}
 
-	// TODO: check message is replaced ?
-	// chainMsg.Receipt.ExitCode != exitcode.Ok
+	if ok := chainMsg.Receipt.ExitCode.IsSuccess(); !ok {
+		_out := ct.SyncResponse{
+			ExitCode: int64(chainMsg.Receipt.ExitCode),
+		}
+		out, err := json.Marshal(_out)
+		if err != nil {
+			return nil, err
+		}
+		return out, fmt.Errorf("%v,%v", fil.FilTxFaild, chainMsg.Receipt.ExitCode.Error())
+	}
 
 	// check message on chain done
 	_out := ct.SyncResponse{

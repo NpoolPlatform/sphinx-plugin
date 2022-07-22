@@ -88,7 +88,10 @@ func (eClients *eClients) WithClient(ctx context.Context, fn func(ctx context.Co
 
 		client, err := eClients.GetNode(ctx, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			return apiErr
+			if apiErr != nil {
+				return apiErr
+			}
+			return err
 		}
 
 		if err != nil {
@@ -111,7 +114,10 @@ func (eClients eClients) BalanceAtS(ctx context.Context, account common.Address,
 	var err error
 	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = c.BalanceAt(ctx, account, blockNumber)
-		return false, err
+		if err == nil && ret != nil {
+			return false, err
+		}
+		return true, err
 	})
 
 	return ret, err
@@ -162,7 +168,7 @@ func (eClients eClients) SendTransactionS(ctx context.Context, tx *types.Transac
 		if err != nil && TxFailErr(err) {
 			return false, err
 		}
-		return true, err
+		return false, err
 	})
 
 	return err
