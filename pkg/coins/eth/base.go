@@ -1,8 +1,6 @@
 package eth
 
 import (
-	"errors"
-
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 )
 
@@ -25,14 +23,3 @@ var USDTContract = func(chainet int64) string {
 	}
 	return ""
 }
-
-var (
-	// ErrWaitMessageOnChain ..
-	ErrWaitMessageOnChain = errors.New("wait message on chain")
-	// ErrAddrInvalid ..
-	ErrAddrInvalid = errors.New("invalid eth address")
-	// ErrContractInvalid ..
-	ErrContractInvalid = errors.New("invalid contract address")
-	// ErrTransactionFail ..
-	ErrTransactionFail = errors.New("eth transaction fail")
-)

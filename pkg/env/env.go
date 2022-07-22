@@ -65,6 +65,8 @@ var (
 	ErrAmountInvalid       = errors.New("amount invalid")
 	ErrInsufficientBalance = errors.New("insufficient balance")
 	ErrWaitMessageOnChain  = errors.New("wait message on chain")
+	ErrContractInvalid     = errors.New("invalid contract address")
+	ErrTransactionFail     = errors.New("transaction fail")
 )
 
 func LookupEnv(key string) (string, bool) {

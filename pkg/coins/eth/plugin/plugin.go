@@ -12,6 +12,7 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -75,11 +76,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	coins.RegisterAbortErr(
-		eth.ErrTransactionFail,
-		eth.ErrAddrInvalid,
-	)
 }
 
 func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
@@ -91,7 +87,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	client := eth.Client()
 
 	if !common.IsHexAddress(wbReq.Address) {
-		return nil, eth.ErrAddrInvalid
+		return nil, env.ErrAddressInvalid
 	}
 	bl, err := client.BalanceAtS(ctx, common.HexToAddress(wbReq.Address), nil)
 	if err != nil {
@@ -127,7 +123,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	client := eth.Client()
 
 	if !common.IsHexAddress(baseInfo.From) {
-		return nil, eth.ErrAddrInvalid
+		return nil, env.ErrAddressInvalid
 	}
 
 	chainID, err := client.NetworkIDS(ctx)
@@ -154,7 +150,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 		// client.EstimateGas(ctx, ethereum.CallMsg{})
 		contractID = eth.USDTContract(chainID.Int64())
 		if !common.IsHexAddress(contractID) {
-			return nil, eth.ErrContractInvalid
+			return nil, env.ErrContractInvalid
 		}
 
 		gasLimit = 300_000
@@ -220,7 +216,7 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 	if isPending {
-		return nil, eth.ErrWaitMessageOnChain
+		return nil, env.ErrWaitMessageOnChain
 	}
 
 	receipt, err := client.TransactionReceiptS(ctx, common.HexToHash(broadcastedData.TxID))
@@ -228,15 +224,15 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	sResp := &ct.SyncResponse{ExitCode: 0}
-	out, err = json.Marshal(sResp)
-	if err != nil {
-		return nil, err
-	}
+	if receipt.Status == types.ReceiptStatusSuccessful {
+		sResp := &ct.SyncResponse{ExitCode: 0}
+		out, err = json.Marshal(sResp)
+		if err != nil {
+			return nil, err
+		}
 
-	if receipt.Status == 1 {
 		return out, nil
 	}
 
-	return nil, eth.ErrTransactionFail
+	return nil, env.ErrTransactionFail
 }

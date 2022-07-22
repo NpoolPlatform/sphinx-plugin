@@ -11,9 +11,9 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
@@ -75,12 +75,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	coins.RegisterAbortErr(
-		tron.ErrTransactionFail,
-		tron.ErrInvalidAddr,
-		tron.ErrAddressEmpty,
-	)
 }
 
 // redefine Code ,because github.com/fbsobreira/gotron-sdk/pkg/proto/core/Tron.pb.go line 564 spelling err
@@ -220,7 +214,7 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 	}
 	for _, v := range failCodes {
 		if v == result.Code {
-			return in, tron.ErrTransactionFail
+			return in, env.ErrTransactionFail
 		}
 	}
 
@@ -243,17 +237,15 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 	})
 
 	if txInfo == nil || err != nil {
-		return in, tron.ErrWaitMessageOnChain
+		return in, env.ErrWaitMessageOnChain
 	}
 
-	log.Infof("transaction info {CID: %v ,ChainResult: %v, TxResult: %v, Fee: %v }", syncReq.TxID, txInfo.GetResult(), txInfo.GetReceipt().GetResult(), txInfo.GetFee())
-
 	if txInfo.GetResult() != TransactionInfoSUCCESS {
-		return in, tron.ErrTransactionFail
+		return in, env.ErrTransactionFail
 	}
 
 	if txInfo.Receipt.GetResult() != core.Transaction_Result_SUCCESS && txInfo.Receipt.GetResult() != core.Transaction_Result_DEFAULT {
-		return in, tron.ErrTransactionFail
+		return in, env.ErrTransactionFail
 	}
 
 	syncResp := &ct.SyncResponse{ExitCode: 0}

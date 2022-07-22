@@ -82,7 +82,10 @@ var (
 		env.ErrAddressInvalid:  {},
 		env.ErrSignTypeInvalid: {},
 		env.ErrCIDInvalid:      {},
+		env.ErrContractInvalid: {},
+		env.ErrTransactionFail: {},
 	}
+
 	abortFuncErrs = make(map[sphinxplugin.CoinType]func(error) bool)
 )
 

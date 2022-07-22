@@ -23,8 +23,8 @@ var (
 )
 
 var (
-	lamportsLow          = `Transfer: insufficient lamports`
 	SolTransactionFailed = `sol transaction failed`
+	lamportsLow          = `Transfer: insufficient lamports`
 	stopErrMsg           = []string{lamportsLow, SolTransactionFailed}
 )
 

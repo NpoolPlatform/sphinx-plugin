@@ -156,21 +156,21 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 func preSign(ctx context.Context, in []byte) ([]byte, error) {
 	info := ct.BaseInfo{}
 	if err := json.Unmarshal(in, &info); err != nil {
-		return in, err
+		return nil, err
 	}
 
 	if !coins.CheckSupportNet(info.ENV) {
-		return in, env.ErrEVNCoinNetValue
+		return nil, env.ErrEVNCoinNetValue
 	}
 
 	if info.From == "" {
-		return in, env.ErrAddressInvalid
+		return nil, env.ErrAddressInvalid
 	}
 	if info.To == "" {
-		return in, env.ErrAddressInvalid
+		return nil, env.ErrAddressInvalid
 	}
 	if info.Value <= 0 {
-		return in, env.ErrAmountInvalid
+		return nil, env.ErrAmountInvalid
 	}
 
 	var (
@@ -181,12 +181,12 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 
 	_addr, err := btcutil.DecodeAddress(info.From, btc.BTCNetMap[info.ENV])
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
+		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
 	}
 
 	cli, err := client()
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	defer cli.Shutdown()
 
@@ -196,7 +196,7 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 		[]btcutil.Address{_addr},
 	)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	// 构建新的交易
@@ -211,12 +211,12 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 	for _, txIn := range listUnspentResult {
 		txHash, err := chainhash.NewHashFromStr(txIn.TxID)
 		if err != nil {
-			return in, err
+			return nil, err
 		}
 		// 构建输入
 		iAmount, err := btcutil.NewAmount(txIn.Amount)
 		if err != nil {
-			return in, fmt.Errorf("%v,%v", env.ErrAmountInvalid.Error(), err)
+			return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid.Error(), err)
 		}
 
 		inputAccount = append(inputAccount, iAmount)
@@ -238,24 +238,24 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 			amount,
 			btc.BTCGas,
 		)
-		return in, env.ErrInsufficientBalance
+		return nil, env.ErrInsufficientBalance
 	}
 
 	fromAddr, err := btcutil.DecodeAddress(from, btc.BTCNetMap[info.ENV])
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
+		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	fromScript, err := txscript.PayToAddrScript(fromAddr)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
+		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	// 构建输出和找零
 	// BTC 的最小精度是1e-8
 	changeAmount, err := btcutil.NewAmount(enoughUTXOAmount - amount - btc.BTCGas)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
+		return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
 	}
 
 	if changeAmount.ToBTC() > 0 {
@@ -264,17 +264,17 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 
 	toAddr, err := btcutil.DecodeAddress(to, btc.BTCNetMap[info.ENV])
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
+		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	toScript, err := txscript.PayToAddrScript(toAddr)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
+		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	tAccount, err := btcutil.NewAmount(amount)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
+		return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
 	}
 
 	msgTx.AddTxOut(wire.NewTxOut(int64(tAccount), toScript))
@@ -293,18 +293,18 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	info := &wire.MsgTx{}
 	if err := json.Unmarshal(in, info); err != nil {
-		return in, err
+		return nil, err
 	}
 
 	cli, err := client()
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	defer cli.Shutdown()
 
 	_hash, err := cli.SendRawTransaction(info, false)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	_out := ct.SyncRequest{
@@ -318,27 +318,27 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
-		return in, err
+		return nil, err
 	}
 
 	cli, err := client()
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	defer cli.Shutdown()
 
 	txHash, err := chainhash.NewHashFromStr(info.TxID)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	transactionResult, err := cli.GetTransaction(txHash)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	if transactionResult.Confirmations < btc.DefaultMinConfirms {
-		return in, btc.ErrWaitMessageOnChainMinConfirms
+		return nil, btc.ErrWaitMessageOnChainMinConfirms
 	}
 
 	sResp := &ct.SyncResponse{ExitCode: 0}

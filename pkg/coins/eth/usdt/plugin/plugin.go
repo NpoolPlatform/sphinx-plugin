@@ -14,6 +14,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	eth_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	plugin_types "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
@@ -91,7 +92,7 @@ func ERC20Balance(ctx context.Context, addr string, client *ethclient.Client) (*
 	}
 
 	if !common.IsHexAddress(addr) {
-		return nil, eth.ErrAddrInvalid
+		return nil, env.ErrAddressInvalid
 	}
 
 	tetherERC20Token, err := usdt.NewTetherToken(common.HexToAddress(eth.USDTContract(chainID.Int64())), client)
