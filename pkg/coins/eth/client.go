@@ -4,13 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
 	"strings"
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -29,13 +26,6 @@ const (
 var stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
 
 type EClientI interface {
-	BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
-	PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error)
-	NetworkIDS(ctx context.Context) (*big.Int, error)
-	SuggestGasPriceS(ctx context.Context) (*big.Int, error)
-	SendTransactionS(ctx context.Context, tx *types.Transaction) error
-	TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error)
-	TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
 	GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (*ethclient.Client, error)
 	WithClient(ctx context.Context, fn func(ctx context.Context, c *ethclient.Client) (bool, error)) error
 }
@@ -107,89 +97,6 @@ func (eClients *eClients) WithClient(ctx context.Context, fn func(ctx context.Co
 	}
 
 	return err
-}
-
-func (eClients eClients) BalanceAtS(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
-	var ret *big.Int
-	var err error
-	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		ret, err = c.BalanceAt(ctx, account, blockNumber)
-		if err == nil && ret != nil {
-			return false, err
-		}
-		return true, err
-	})
-
-	return ret, err
-}
-
-func (eClients eClients) PendingNonceAtS(ctx context.Context, account common.Address) (uint64, error) {
-	var ret uint64
-	var err error
-
-	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		ret, err = c.PendingNonceAt(ctx, account)
-		return false, err
-	})
-
-	return ret, err
-}
-
-func (eClients eClients) NetworkIDS(ctx context.Context) (*big.Int, error) {
-	var ret *big.Int
-	var err error
-
-	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		ret, err = c.NetworkID(ctx)
-		return false, err
-	})
-
-	return ret, err
-}
-
-func (eClients eClients) SuggestGasPriceS(ctx context.Context) (*big.Int, error) {
-	var ret *big.Int
-	var err error
-
-	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		ret, err = c.SuggestGasPrice(ctx)
-		return false, err
-	})
-
-	return ret, err
-}
-
-func (eClients eClients) SendTransactionS(ctx context.Context, tx *types.Transaction) error {
-	var err error
-
-	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		err = c.SendTransaction(ctx, tx)
-
-		if err != nil && TxFailErr(err) {
-			return false, err
-		}
-		return false, err
-	})
-
-	return err
-}
-
-func (eClients eClients) TransactionByHashS(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
-	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		tx, isPending, err = c.TransactionByHash(ctx, hash)
-		return false, err
-	})
-	return tx, isPending, err
-}
-
-func (eClients eClients) TransactionReceiptS(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
-	var ret *types.Receipt
-	var err error
-	err = eClients.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		ret, err = c.TransactionReceipt(ctx, txHash)
-		return false, err
-	})
-	return ret, err
 }
 
 func Client() EClientI {

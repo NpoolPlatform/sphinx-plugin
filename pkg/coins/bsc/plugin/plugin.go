@@ -96,7 +96,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	var bl *big.Int
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
 		bl, err = cli.BalanceAt(ctx, common.HexToAddress(wbReq.Address), nil)
-		if err != nil {
+		if err != nil || bl == nil {
 			return true, err
 		}
 		return false, err
@@ -140,7 +140,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	var chainID *big.Int
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
 		chainID, err = cli.NetworkID(ctx)
-		if err != nil {
+		if err != nil || chainID == nil {
 			return true, err
 		}
 		return false, err
@@ -164,7 +164,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	var gasPrice *big.Int
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
 		gasPrice, err = cli.SuggestGasPrice(ctx)
-		if err != nil {
+		if err != nil || gasPrice == nil {
 			return true, err
 		}
 		return false, err

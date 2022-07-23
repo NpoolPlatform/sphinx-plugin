@@ -133,10 +133,10 @@ func _walletBalance(ctx context.Context, addr string) (*BigUSDT, error) {
 	var ret *BigUSDT
 	err = eClient.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = ERC20Balance(ctx, addr, c)
-		if err == nil && ret != nil {
-			return false, nil
+		if err != nil || ret == nil {
+			return true, err
 		}
-		return true, err
+		return false, err
 	})
 	if ret == nil {
 		return nil, fmt.Errorf("get erc20balance faild,%v", err)

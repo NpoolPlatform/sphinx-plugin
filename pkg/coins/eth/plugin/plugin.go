@@ -17,6 +17,7 @@ import (
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -89,7 +90,18 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	if !common.IsHexAddress(wbReq.Address) {
 		return nil, env.ErrAddressInvalid
 	}
-	bl, err := client.BalanceAtS(ctx, common.HexToAddress(wbReq.Address), nil)
+
+	var bl *big.Int
+	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		bl, err = c.BalanceAt(ctx, common.HexToAddress(wbReq.Address), nil)
+		if err == nil && bl != nil {
+			return false, err
+		}
+		if err != nil {
+			return true, err
+		}
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -126,17 +138,38 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, env.ErrAddressInvalid
 	}
 
-	chainID, err := client.NetworkIDS(ctx)
+	var chainID *big.Int
+	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
+		chainID, err = cli.NetworkID(ctx)
+		if err != nil || chainID == nil {
+			return true, err
+		}
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	nonce, err := client.PendingNonceAtS(ctx, common.HexToAddress(baseInfo.From))
+	var nonce uint64
+	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
+		nonce, err = cli.PendingNonceAt(ctx, common.HexToAddress(baseInfo.From))
+		if err != nil {
+			return true, err
+		}
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	gasPrice, err := client.SuggestGasPriceS(ctx)
+	var gasPrice *big.Int
+	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
+		gasPrice, err = cli.SuggestGasPrice(ctx)
+		if err != nil || gasPrice == nil {
+			return true, err
+		}
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -184,14 +217,23 @@ func SendRawTransaction(ctx context.Context, in []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	client := eth.Client()
-
 	tx := new(types.Transaction)
 	if err := rlp.Decode(bytes.NewReader(signedData.SignedTx), tx); err != nil {
 		return nil, err
 	}
 
-	if err := client.SendTransactionS(ctx, tx); err != nil {
+	client := eth.Client()
+	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		err = c.SendTransaction(ctx, tx)
+		if err != nil && eth.TxFailErr(err) {
+			return false, err
+		}
+		if err != nil {
+			return true, err
+		}
+		return false, err
+	})
+	if err != nil {
 		return nil, err
 	}
 
@@ -210,8 +252,14 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 	client := eth.Client()
-
-	_, isPending, err := client.TransactionByHashS(ctx, common.HexToHash(broadcastedData.TxID))
+	var isPending bool
+	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		_, isPending, err = c.TransactionByHash(ctx, common.HexToHash(broadcastedData.TxID))
+		if err != nil {
+			return true, err
+		}
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +267,14 @@ func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, env.ErrWaitMessageOnChain
 	}
 
-	receipt, err := client.TransactionReceiptS(ctx, common.HexToHash(broadcastedData.TxID))
+	var receipt *types.Receipt
+	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		receipt, err = c.TransactionReceipt(ctx, common.HexToHash(broadcastedData.TxID))
+		if err != nil {
+			return true, err
+		}
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
