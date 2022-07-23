@@ -104,6 +104,9 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	var bl *rpc.GetBalanceResult
 	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
 		bl, err = cli.GetBalance(ctx, pubKey, rpc.CommitmentFinalized)
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 	if err != nil {
@@ -135,6 +138,9 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 	var recentBlockHash *rpc.GetLatestBlockhashResult
 	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
 		recentBlockHash, err = cli.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 	if err != nil {
@@ -172,16 +178,13 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	var cid solana.Signature
 	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
 		cid, err = cli.SendTransaction(ctx, tx)
+		if err != nil && !sol.TxFailErr(err) {
+			return true, err
+		}
 		return false, err
 	})
 	if err != nil {
-		sResp := &ct.SyncResponse{}
-		sResp.ExitCode = -1
-		out, mErr := json.Marshal(sResp)
-		if mErr != nil {
-			return in, mErr
-		}
-		return out, err
+		return in, err
 	}
 
 	_out := ct.SyncRequest{
@@ -216,6 +219,9 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 				Encoding:   solana.EncodingBase58,
 				Commitment: rpc.CommitmentFinalized,
 			})
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 

@@ -84,7 +84,7 @@ func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNo
 		retry, apiErr = fn(client)
 		closer()
 
-		if err == nil || !retry {
+		if !retry {
 			return err
 		}
 	}
