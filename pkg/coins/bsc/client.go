@@ -69,13 +69,11 @@ func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 	for i := 0; i < MaxRetries; i++ {
-		fmt.Println(endpointmgr, err)
 		if i > 0 {
 			time.Sleep(time.Second)
 		}
 
 		client, err := bClients.GetNode(ctx, endpointmgr)
-		fmt.Println("ssssssss1", err)
 
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			if apiErr != nil {
@@ -88,7 +86,6 @@ func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		}
 
 		retry, apiErr = fn(ctx, client)
-		fmt.Println("ssssssss2", apiErr)
 
 		client.Close()
 
