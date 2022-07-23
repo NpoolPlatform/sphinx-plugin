@@ -91,3 +91,7 @@ func (m *Manager) Peek() (addr string, isLocal bool, err error) {
 
 	return addr, isLocal, nil
 }
+
+func (m *Manager) Len() int {
+	return len(allAddrs)
+}

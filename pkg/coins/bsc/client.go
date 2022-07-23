@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -27,6 +28,8 @@ func (bClients bClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 	if err != nil {
 		return nil, err
 	}
+	// _ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	// defer cancel()
 	cli, err := ethclient.DialContext(ctx, endpoint)
 	if err != nil {
 		return nil, err
@@ -59,12 +62,13 @@ func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Co
 	if err != nil {
 		return err
 	}
-	for i := 0; i < MaxRetries; i++ {
+	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
 			time.Sleep(time.Second)
 		}
 
 		client, err = bClients.GetNode(ctx, endpointmgr)
+
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			if apiErr != nil {
 				return apiErr

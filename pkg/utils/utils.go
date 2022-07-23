@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 )
@@ -19,4 +20,14 @@ func ToCoinType(coinType string) (sphinxplugin.CoinType, error) {
 		return sphinxplugin.CoinType_CoinTypeUnKnow, ErrCoinTypeUnKnow
 	}
 	return sphinxplugin.CoinType(_coinType), nil
+}
+
+func MinInt(args ...int) int {
+	minNum := math.MaxInt
+	for _, v := range args {
+		if v < minNum {
+			minNum = v
+		}
+	}
+	return minNum
 }

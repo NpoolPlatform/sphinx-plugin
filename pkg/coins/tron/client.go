@@ -12,6 +12,7 @@ import (
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"google.golang.org/grpc"
 )
@@ -153,7 +154,7 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		return err
 	}
 
-	for i := 0; i < MaxRetries; i++ {
+	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
 			time.Sleep(time.Second)
 		}

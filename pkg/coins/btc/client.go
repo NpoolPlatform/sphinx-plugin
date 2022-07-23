@@ -10,6 +10,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/rpcclient"
 )
@@ -118,7 +119,7 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(c *rpcclient.C
 		return err
 	}
 
-	for i := 0; i < MaxRetries; i++ {
+	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
 			time.Sleep(time.Second)
 		}

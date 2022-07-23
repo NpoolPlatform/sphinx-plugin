@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
@@ -47,7 +48,7 @@ func (sClients *SClients) WithClient(ctx context.Context, fn func(c *rpc.Client)
 		return err
 	}
 
-	for i := 0; i < MaxRetries; i++ {
+	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
 			time.Sleep(time.Second)
 		}

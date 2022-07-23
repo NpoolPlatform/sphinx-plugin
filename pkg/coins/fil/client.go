@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 	"github.com/filecoin-project/go-jsonrpc"
 	lotusapi "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/v0api"
@@ -66,7 +67,7 @@ func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNo
 		return err
 	}
 
-	for i := 0; i < MaxRetries; i++ {
+	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
 			time.Sleep(time.Second)
 		}
