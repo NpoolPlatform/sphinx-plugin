@@ -28,8 +28,7 @@ func (bClients bClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 	if err != nil {
 		return nil, err
 	}
-	// _ctx, cancel := context.WithTimeout(ctx, time.Second*3)
-	// defer cancel()
+
 	cli, err := ethclient.DialContext(ctx, endpoint)
 	if err != nil {
 		return nil, err
