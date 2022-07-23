@@ -88,7 +88,10 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	client := btc.Client()
 	_err := client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
 		err = cli.ImportAddressRescan(info.Address, "", false)
-		return false, nil
+		if err != nil {
+			return true, err
+		}
+		return false, err
 	})
 	if _err != nil {
 		return nil, _err
@@ -114,6 +117,9 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	var unspents []btcjson.ListUnspentResult
 	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
 		unspents, err = cli.ListUnspentMinMaxAddresses(btc.DefaultMinConfirms, btc.DefaultMaxConfirms, []btcutil.Address{_addr})
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 	if err != nil {
@@ -181,6 +187,9 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 			btc.DefaultMaxConfirms,
 			[]btcutil.Address{_addr},
 		)
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 	if err != nil {
@@ -288,6 +297,9 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	var _hash *chainhash.Hash
 	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
 		_hash, err = cli.SendRawTransaction(info, false)
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 	if err != nil {
@@ -312,6 +324,9 @@ func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 	var txHash *chainhash.Hash
 	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
 		txHash, err = chainhash.NewHashFromStr(info.TxID)
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 	if err != nil {
@@ -321,6 +336,9 @@ func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 	var transactionResult *btcjson.GetTransactionResult
 	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
 		transactionResult, err = cli.GetTransaction(txHash)
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 	if err != nil {

@@ -109,7 +109,9 @@ func _walletBalance(ctx context.Context, addr string) (*big.Int, error) {
 	client := bsc.Client()
 	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		ret, err = bep20Balance(ctx, addr, c)
-
+		if err != nil {
+			return true, err
+		}
 		return false, err
 	})
 
