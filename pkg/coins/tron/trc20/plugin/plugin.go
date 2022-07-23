@@ -80,7 +80,12 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return in, err
 	}
+
 	contract := config.GetENV().Contract
+	err = tron.ValidAddress(contract)
+	if err != nil {
+		return in, fmt.Errorf("contract %v, %v, %v", contract, tron.AddressInvalid, err)
+	}
 
 	bl := tron.EmptyTRC20
 	if err := tron.ValidAddress(wbReq.Address); err != nil {

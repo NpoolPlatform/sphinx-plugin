@@ -18,8 +18,9 @@ import (
 func init() {
 	if err := register(
 		"task::synctx",
-		// TODO register not set duration
-		0,
+		// TODO
+		// calcDuration(),
+		3*time.Second,
 		syncTx,
 	); err != nil {
 		fatalf("task::synctx", "task already register")
