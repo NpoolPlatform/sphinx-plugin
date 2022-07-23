@@ -19,8 +19,10 @@ const (
 	MinNodeNum       = 1
 	MaxRetries       = 3
 	RetriesSleepTime = 1 * time.Second
+	ToleranceNum     = 2
 	EndpointSep      = `|`
 	EndpointInvalid  = `fil endpoint invalid`
+	EndpointUnsync   = `filecoin chain unsync`
 )
 
 type FClientI interface {
@@ -52,7 +54,28 @@ func (fClients FClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 		return nil, nil, err
 	}
 
+	syncState, err := syncState(ctx, &_api)
+	if err != nil || !syncState {
+		closer()
+		return nil, nil, err
+	}
 	return &_api, closer, nil
+}
+
+func syncState(ctx context.Context, api *v0api.FullNodeStruct) (bool, error) {
+	ret, err := api.SyncState(ctx)
+	if err != nil {
+		return false, err
+	}
+	for _, v := range ret.ActiveSyncs {
+		if v.Stage == lotusapi.StageIdle || v.Stage == lotusapi.StageSyncComplete {
+			if v.Height < ToleranceNum {
+				continue
+			}
+		}
+		return false, fmt.Errorf(EndpointUnsync)
+	}
+	return true, nil
 }
 
 func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNode) (bool, error)) error {

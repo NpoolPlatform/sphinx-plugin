@@ -28,6 +28,7 @@ func (sClients SClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 	if err != nil {
 		return nil, err
 	}
+
 	client := rpc.New(endpoint)
 	_, err = client.GetHealth(ctx)
 	if err != nil {
