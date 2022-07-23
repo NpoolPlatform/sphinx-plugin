@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 	"github.com/filecoin-project/go-jsonrpc"
 	lotusapi "github.com/filecoin-project/lotus/api"
@@ -67,7 +68,7 @@ func syncState(ctx context.Context, api *v0api.FullNodeStruct) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	fmt.Printf("ssssssss : %+v", ret.ActiveSyncs)
+	log.Errorf("ssssssss : %+v", ret.ActiveSyncs)
 	for _, v := range ret.ActiveSyncs {
 		if v.Stage == lotusapi.StageIdle || v.Stage == lotusapi.StageSyncComplete {
 			if v.Height < ToleranceNum {
