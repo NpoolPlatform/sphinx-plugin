@@ -67,6 +67,7 @@ func syncState(ctx context.Context, api *v0api.FullNodeStruct) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	fmt.Printf("ssssssss : %+v", ret.ActiveSyncs)
 	for _, v := range ret.ActiveSyncs {
 		if v.Stage == lotusapi.StageIdle || v.Stage == lotusapi.StageSyncComplete {
 			if v.Height < ToleranceNum {
