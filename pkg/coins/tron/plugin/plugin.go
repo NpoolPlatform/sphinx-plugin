@@ -103,7 +103,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 			bl = tron.EmptyTRX
 			return false, nil
 		}
-		if err != nil {
+		if err != nil || acc == nil {
 			return true, err
 		}
 		bl = acc.GetBalance()
@@ -152,7 +152,7 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 			return false, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
 		}
 		txExtension, err = cli.Transfer(from, to, amount)
-		if err != nil {
+		if err != nil || txExtension == nil {
 			return true, err
 		}
 		return false, err
@@ -182,10 +182,10 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 	var result *api.Return
 	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
 		result, err = cli.Broadcast(transaction)
-		if err != nil && result.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
+		if err != nil && result != nil && result.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
 			return false, err
 		}
-		if err != nil {
+		if err != nil || result == nil {
 			return true, err
 		}
 		return false, err

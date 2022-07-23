@@ -104,7 +104,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	var bl *rpc.GetBalanceResult
 	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
 		bl, err = cli.GetBalance(ctx, pubKey, rpc.CommitmentFinalized)
-		if err != nil {
+		if err != nil || bl == nil {
 			return true, err
 		}
 		return false, err
@@ -138,7 +138,7 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 	var recentBlockHash *rpc.GetLatestBlockhashResult
 	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
 		recentBlockHash, err = cli.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
-		if err != nil {
+		if err != nil || recentBlockHash == nil {
 			return true, err
 		}
 		return false, err
@@ -227,6 +227,10 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 
 	if err != nil {
 		return in, err
+	}
+
+	if chainMsg == nil {
+		return in, env.ErrWaitMessageOnChain
 	}
 
 	if chainMsg != nil && chainMsg.Meta.Err != nil {

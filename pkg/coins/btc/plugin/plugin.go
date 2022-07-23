@@ -117,7 +117,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	var unspents []btcjson.ListUnspentResult
 	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
 		unspents, err = cli.ListUnspentMinMaxAddresses(btc.DefaultMinConfirms, btc.DefaultMaxConfirms, []btcutil.Address{_addr})
-		if err != nil {
+		if err != nil || unspents == nil {
 			return true, err
 		}
 		return false, err
@@ -187,7 +187,7 @@ func preSign(ctx context.Context, in []byte) ([]byte, error) {
 			btc.DefaultMaxConfirms,
 			[]btcutil.Address{_addr},
 		)
-		if err != nil {
+		if err != nil || listUnspentResult == nil {
 			return true, err
 		}
 		return false, err
@@ -297,7 +297,7 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	var _hash *chainhash.Hash
 	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
 		_hash, err = cli.SendRawTransaction(info, false)
-		if err != nil {
+		if err != nil || _hash == nil {
 			return true, err
 		}
 		return false, err
@@ -324,7 +324,7 @@ func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 	var txHash *chainhash.Hash
 	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
 		txHash, err = chainhash.NewHashFromStr(info.TxID)
-		if err != nil {
+		if err != nil || txHash == nil {
 			return true, err
 		}
 		return false, err
@@ -336,7 +336,7 @@ func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 	var transactionResult *btcjson.GetTransactionResult
 	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
 		transactionResult, err = cli.GetTransaction(txHash)
-		if err != nil {
+		if err != nil || transactionResult == nil {
 			return true, err
 		}
 		return false, err
