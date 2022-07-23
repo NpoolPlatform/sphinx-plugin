@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 	"github.com/filecoin-project/go-jsonrpc"
 	lotusapi "github.com/filecoin-project/lotus/api"
@@ -68,16 +67,28 @@ func syncState(ctx context.Context, api *v0api.FullNodeStruct) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	log.Errorf("ssssssss : %+v", ret.ActiveSyncs)
 	for _, v := range ret.ActiveSyncs {
 		if v.Stage == lotusapi.StageIdle || v.Stage == lotusapi.StageSyncComplete {
-			if v.Height < ToleranceNum {
+			if computeHeightDiff(&v) < ToleranceNum {
 				continue
 			}
 		}
 		return false, fmt.Errorf(EndpointUnsync)
 	}
 	return true, nil
+}
+
+func computeHeightDiff(ss *lotusapi.ActiveSync) int64 {
+	var heightDiff int64
+	if ss.Base != nil {
+		heightDiff = int64(ss.Base.Height())
+	}
+	if ss.Target != nil {
+		heightDiff = int64(ss.Target.Height()) - heightDiff
+	} else {
+		heightDiff = 0
+	}
+	return heightDiff
 }
 
 func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNode) (bool, error)) error {
