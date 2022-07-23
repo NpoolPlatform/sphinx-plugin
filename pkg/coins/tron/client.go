@@ -145,6 +145,7 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 	var (
 		err, apiErr error
 		retry       bool
+		client      *tronclient.GrpcClient
 	)
 
 	endpointmgr, err := endpoints.NewManager()
@@ -156,7 +157,7 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		if i > 0 {
 			time.Sleep(time.Second)
 		}
-		client, err := tClients.GetGRPCClient(6*time.Second, endpointmgr)
+		client, err = tClients.GetGRPCClient(6*time.Second, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			if apiErr != nil {
 				return apiErr

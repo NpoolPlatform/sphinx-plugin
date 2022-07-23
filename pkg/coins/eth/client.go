@@ -64,6 +64,7 @@ func (eClients *eClients) WithClient(ctx context.Context, fn func(ctx context.Co
 	var (
 		apiErr, err error
 		retry       bool
+		client      *ethclient.Client
 	)
 
 	endpointmgr, err := endpoints.NewManager()
@@ -76,7 +77,7 @@ func (eClients *eClients) WithClient(ctx context.Context, fn func(ctx context.Co
 			time.Sleep(time.Second)
 		}
 
-		client, err := eClients.GetNode(ctx, endpointmgr)
+		client, err = eClients.GetNode(ctx, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			if apiErr != nil {
 				return apiErr

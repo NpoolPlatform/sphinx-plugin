@@ -58,6 +58,8 @@ func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNo
 	var (
 		apiErr, err error
 		retry       bool
+		client      v0api.FullNode
+		closer      jsonrpc.ClientCloser
 	)
 	endpointmgr, err := endpoints.NewManager()
 	if err != nil {
@@ -69,7 +71,7 @@ func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNo
 			time.Sleep(time.Second)
 		}
 
-		client, closer, err := fClients.GetNode(ctx, endpointmgr)
+		client, closer, err = fClients.GetNode(ctx, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			if apiErr != nil {
 				return apiErr

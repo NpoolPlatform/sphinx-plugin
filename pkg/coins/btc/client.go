@@ -111,6 +111,7 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(c *rpcclient.C
 	var (
 		apiErr, err error
 		retry       bool
+		client      *rpcclient.Client
 	)
 	endpointmgr, err := endpoints.NewManager()
 	if err != nil {
@@ -122,7 +123,7 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(c *rpcclient.C
 			time.Sleep(time.Second)
 		}
 
-		client, err := bClients.GetNode(ctx, endpointmgr)
+		client, err = bClients.GetNode(ctx, endpointmgr)
 
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			if apiErr != nil {
