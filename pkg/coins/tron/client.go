@@ -171,7 +171,7 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		retry, apiErr = fn(client)
 		client.Stop()
 
-		if apiErr == nil || !retry {
+		if !retry {
 			return apiErr
 		}
 	}
