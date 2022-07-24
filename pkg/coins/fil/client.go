@@ -71,6 +71,9 @@ func synchronized(ctx context.Context, api *v0api.FullNodeStruct) (bool, error) 
 	if err != nil {
 		return false, err
 	}
+	if len(state.ActiveSyncs) == 0 {
+		return false, nil
+	}
 	working := -1
 	for i, ss := range state.ActiveSyncs {
 		switch ss.Stage {

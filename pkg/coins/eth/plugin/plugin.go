@@ -216,7 +216,6 @@ func SendRawTransaction(ctx context.Context, in []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	tx := new(types.Transaction)
 	if err := rlp.Decode(bytes.NewReader(signedData.SignedTx), tx); err != nil {
 		return nil, err
