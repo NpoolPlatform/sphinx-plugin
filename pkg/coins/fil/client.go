@@ -99,7 +99,6 @@ func synchronized(ctx context.Context, api *v0api.FullNodeStruct) (bool, error) 
 	} else {
 		heightDiff = 0
 	}
-	fmt.Println(heightDiff, ss.Stage)
 	if heightDiff < ToleranceNum && (ss.Stage == lotusapi.StageSyncComplete || ss.Stage == lotusapi.StageIdle) {
 		return true, nil
 	}
