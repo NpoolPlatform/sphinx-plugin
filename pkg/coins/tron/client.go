@@ -10,10 +10,9 @@ import (
 	"strings"
 	"time"
 
+	tronclient "github.com/Geapefurit/gotron-sdk/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
-	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 	"google.golang.org/grpc"
 )
 
@@ -30,58 +29,14 @@ type TClientI interface {
 
 type tClients struct{}
 
-var jsonAPIMap map[string]string
-
-func init() {
-	jsonAPIMap = make(map[string]string)
-	var jsonApis []string
-
-	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCLOCALAPI); ok {
-		strs := strings.Split(v, endpoints.AddrSplitter)
-		jsonApis = append(jsonApis, strs...)
-	}
-	if v, ok := env.LookupEnv(env.ENVCOINJSONRPCPUBLICAPI); ok {
-		strs := strings.Split(v, endpoints.AddrSplitter)
-		jsonApis = append(jsonApis, strs...)
-	}
-
-	for _, v := range jsonApis {
-		strs := strings.Split(v, ":")
-		if len(strs) < 2 {
-			continue
-		}
-		jsonAPIMap[strs[0]] = strs[1]
-	}
-}
-
 func (tClients *tClients) GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error) {
-	endpoint, isLocal, err := endpointmgr.Peek()
+	endpoint, _, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}
 
-	if isLocal {
-		strs := strings.Split(endpoint, ":")
-		port := jsonAPIMap[strs[0]]
-
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-
-		syncRet, _err := tClients.SyncProgress(ctx, strs[0], port)
-		if _err != nil {
-			return nil, _err
-		}
-
-		if syncRet != nil {
-			return nil, fmt.Errorf(
-				"node is syncing ,current block %v ,highest block %v ",
-				syncRet.Result.CurrentBlock, syncRet.Result.HighestBlock,
-			)
-		}
-	}
-
 	ntc := tronclient.NewGrpcClientWithTimeout(endpoint, timeout)
-	err = ntc.Start(grpc.WithInsecure())
+	err = ntc.Start(grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		return nil, err
 	}
@@ -158,21 +113,19 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		if i > 0 {
 			time.Sleep(time.Second)
 		}
-		client, err = tClients.GetGRPCClient(6*time.Second, endpointmgr)
+		client, err = tClients.GetGRPCClient(3*time.Second, endpointmgr)
 		if errors.Is(err, endpoints.ErrEndpointExhausted) {
 			if apiErr != nil {
 				return apiErr
 			}
 			return err
 		}
-
 		if err != nil {
 			continue
 		}
 
 		retry, apiErr = fn(client)
 		client.Stop()
-
 		if !retry {
 			return apiErr
 		}

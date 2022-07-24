@@ -3,6 +3,7 @@ module github.com/NpoolPlatform/sphinx-plugin
 go 1.17
 
 require (
+	github.com/Geapefurit/gotron-sdk v0.0.0-20220724074720-3d7ea3cbd771
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220713074036-182dafb1d980
 	github.com/NpoolPlatform/message v0.0.0-20220714124453-6fc782d1b998
 	github.com/btcsuite/btcd v0.22.0-beta
@@ -10,7 +11,6 @@ require (
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/ethereum/go-ethereum v1.10.19
 	github.com/fatih/color v1.13.0
-	github.com/fbsobreira/gotron-sdk v0.0.0-20211102183839-58a64f4da5f4
 	github.com/filecoin-project/go-address v0.0.6
 	github.com/filecoin-project/go-jsonrpc v0.1.5
 	github.com/filecoin-project/go-state-types v0.1.3

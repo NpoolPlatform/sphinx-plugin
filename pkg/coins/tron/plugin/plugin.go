@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"strings"
 
+	tronclient "github.com/Geapefurit/gotron-sdk/pkg/client"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
-	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
 
+	"github.com/Geapefurit/gotron-sdk/pkg/common"
+	"github.com/Geapefurit/gotron-sdk/pkg/proto/api"
+	"github.com/Geapefurit/gotron-sdk/pkg/proto/core"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
-	"github.com/fbsobreira/gotron-sdk/pkg/common"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
 )
 
 // here register plugin func
@@ -77,7 +77,7 @@ func init() {
 	}
 }
 
-// redefine Code ,because github.com/fbsobreira/gotron-sdk/pkg/proto/core/Tron.pb.go line 564 spelling err
+// redefine Code ,because github.com/Geapefurit/gotron-sdk/pkg/proto/core/Tron.pb.go line 564 spelling err
 const (
 	TransactionInfoSUCCESS = 0
 	TransactionInfoFAILED  = 1
@@ -149,7 +149,10 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
 		_, err := cli.GetAccount(from)
 		if err != nil {
-			return false, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
+			return true, err
+		}
+		if tron.TxFailErr(err) {
+			return false, err
 		}
 		txExtension, err = cli.Transfer(from, to, amount)
 		if err != nil || txExtension == nil {
@@ -182,6 +185,7 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 	var result *api.Return
 	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
 		result, err = cli.Broadcast(transaction)
+		fmt.Println(result, err)
 		if err != nil && result != nil && result.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
 			return false, err
 		}
@@ -193,6 +197,9 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 
 	if err != nil {
 		return in, err
+	}
+	if result == nil {
+		return in, fmt.Errorf("get result faild")
 	}
 
 	if api.Return_SUCCESS == result.Code {

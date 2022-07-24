@@ -15,7 +15,7 @@ const (
 	// unit seconds
 	getTransactionsTimeout = 60 * time.Second
 	// unit seconds
-	updateTransactionsTimeout = 5 * time.Second
+	updateTransactionsTimeout = 10 * time.Second
 )
 
 type tworker struct {

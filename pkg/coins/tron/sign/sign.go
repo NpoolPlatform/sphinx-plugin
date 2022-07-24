@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	addr "github.com/Geapefurit/gotron-sdk/pkg/address"
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
@@ -15,7 +16,6 @@ import (
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/ethereum/go-ethereum/crypto"
-	addr "github.com/fbsobreira/gotron-sdk/pkg/address"
 
 	"google.golang.org/protobuf/proto"
 )

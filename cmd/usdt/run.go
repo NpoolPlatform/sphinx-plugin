@@ -17,6 +17,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/Geapefurit/gotron-sdk/pkg/keystore"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -24,7 +25,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fatih/color"
-	"github.com/fbsobreira/gotron-sdk/pkg/keystore"
 	cli "github.com/urfave/cli/v2"
 )
 

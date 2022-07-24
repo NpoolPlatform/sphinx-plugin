@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	tronclient "github.com/Geapefurit/gotron-sdk/pkg/client"
+	"github.com/Geapefurit/gotron-sdk/pkg/proto/api"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -13,8 +15,6 @@ import (
 	tron_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
-	tronclient "github.com/fbsobreira/gotron-sdk/pkg/client"
-	"github.com/fbsobreira/gotron-sdk/pkg/proto/api"
 )
 
 // here register plugin func
@@ -99,7 +99,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 			bl = tron.EmptyTRC20
 			return false, nil
 		}
-		if err != nil || bl == nil {
+		if err != nil {
 			return true, err
 		}
 		return false, err
@@ -152,9 +152,6 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 			tron.TRC20ToBigInt(baseInfo.Value),
 			tron.TRC20FeeLimit,
 		)
-		if err != nil || txExtension == nil {
-			return true, err
-		}
 		return false, err
 	})
 	if err != nil {
