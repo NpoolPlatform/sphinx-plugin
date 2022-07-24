@@ -54,32 +54,40 @@ func (fClients FClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 		return nil, nil, err
 	}
 
-	syncState, err := syncState(ctx, &_api)
-	if err != nil || !syncState {
+	syncState, err := synchronized(ctx, &_api)
+	if err != nil {
 		closer()
 		return nil, nil, err
+	}
+	if !syncState {
+		closer()
+		return nil, nil, fmt.Errorf(EndpointUnsync)
 	}
 	return &_api, closer, nil
 }
 
-func syncState(ctx context.Context, api *v0api.FullNodeStruct) (bool, error) {
-	ret, err := api.SyncState(ctx)
+func synchronized(ctx context.Context, api *v0api.FullNodeStruct) (bool, error) {
+	state, err := api.SyncState(ctx)
 	if err != nil {
 		return false, err
 	}
-	for _, v := range ret.ActiveSyncs {
-		if v.Stage == lotusapi.StageIdle || v.Stage == lotusapi.StageSyncComplete {
-			if computeHeightDiff(&v) < ToleranceNum {
-				continue
-			}
+	working := -1
+	for i, ss := range state.ActiveSyncs {
+		switch ss.Stage {
+		default:
+			working = i
+		case lotusapi.StageSyncComplete:
+		case lotusapi.StageIdle:
+			// not complete, not actively working
 		}
-		return false, fmt.Errorf(EndpointUnsync)
 	}
-	return true, nil
-}
+	if working == -1 {
+		working = len(state.ActiveSyncs) - 1
+	}
 
-func computeHeightDiff(ss *lotusapi.ActiveSync) int64 {
+	ss := state.ActiveSyncs[working]
 	var heightDiff int64
+
 	if ss.Base != nil {
 		heightDiff = int64(ss.Base.Height())
 	}
@@ -88,7 +96,11 @@ func computeHeightDiff(ss *lotusapi.ActiveSync) int64 {
 	} else {
 		heightDiff = 0
 	}
-	return heightDiff
+	fmt.Println(heightDiff, ss.Stage)
+	if heightDiff < ToleranceNum && (ss.Stage == lotusapi.StageSyncComplete || ss.Stage == lotusapi.StageIdle) {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNode) (bool, error)) error {

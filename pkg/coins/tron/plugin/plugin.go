@@ -185,7 +185,6 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 	var result *api.Return
 	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
 		result, err = cli.Broadcast(transaction)
-		fmt.Println(result, err)
 		if err != nil && result != nil && result.GetCode() == api.Return_TRANSACTION_EXPIRATION_ERROR {
 			return false, err
 		}
