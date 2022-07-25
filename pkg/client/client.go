@@ -38,7 +38,10 @@ func getConn(target string) (*grpc.ClientConn, error) {
 	rlk.Lock()
 	defer rlk.Unlock()
 
-	conn, err := grpc.Dial(target, grpc.WithInsecure())
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	conn, err := grpc.DialContext(ctx, target, grpc.WithBlock(), grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
