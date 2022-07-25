@@ -21,7 +21,6 @@ version=`git describe --tags --abbrev=0`
 if [ ! $? -eq 0 ]; then
     version=latest
 fi
-
 set -e
 
 service_name=$1
