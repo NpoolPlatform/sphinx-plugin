@@ -1,12 +1,10 @@
 package endpoints
 
 import (
-	"fmt"
+	"errors"
 	"math/rand"
 	"strings"
-	"time"
 
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 )
 
@@ -26,6 +24,8 @@ type Manager struct {
 	currentCursor int
 }
 
+var ErrEndpointExhausted = errors.New("fail peek,all endpoints is peeked")
+
 func init() {
 	// read endpoints from env
 	_publicAddrs, _ := env.LookupEnv(env.ENVCOINPUBLICAPI)
@@ -40,8 +40,6 @@ func init() {
 
 	allAddrs = append(allAddrs, localAddrs...)
 	allAddrs = append(allAddrs, publicAddrs...)
-
-	rand.Seed(time.Now().Unix())
 }
 
 func ShuffleOrder(n int) []int {
@@ -53,17 +51,16 @@ func ShuffleOrder(n int) []int {
 		order[i] = i
 	}
 
-	for i := 0; i < n; i++ {
-		j := rand.Intn(n)
+	rand.Shuffle(n, func(i, j int) {
 		order[i], order[j] = order[j], order[i]
-	}
+	})
 
 	return order
 }
 
 func NewManager() (*Manager, error) {
 	if len(allAddrs) == 0 {
-		return nil, fmt.Errorf("invalid addresses setting")
+		panic("invalid addresses setting,addresses length 0")
 	}
 
 	localOrder := ShuffleOrder(len(localAddrs))
@@ -72,7 +69,7 @@ func NewManager() (*Manager, error) {
 		publicOrder[i] = v + len(localAddrs)
 	}
 
-	peekOrder := make([]int, 0)
+	peekOrder := make([]int, 0, len(localOrder)+len(publicOrder))
 	peekOrder = append(peekOrder, localOrder...)
 	peekOrder = append(peekOrder, publicOrder...)
 
@@ -81,7 +78,7 @@ func NewManager() (*Manager, error) {
 
 func (m *Manager) Peek() (addr string, isLocal bool, err error) {
 	if m.currentCursor >= len(m.peekOrder) {
-		return "", false, fmt.Errorf("fail peek,all endpoints is peeked")
+		return "", false, ErrEndpointExhausted
 	}
 
 	addr = allAddrs[m.peekOrder[m.currentCursor]]
@@ -92,6 +89,9 @@ func (m *Manager) Peek() (addr string, isLocal bool, err error) {
 		isLocal = true
 	}
 
-	logger.Sugar().Errorf("peek the endpoint: %v", addr)
 	return addr, isLocal, nil
+}
+
+func (m *Manager) Len() int {
+	return len(allAddrs)
 }

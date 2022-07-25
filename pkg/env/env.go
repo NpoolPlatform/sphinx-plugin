@@ -9,7 +9,10 @@ const (
 	// main or test
 	ENVCOINNET = "ENV_COIN_NET"
 
-	// FIL BTC ETH/USDT SpaceMesh
+	// ENVSYNCINTERVAL sync transaction status on chain interval
+	ENVSYNCINTERVAL = "ENV_SYNC_INTERVAL"
+
+	// eg: filecoin/tfilecoin
 	ENVCOINTYPE = "ENV_COIN_TYPE"
 
 	// fil btc ip:port
@@ -32,6 +35,7 @@ const (
 )
 
 var (
+	// env error----------------------------
 	ErrEVNCoinType     = errors.New("env ENV_COIN_TYPE not found")
 	ErrEVNCoinNet      = errors.New("env ENV_COIN_NET not found")
 	ErrEVNCoinNetValue = errors.New("env ENV_COIN_NET value only support main|test")
@@ -45,10 +49,6 @@ var (
 
 	// fil
 	ErrENVCoinTokenNotFound = errors.New("env ENV_COIN_TOKEN not found")
-	ErrAddressInvalid       = errors.New("address invalid")
-	ErrSignTypeInvalid      = errors.New("sign type invalid")
-	ErrFindMsgNotFound      = errors.New("failed to find message")
-	ErrCIDInvalid           = errors.New("cid invalid")
 
 	// eth/usdt
 	ErrENVContractNotFound = errors.New("env ENV_CONTRACT not found")
@@ -56,22 +56,34 @@ var (
 	// tron
 	ErrENVCOINJSONRPCAPINotFound = errors.New("env ENV_COIN_JSONRPC_API not found")
 	ErrENVCOINGRPCAPINotFound    = errors.New("env ENV_COIN_GRPC_API not found")
+
+	// not env error----------------------------
+	ErrSignTypeInvalid     = errors.New("sign type invalid")
+	ErrFindMsgNotFound     = errors.New("failed to find message")
+	ErrCIDInvalid          = errors.New("cid invalid")
+	ErrAddressInvalid      = errors.New("address invalid")
+	ErrAmountInvalid       = errors.New("amount invalid")
+	ErrInsufficientBalance = errors.New("insufficient balance")
+	ErrWaitMessageOnChain  = errors.New("wait message on chain")
+	ErrContractInvalid     = errors.New("invalid contract address")
+	ErrTransactionFail     = errors.New("transaction fail")
 )
 
 func LookupEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
-func CoinInfo() (coinType, networkType string, err error) {
+func CoinInfo() (networkType, coinType string, err error) {
 	var ok bool
-	coinType, ok = LookupEnv(ENVCOINTYPE)
-	if !ok {
-		err = ErrEVNCoinType
-		return
-	}
 	networkType, ok = LookupEnv(ENVCOINNET)
 	if !ok {
 		err = ErrEVNCoinNet
+		return
+	}
+
+	coinType, ok = LookupEnv(ENVCOINTYPE)
+	if !ok {
+		err = ErrEVNCoinType
 		return
 	}
 	return

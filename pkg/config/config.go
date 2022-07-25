@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/spf13/viper"
@@ -39,8 +40,15 @@ func Init(configPath, appName string) error {
 		return fmt.Errorf("fail to init config: %v", err)
 	}
 
-	appID := viper.GetStringMap(rootConfig)[KeyAppID].(string)   //nolint
-	logDir := viper.GetStringMap(rootConfig)[KeyLogDir].(string) //nolint
+	appID, ok := viper.GetStringMap(rootConfig)[KeyAppID].(string)
+	if !ok {
+		return errors.New("fail to get init config KeyAppID not a string value")
+	}
+
+	logDir, ok := viper.GetStringMap(rootConfig)[KeyLogDir].(string)
+	if !ok {
+		return errors.New("fail to get init config KeyLogDir not a string value")
+	}
 
 	fmt.Printf("appid: %v\n", appID)
 	fmt.Printf("logdir: %v\n", logDir)
@@ -55,19 +63,22 @@ func GetInt(key string) int {
 	return viper.GetStringMap(rootConfig)[key].(int)
 }
 
-var global ENVInfo
+var global *ENVInfo
 
 type ENVInfo struct {
-	Proxy    string
-	Contract string
-	LogDir   string
-	LogLevel string
+	Proxy        string
+	SyncInterval int64
+	Contract     string
+	LogDir       string
+	LogLevel     string
+	WanIP        string
+	Position     string
 }
 
-func SetENV(info ENVInfo) {
+func SetENV(info *ENVInfo) {
 	global = info
 }
 
-func GetENV() ENVInfo {
+func GetENV() *ENVInfo {
 	return global
 }

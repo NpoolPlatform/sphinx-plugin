@@ -21,10 +21,13 @@ version=`git describe --tags --abbrev=0`
 if [ ! $? -eq 0 ]; then
     version=latest
 fi
-
 set -e
 
 service_name=$1
+## For development environment, pass the second variable
+if [ "xdevelopment" == "x$2" ]; then
+  version=latest
+fi
 
 echo "Generate docker image for $PLATFORM -- $version"
 if [ ! -f $OUTPUT/$PLATFORM/$service_name ]; then
