@@ -11,7 +11,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
-	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
@@ -102,8 +101,8 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 
 	client := sol.Client()
 	var bl *rpc.GetBalanceResult
-	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
-		bl, err = cli.GetBalance(ctx, pubKey, rpc.CommitmentFinalized)
+	err = client.WithClient(ctx, func(_ctx context.Context, cli *rpc.Client) (bool, error) {
+		bl, err = cli.GetBalance(_ctx, pubKey, rpc.CommitmentFinalized)
 		if err != nil || bl == nil {
 			return true, err
 		}
@@ -136,8 +135,8 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 	client := sol.Client()
 
 	var recentBlockHash *rpc.GetLatestBlockhashResult
-	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
-		recentBlockHash, err = cli.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
+	err = client.WithClient(ctx, func(_ctx context.Context, cli *rpc.Client) (bool, error) {
+		recentBlockHash, err = cli.GetLatestBlockhash(_ctx, rpc.CommitmentFinalized)
 		if err != nil || recentBlockHash == nil {
 			return true, err
 		}
@@ -176,8 +175,8 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 	var cid solana.Signature
-	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
-		cid, err = cli.SendTransaction(ctx, tx)
+	err = client.WithClient(ctx, func(_ctx context.Context, cli *rpc.Client) (bool, error) {
+		cid, err = cli.SendTransaction(_ctx, tx)
 		if err != nil && !sol.TxFailErr(err) {
 			return true, err
 		}
@@ -206,14 +205,11 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, sconst.WaitMsgOutTimeout)
-	defer cancel()
-
 	client := sol.Client()
 	var chainMsg *rpc.GetTransactionResult
-	err = client.WithClient(ctx, func(cli *rpc.Client) (bool, error) {
+	err = client.WithClient(ctx, func(_ctx context.Context, cli *rpc.Client) (bool, error) {
 		chainMsg, err = cli.GetTransaction(
-			ctx,
+			_ctx,
 			signature,
 			&rpc.GetTransactionOpts{
 				Encoding:   solana.EncodingBase58,

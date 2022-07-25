@@ -320,19 +320,13 @@ func syncTx(_ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	client := btc.Client()
 	var txHash *chainhash.Hash
-	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
-		txHash, err = chainhash.NewHashFromStr(info.TxID)
-		if err != nil || txHash == nil {
-			return true, err
-		}
-		return false, err
-	})
+	txHash, err = chainhash.NewHashFromStr(info.TxID)
 	if err != nil {
 		return nil, err
 	}
 
+	client := btc.Client()
 	var transactionResult *btcjson.GetTransactionResult
 	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
 		transactionResult, err = cli.GetTransaction(txHash)

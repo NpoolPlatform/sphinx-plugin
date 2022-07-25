@@ -1,6 +1,9 @@
 package eth
 
 import (
+	"strings"
+	"time"
+
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 )
 
@@ -8,6 +11,15 @@ const (
 	ETHACCURACY   = 18
 	ERC20ACCURACY = 6
 )
+
+const (
+	gasToLow    = `intrinsic gas too low`
+	fundsToLow  = `insufficient funds for gas * price + value`
+	nonceToLow  = `nonce too low`
+	dialTimeout = 3 * time.Second
+)
+
+var stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
 
 // USDTContract ...
 var USDTContract = func(chainet int64) string {
@@ -22,4 +34,17 @@ var USDTContract = func(chainet int64) string {
 		return contract
 	}
 	return ""
+}
+
+func TxFailErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	for _, v := range stopErrMsg {
+		if strings.Contains(err.Error(), v) {
+			return true
+		}
+	}
+	return false
 }

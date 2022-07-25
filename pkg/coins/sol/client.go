@@ -2,7 +2,6 @@ package sol
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
@@ -13,12 +12,13 @@ import (
 const (
 	MinNodeNum       = 1
 	MaxRetries       = 3
-	RetriesSleepTime = 1 * time.Second
+	retriesSleepTime = 200 * time.Millisecond
+	reqTimeout       = 3 * time.Second
 )
 
 type SClientI interface {
 	GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (*rpc.Client, error)
-	WithClient(ctx context.Context, fn func(*rpc.Client) (bool, error)) error
+	WithClient(ctx context.Context, fn func(context.Context, *rpc.Client) (bool, error)) error
 }
 
 type SClients struct{}
@@ -29,6 +29,9 @@ func (sClients SClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 		return nil, err
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, reqTimeout)
+	defer cancel()
+
 	client := rpc.New(endpoint)
 	_, err = client.GetHealth(ctx)
 	if err != nil {
@@ -38,7 +41,7 @@ func (sClients SClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 	return client, nil
 }
 
-func (sClients *SClients) WithClient(ctx context.Context, fn func(c *rpc.Client) (bool, error)) error {
+func (sClients *SClients) WithClient(ctx context.Context, fn func(ctx context.Context, c *rpc.Client) (bool, error)) error {
 	var (
 		apiErr, err error
 		retry       bool
@@ -51,26 +54,21 @@ func (sClients *SClients) WithClient(ctx context.Context, fn func(c *rpc.Client)
 
 	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
-			time.Sleep(time.Second)
+			time.Sleep(retriesSleepTime)
 		}
 
 		client, err = sClients.GetNode(ctx, endpointmgr)
-		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			if apiErr != nil {
-				return apiErr
-			}
-			return err
-		}
-
 		if err != nil {
 			continue
 		}
 
-		retry, apiErr = fn(client)
-
+		retry, apiErr = fn(ctx, client)
 		if !retry {
 			return apiErr
 		}
+	}
+	if apiErr != nil {
+		return apiErr
 	}
 	return err
 }

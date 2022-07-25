@@ -2,9 +2,7 @@ package eth
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
@@ -15,16 +13,8 @@ import (
 const (
 	MinNodeNum       = 1
 	MaxRetries       = 3
-	RetriesSleepTime = 1 * time.Second
+	retriesSleepTime = 200 * time.Millisecond
 )
-
-const (
-	gasToLow   = `intrinsic gas too low`
-	fundsToLow = `insufficient funds for gas * price + value`
-	nonceToLow = `nonce too low`
-)
-
-var stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
 
 type EClientI interface {
 	GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (*ethclient.Client, error)
@@ -38,8 +28,10 @@ func (eClients eClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+
+	ctx, cancel := context.WithTimeout(ctx, dialTimeout)
 	defer cancel()
+
 	cli, err := ethclient.DialContext(ctx, endpoint)
 	if err != nil {
 		return nil, err
@@ -76,17 +68,10 @@ func (eClients *eClients) WithClient(ctx context.Context, fn func(ctx context.Co
 
 	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
-			time.Sleep(time.Second)
+			time.Sleep(retriesSleepTime)
 		}
 
 		client, err = eClients.GetNode(ctx, endpointmgr)
-
-		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			if apiErr != nil {
-				return apiErr
-			}
-			return err
-		}
 
 		if err != nil {
 			continue
@@ -100,22 +85,12 @@ func (eClients *eClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		}
 	}
 
+	if apiErr != nil {
+		return apiErr
+	}
 	return err
 }
 
 func Client() EClientI {
 	return &eClients{}
-}
-
-func TxFailErr(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	for _, v := range stopErrMsg {
-		if strings.Contains(err.Error(), v) {
-			return true
-		}
-	}
-	return false
 }

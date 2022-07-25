@@ -2,7 +2,6 @@ package bsc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -14,6 +13,9 @@ import (
 const (
 	MinNodeNum = 1
 	MaxRetries = 3
+
+	retriesSleepTime = 200 * time.Millisecond
+	dialTimeout      = 3 * time.Second
 )
 
 type BClientI interface {
@@ -28,6 +30,9 @@ func (bClients bClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 	if err != nil {
 		return nil, err
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, dialTimeout)
+	defer cancel()
 
 	cli, err := ethclient.DialContext(ctx, endpoint)
 	if err != nil {
@@ -63,17 +68,10 @@ func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Co
 	}
 	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
-			time.Sleep(time.Second)
+			time.Sleep(retriesSleepTime)
 		}
 
 		client, err = bClients.GetNode(ctx, endpointmgr)
-
-		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			if apiErr != nil {
-				return apiErr
-			}
-			return err
-		}
 		if err != nil {
 			continue
 		}
@@ -84,6 +82,9 @@ func (bClients *bClients) WithClient(ctx context.Context, fn func(ctx context.Co
 		if !retry {
 			return apiErr
 		}
+	}
+	if apiErr != nil {
+		return apiErr
 	}
 	return err
 }

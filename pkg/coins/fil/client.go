@@ -2,7 +2,6 @@ package fil
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -18,11 +17,12 @@ import (
 const (
 	MinNodeNum       = 1
 	MaxRetries       = 3
-	RetriesSleepTime = 1 * time.Second
+	retriesSleepTime = 200 * time.Millisecond
 	ToleranceNum     = 2
 	EndpointSep      = `|`
 	EndpointInvalid  = `fil endpoint invalid`
 	EndpointUnsync   = `filecoin chain unsync`
+	dialTimeout      = time.Second * 3
 )
 
 type FClientI interface {
@@ -47,9 +47,12 @@ func (fClients FClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 	authToken := strs[1]
 	headers := http.Header{"Authorization": []string{"Bearer " + authToken}}
 
+	ctx, cancel := context.WithTimeout(ctx, dialTimeout)
+	defer cancel()
+
 	var _api v0api.FullNodeStruct
 	// internal has conn pool
-	closer, err := jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&_api), headers)
+	closer, err := jsonrpc.NewMergeClient(ctx, "ws://"+addr+"/rpc/v0", "Filecoin", lotusapi.GetInternalStructs(&_api), headers)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -119,17 +122,10 @@ func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNo
 
 	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
-			time.Sleep(time.Second)
+			time.Sleep(retriesSleepTime)
 		}
 
 		client, closer, err = fClients.GetNode(ctx, endpointmgr)
-		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			if apiErr != nil {
-				return apiErr
-			}
-			return err
-		}
-
 		if err != nil {
 			continue
 		}
@@ -140,6 +136,9 @@ func (fClients *FClients) WithClient(ctx context.Context, fn func(c v0api.FullNo
 		if !retry {
 			return err
 		}
+	}
+	if apiErr != nil {
+		return apiErr
 	}
 	return err
 }

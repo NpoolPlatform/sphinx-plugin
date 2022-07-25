@@ -13,7 +13,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
-	sconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
@@ -289,9 +288,6 @@ func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return nil, env.ErrCIDInvalid
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, sconst.WaitMsgOutTimeout)
-	defer cancel()
 
 	api := fil.Client()
 	// 1. check message out

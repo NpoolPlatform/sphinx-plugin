@@ -2,7 +2,6 @@ package btc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -18,7 +17,7 @@ import (
 const (
 	MinNodeNum       = 1
 	MaxRetries       = 3
-	RetriesSleepTime = 1 * time.Second
+	retriesSleepTime = 200 * time.Millisecond
 	EndpointSep      = `|`
 	EndpointAuthSep  = `@`
 	EndpointInvalid  = `fil endpoint invalid`
@@ -121,28 +120,22 @@ func (bClients *BClients) WithClient(ctx context.Context, fn func(c *rpcclient.C
 
 	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
-			time.Sleep(time.Second)
+			time.Sleep(retriesSleepTime)
 		}
 
 		client, err = bClients.GetNode(ctx, endpointmgr)
-
-		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			if apiErr != nil {
-				return apiErr
-			}
-			return err
-		}
-
 		if err != nil {
 			continue
 		}
 
 		retry, apiErr = fn(client)
-
 		client.Shutdown()
 		if !retry {
 			return apiErr
 		}
+	}
+	if apiErr != nil {
+		return apiErr
 	}
 	return err
 }

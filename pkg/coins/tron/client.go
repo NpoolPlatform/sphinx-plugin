@@ -3,7 +3,6 @@ package tron
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -19,7 +18,8 @@ import (
 const (
 	MinNodeNum       = 1
 	MaxRetries       = 3
-	RetriesSleepTime = 1 * time.Second
+	retriesSleepTime = 200 * time.Millisecond
+	dialTimeout      = 3 * time.Second
 )
 
 type TClientI interface {
@@ -111,15 +111,9 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 
 	for i := 0; i < utils.MinInt(MaxRetries, endpointmgr.Len()); i++ {
 		if i > 0 {
-			time.Sleep(time.Second)
+			time.Sleep(retriesSleepTime)
 		}
-		client, err = tClients.GetGRPCClient(3*time.Second, endpointmgr)
-		if errors.Is(err, endpoints.ErrEndpointExhausted) {
-			if apiErr != nil {
-				return apiErr
-			}
-			return err
-		}
+		client, err = tClients.GetGRPCClient(dialTimeout, endpointmgr)
 		if err != nil {
 			continue
 		}
@@ -131,6 +125,9 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		}
 	}
 
+	if apiErr != nil {
+		return apiErr
+	}
 	return err
 }
 
