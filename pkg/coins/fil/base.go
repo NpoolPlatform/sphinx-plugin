@@ -18,8 +18,9 @@ var FILNetMap = map[string]address.Network{
 }
 
 var (
-	FilTxFaild = `fil tx faild`
-	stopErrMsg = []string{FilTxFaild}
+	FilTxFaild  = `fil tx faild`
+	filNonceLow = `message nonce too low`
+	stopErrMsg  = []string{FilTxFaild, filNonceLow}
 )
 
 func SignType(signType string) (crypto.SigType, error) {
