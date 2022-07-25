@@ -15,7 +15,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 
 	bsc "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -131,11 +130,16 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	client := bsc.Client()
+
+	if !coins.CheckSupportNet(baseInfo.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
 
 	if !common.IsHexAddress(baseInfo.From) {
 		return nil, env.ErrAddressInvalid
 	}
+
+	client := bsc.Client()
 
 	var chainID *big.Int
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
@@ -186,7 +190,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	case sphinxplugin.CoinType_CoinTypebinancecoin, sphinxplugin.CoinType_CoinTypetbinancecoin:
 		info.GasLimit = 21_000
 	case sphinxplugin.CoinType_CoinTypebinanceusd, sphinxplugin.CoinType_CoinTypetbinanceusd:
-		info.ContractID = config.GetENV().Contract
+		info.ContractID = bsc.BUSDContract(chainID.Int64())
 		info.GasLimit = 300_000
 	}
 

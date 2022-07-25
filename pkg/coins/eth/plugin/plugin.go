@@ -132,11 +132,16 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	client := eth.Client()
+
+	if !coins.CheckSupportNet(baseInfo.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
 
 	if !common.IsHexAddress(baseInfo.From) {
 		return nil, env.ErrAddressInvalid
 	}
+
+	client := eth.Client()
 
 	var chainID *big.Int
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {

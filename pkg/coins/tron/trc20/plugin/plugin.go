@@ -14,6 +14,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	tron_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 )
 
@@ -78,18 +79,18 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	wbReq := &ct.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	contract := config.GetENV().Contract
 	err = tron.ValidAddress(contract)
 	if err != nil {
-		return in, fmt.Errorf("contract %v, %v, %v", contract, tron.AddressInvalid, err)
+		return nil, fmt.Errorf("contract %v, %v, %v", contract, tron.AddressInvalid, err)
 	}
 
 	bl := tron.EmptyTRC20
 	if err := tron.ValidAddress(wbReq.Address); err != nil {
-		return in, err
+		return nil, err
 	}
 
 	client := tron.Client()
@@ -105,7 +106,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return false, err
 	})
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 
 	f := tron.TRC20ToBigFloat(bl)
@@ -123,23 +124,27 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 	baseInfo := &ct.BaseInfo{}
 	err = json.Unmarshal(in, baseInfo)
 	if err != nil {
-		return in, err
+		return nil, err
+	}
+
+	if !coins.CheckSupportNet(baseInfo.ENV) {
+		return nil, env.ErrEVNCoinNetValue
 	}
 
 	err = tron.ValidAddress(baseInfo.From)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
+		return nil, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
 	}
 
 	err = tron.ValidAddress(baseInfo.To)
 	if err != nil {
-		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
+		return nil, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
 	}
 
-	contract := config.GetENV().Contract
+	contract := tron.USDTContract(baseInfo.ENV)
 	err = tron.ValidAddress(contract)
 	if err != nil {
-		return in, fmt.Errorf("contract %v, %v, %v", contract, tron.AddressInvalid, err)
+		return nil, fmt.Errorf("contract %v, %v, %v", contract, tron.AddressInvalid, err)
 	}
 
 	var txExtension *api.TransactionExtention
@@ -155,7 +160,7 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 		return false, err
 	})
 	if err != nil {
-		return in, err
+		return nil, err
 	}
 	signTx := &tron.SignMsgTx{
 		Base:        *baseInfo,
