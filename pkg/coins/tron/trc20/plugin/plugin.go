@@ -13,7 +13,6 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	tron_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 )
@@ -82,7 +81,15 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	contract := config.GetENV().Contract
+	v, ok := env.LookupEnv(env.ENVCOINNET)
+	if !ok {
+		return nil, env.ErrEVNCoinNet
+	}
+	if !coins.CheckSupportNet(v) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
+	contract := tron.USDTContract(v)
 	err = tron.ValidAddress(contract)
 	if err != nil {
 		return nil, fmt.Errorf("contract %v, %v, %v", contract, tron.AddressInvalid, err)
