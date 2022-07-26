@@ -42,7 +42,7 @@ var stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive}
 var USDTContract = func(chainet string) string {
 	switch chainet {
 	case coins.CoinNetMain:
-		return "TB5NSkyzxkzi3eHW87NwFE6TmtTmnZw61y"
+		return "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
 	case coins.CoinNetTest:
 		contract, ok := env.LookupEnv(env.ENVCONTRACT)
 		if !ok {
