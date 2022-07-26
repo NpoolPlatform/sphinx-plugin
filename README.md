@@ -33,8 +33,8 @@
 - [ ] 监控
 - [x] 上报meta信息到proxy
 - [ ] 优化配置
-- [ ] 现在相同地址的并发处理
-- [ ] payload 同步到 redis
+- [ ] 相同地址的并发处理
+- [ ] payload 记录在 redis
 - [ ] 动态调整 **gas fee**
 - [ ] 支持多 **pod** 部署
 
@@ -43,12 +43,12 @@
 1. 配置新币种单位和名称
 2. 必须要实现的接口
 3. 注册新币种
-4. 设置默认SyncTime
+4. 设置默认 SyncTime
 
 ## 功能
 
 - [x] 将服务部署到k8s集群
-- [x] 将服务api通过traefik-internet ingress代理，供外部应用调用(视服务功能决定是否需要)
+- [x] 将服务 api 通过 traefik-internet ingress 代理，供外部应用调用(视服务功能决定是否需要)
 
 ## 命令
 
@@ -63,22 +63,22 @@
 
 ## 最佳实践
 
-- 每个服务只提供单一可执行文件，有利于docker镜像打包与k8s部署管理
-- 每个服务提供http调试接口，通过curl获取调试信息
-- 集群内服务间direct call调用通过服务发现获取目标地址进行调用
+- 每个服务只提供单一可执行文件，有利于 docker 镜像打包与 k8s 部署管理
+- 每个服务提供 http 调试接口，通过 curl 获取调试信息
+- 集群内服务间 direct call 调用通过服务发现获取目标地址进行调用
 
 ## 环境变量
 
-| 币种  | 变量名称            | 支持的值     | 说明                             |
-| :---- | :------------------ | :----------- | :------------------------------- |
-| comm  | ENV_COIN_NET        | main or test |                                  |
-|       | ENV_COIN_TYPE       |              |                                  |
-|       | ENV_SYNC_INTERVAL   |              | optional,交易状态同步间隔周期(s) |
-|       | ENV_WAN_IP          |              | plugin的wan-ip                   |
-|       | ENV_POSITION        |              | plugin的位置信息(如NewYork_NO2)  |
-|       | ENV_COIN_LOCAL_API  |              | 多个地址使用,分割                |
-|       | ENV_COIN_PUBLIC_API |              | 多个地址使用,分割                |
-| erc20 | ENV_CONTRACT        |              | 合约币种的合约地址               |
+| 币种              | 变量名称            | 支持的值     | 说明                                                                          |
+|:------------------|:--------------------|:-------------|:------------------------------------------------------------------------------|
+| Comm              | ENV_COIN_NET        | main or test |                                                                               |
+|                   | ENV_COIN_TYPE       |              |                                                                               |
+|                   | ENV_SYNC_INTERVAL   |              | optional,交易状态同步间隔周期(s)                                              |
+|                   | ENV_WAN_IP          |              | plugin的wan-ip                                                                |
+|                   | ENV_POSITION        |              | plugin的位置信息(如NewYork_NO2)                                               |
+|                   | ENV_COIN_LOCAL_API  |              | 多个地址使用,分割                                                             |
+|                   | ENV_COIN_PUBLIC_API |              | 多个地址使用,分割                                                             |
+| SmartContractCoin | ENV_CONTRACT        |              | 合约币的合约地址(对于主网合约地址已硬编码,测试网需要指定为自己部署的合约地址) |
 
 配置说明
 
@@ -116,7 +116,7 @@
   ````
 
 | 格式  | 链               | 说明 |
-| ----- | ---------------- | ---- |
+|-----|------------------|------|
 | 格式1 | sol bsc eth tron |      |
 | 格式2 | btc              |      |
 | 格式3 | fil              |      |
@@ -124,7 +124,7 @@
 ### 交易上链状态查询默认周期
 
 |          币种          | 默认值 | 出块时间 |
-| :--------------------: | :----: | :------: |
+|:----------------------:|:------:|:--------:|
 |        filecoin        |  20s   |   30s    |
 |        bitcoin         |  7min  |  10min   |
 |         solana         |   1s   |   0.4s   |
@@ -173,7 +173,7 @@ tron/trc20 在获取balance时检测账户格式，与波场HTTP-API提供的wal
 - **注意 SQL 只更新了 filecoin 和 bitcoin 币种，其余可参考 filecoin 和 bitcoin, tfilecoin 和 tbitcoin 上报完成才可以执行**
 
 | 条件    | 升级 SQL                     |
-| :------ | :--------------------------- |
+|:--------|:-----------------------------|
 | mainnet | DO NOTHING                   |
 | testnet | [upgrade](./sql/upgrade.sql) |
 

@@ -132,6 +132,10 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
+	if !coins.CheckSupportNet(info.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	client := sol.Client()
 
 	var recentBlockHash *rpc.GetLatestBlockhashResult

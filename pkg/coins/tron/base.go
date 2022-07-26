@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/shopspring/decimal"
@@ -37,6 +38,20 @@ const (
 )
 
 var stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive}
+
+var USDTContract = func(chainet string) string {
+	switch chainet {
+	case coins.CoinNetMain:
+		return "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+	case coins.CoinNetTest:
+		contract, ok := env.LookupEnv(env.ENVCONTRACT)
+		if !ok {
+			panic(env.ErrENVContractNotFound)
+		}
+		return contract
+	}
+	return ""
+}
 
 // feeLimit-10^6=1trx
 const TRC20FeeLimit int64 = 15000000
