@@ -20,9 +20,9 @@ var (
 
 var BUSDContract = func(chainet int64) string {
 	switch chainet {
-	case 1:
+	case 53:
 		return "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
-	case 1337:
+	case 97:
 		contract, ok := env.LookupEnv(env.ENVCONTRACT)
 		if !ok {
 			panic(env.ErrENVContractNotFound)
