@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/Geapefurit/gotron-sdk v0.0.0-20220724074720-3d7ea3cbd771
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220713074036-182dafb1d980
-	github.com/NpoolPlatform/message v0.0.0-20220725101844-1b46ccd0ae2f
+	github.com/NpoolPlatform/message v0.0.0-20220727031757-6f03c8170baf
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
