@@ -30,6 +30,8 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdc/plugin"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"

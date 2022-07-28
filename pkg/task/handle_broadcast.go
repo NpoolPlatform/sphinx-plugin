@@ -10,6 +10,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	pconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 )
@@ -22,6 +23,7 @@ func init() {
 }
 
 func broadcast(name string, interval time.Duration) {
+	log.Infof("%v start,dispatch interval time: %v", name, interval.String())
 	for range time.NewTicker(interval).C {
 		func() {
 			conn, err := client.GetGRPCConn(config.GetENV().Proxy)

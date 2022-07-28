@@ -8,7 +8,6 @@ import (
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
-	"github.com/fatih/color"
 )
 
 const (
@@ -65,7 +64,7 @@ func infof(prefix, template string, args ...interface{}) {
 func Run() {
 	for name, tf := range tworkers {
 		time.Sleep(time.Millisecond * time.Duration(500+rand.Int63n(200)))
-		log.Infof("run task: %v seconds: %v (%v)", name, tf.interval.Seconds(), color.RedString("caution if duration is zero use internal set"))
+		log.Infof("run task: %v ", name)
 		go tf.handle(name, tf.interval)
 	}
 }

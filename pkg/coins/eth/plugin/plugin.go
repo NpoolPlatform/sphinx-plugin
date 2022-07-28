@@ -192,6 +192,14 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 		}
 
 		gasLimit = 300_000
+	case sphinxplugin.CoinType_CoinTypeusdcerc20, sphinxplugin.CoinType_CoinTypetusdcerc20:
+		// client.EstimateGas(ctx, ethereum.CallMsg{})
+		contractID = eth.USDCContract(chainID.Int64())
+		if !common.IsHexAddress(contractID) {
+			return nil, env.ErrContractInvalid
+		}
+
+		gasLimit = 300_000
 	}
 
 	info := &eth.PreSignData{

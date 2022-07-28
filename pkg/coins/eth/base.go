@@ -10,6 +10,7 @@ import (
 const (
 	ETHACCURACY   = 18
 	ERC20ACCURACY = 6
+	USDCACCURACY  = 6
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 	dialTimeout = 3 * time.Second
 )
 
-var stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
+var stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow, env.ErrAddressInvalid.Error()}
 
 // USDTContract ...
 var USDTContract = func(chainet int64) string {
@@ -34,6 +35,20 @@ var USDTContract = func(chainet int64) string {
 		return contract
 	}
 	return ""
+}
+
+// USDCContract ...
+var USDCContract = func(chainet int64) string {
+	switch chainet {
+	case 1:
+		return "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+	default:
+		contract, ok := env.LookupEnv(env.ENVCONTRACT)
+		if !ok {
+			panic(env.ErrENVContractNotFound)
+		}
+		return contract
+	}
 }
 
 func TxFailErr(err error) bool {
