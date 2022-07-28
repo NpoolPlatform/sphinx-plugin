@@ -123,14 +123,14 @@
 
 ### 交易上链状态查询默认周期
 
-|          币种          | 默认值 | 出块时间 |
-|:----------------------:|:------:|:--------:|
-|        filecoin        |  20s   |   30s    |
-|        bitcoin         |  7min  |  10min   |
-|         solana         |   1s   |   0.4s   |
-|   ethereum/usdterc20   |  12s   |  10~20s  |
-| binancecoin/binanceusd |   4s   |    5s    |
-|     tron/usdttrc20     |   2s   |    3s    |
+|             币种             | 默认值 | 出块时间 |
+|:----------------------------:|:------:|:--------:|
+|           filecoin           |  20s   |   30s    |
+|           bitcoin            |  7min  |  10min   |
+|            solana            |   1s   |   0.4s   |
+| ethereum/usdterc20/usdcerc20 |  12s   |  10~20s  |
+|    binancecoin/binanceusd    |   4s   |    5s    |
+|        tron/usdttrc20        |   2s   |    3s    |
 
 ### wallet-status-check
 
