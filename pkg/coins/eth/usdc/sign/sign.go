@@ -73,7 +73,7 @@ func Message(ctx context.Context, in []byte) (out []byte, err error) {
 		return in, err
 	}
 
-	_abi, err := abi.JSON(strings.NewReader(usdcPlugin.UsdcABI))
+	_abi, err := abi.JSON(strings.NewReader(usdcPlugin.Usdcv21ABI))
 	if err != nil {
 		return in, err
 	}
