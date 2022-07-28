@@ -41,7 +41,7 @@ var USDTContract = func(chainet int64) string {
 var USDCContract = func(chainet int64) string {
 	switch chainet {
 	case 1:
-		return "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+		return "0xa2327a938Febf5FEC13baCFb16Ae10EcBc4cbDCF"
 	default:
 		contract, ok := env.LookupEnv(env.ENVCONTRACT)
 		if !ok {
