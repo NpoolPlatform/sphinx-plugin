@@ -37,6 +37,7 @@
 - [ ] payload 记录在 redis
 - [ ] 动态调整 **gas fee**
 - [ ] 支持多 **pod** 部署
+- [x] 连接wallet节点时检测同步状态
 
 新币种的支持步骤
 
@@ -134,21 +135,12 @@
 
 ### wallet-status-check
 
-钱包状态检查，目前仅检查节点高度是否与链高度一致
-
-eth/erc20 bsc/bep20 仅在查询balance时验证区块高度
-
-tron/trc20 在连接节点时检测区块高度，需要节点开启json-api端口才可检测，目前仅检测ENV_COIN_LOCAL_API，信任ENV_COIN_PUBLIC_API配置的节点地址
-
-其他币种暂无
+钱包状态检查，检查节点高度是否与链高度一致
+tron链的币种暂无
 
 ### account-check
 
 账户验证
-
-tron/trc20 在获取balance时检测账户格式，与波场HTTP-API提供的wallet/validateaddress功能一致
-
-其他币种暂无
 
 ### ethereum 部署
 
