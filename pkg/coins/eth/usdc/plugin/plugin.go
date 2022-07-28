@@ -91,23 +91,11 @@ func USDCBalance(ctx context.Context, addr string, client *ethclient.Client) (*B
 	}
 
 	usdcContract := eth.USDCContract(chainID.Int64())
-	fmt.Println("1", usdcContract)
-	// usdcProxyAddr := common.HexToAddress(usdcContract)
-	// usdcProxy, err := NewUsdcProxy(usdcProxyAddr, client)
-	// fmt.Println("2", err)
-
-	// if err != nil {
-	// 	return nil, err
-	// }
 	callOpts := &bind.CallOpts{
 		Pending: true,
 		Context: ctx,
 	}
 
-	// calldata := abi.Pack(
-	// 	"balanceOf",
-	// 	common.HexToAddress(addr),
-	// )
 	usdcAddr := common.HexToAddress(usdcContract)
 	usdcImpl, err := NewUsdcv21(usdcAddr, client)
 	if err != nil {

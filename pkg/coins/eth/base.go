@@ -20,7 +20,7 @@ const (
 	dialTimeout = 3 * time.Second
 )
 
-var stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow, env.ErrAddressInvalid.Error()}
+var stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
 
 // USDTContract ...
 var USDTContract = func(chainet int64) string {
