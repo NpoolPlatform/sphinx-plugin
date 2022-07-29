@@ -24,7 +24,7 @@ type SClientI interface {
 type SClients struct{}
 
 func (sClients SClients) GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (*rpc.Client, error) {
-	endpoint, _, err := endpointmgr.Peek()
+	endpoint, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}

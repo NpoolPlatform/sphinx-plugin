@@ -17,13 +17,15 @@ const (
 )
 
 var (
-	proxyAddress string
-	syncInterval int64
-	contract     string
-	logDir       string
-	logLevel     string
-	wanIP        string
-	position     string
+	localWalletAddr  string
+	publicWalletAddr string
+	proxyAddress     string
+	syncInterval     int64
+	contract         string
+	logDir           string
+	logLevel         string
+	wanIP            string
+	position         string
 )
 
 func main() {

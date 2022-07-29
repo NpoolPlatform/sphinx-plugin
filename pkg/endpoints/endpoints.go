@@ -5,13 +5,12 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 )
 
 var (
-	publicAddrs []string
-	localAddrs  []string
-	allAddrs    []string
+	ErrEndpointExhausted = errors.New("all endpoints is peeked")
+	ErrEndpointsEmpty    = errors.New("endpoints empty")
 )
 
 const (
@@ -20,78 +19,58 @@ const (
 )
 
 type Manager struct {
-	peekOrder     []int
-	currentCursor int
-}
-
-var ErrEndpointExhausted = errors.New("fail peek,all endpoints is peeked")
-
-func init() {
-	// read endpoints from env
-	_publicAddrs, _ := env.LookupEnv(env.ENVCOINPUBLICAPI)
-	if len(_publicAddrs) > AddrMinLen {
-		publicAddrs = strings.Split(_publicAddrs, AddrSplitter)
-	}
-
-	_localAddrs, _ := env.LookupEnv(env.ENVCOINLOCALAPI)
-	if len(_localAddrs) > AddrMinLen {
-		localAddrs = strings.Split(_localAddrs, AddrSplitter)
-	}
-
-	allAddrs = append(allAddrs, localAddrs...)
-	allAddrs = append(allAddrs, publicAddrs...)
-}
-
-func ShuffleOrder(n int) []int {
-	if n < 1 {
-		return []int{}
-	}
-	order := make([]int, n)
-	for i := range order {
-		order[i] = i
-	}
-
-	rand.Shuffle(n, func(i, j int) {
-		order[i], order[j] = order[j], order[i]
-	})
-
-	return order
+	localAddrs  []string
+	publicAddrs []string
 }
 
 func NewManager() (*Manager, error) {
-	if len(allAddrs) == 0 {
-		panic("invalid addresses setting,addresses length 0")
+	_localAddrs := config.GetENV().LocalWalletAddr
+	_publicAddrs := config.GetENV().PublicWalletAddr
+
+	localAddrs := strings.Split(_localAddrs, AddrSplitter)
+	publicAddrs := strings.Split(_publicAddrs, AddrSplitter)
+
+	if len(localAddrs) == 0 &&
+		len(publicAddrs) == 0 {
+		return nil, ErrEndpointsEmpty
 	}
 
-	localOrder := ShuffleOrder(len(localAddrs))
-	publicOrder := ShuffleOrder(len(publicAddrs))
-	for i, v := range publicOrder {
-		publicOrder[i] = v + len(localAddrs)
+	if len(localAddrs) > 1 {
+		rand.Shuffle(len(localAddrs), func(i, j int) {
+			localAddrs[i], localAddrs[j] = localAddrs[j], localAddrs[i]
+		})
+	}
+	if len(publicAddrs) > 1 {
+		rand.Shuffle(len(publicAddrs), func(i, j int) {
+			publicAddrs[i], publicAddrs[j] = publicAddrs[j], publicAddrs[i]
+		})
 	}
 
-	peekOrder := make([]int, 0, len(localOrder)+len(publicOrder))
-	peekOrder = append(peekOrder, localOrder...)
-	peekOrder = append(peekOrder, publicOrder...)
-
-	return &Manager{peekOrder: peekOrder, currentCursor: 0}, nil
+	// random start
+	return &Manager{
+		localAddrs:  localAddrs,
+		publicAddrs: publicAddrs,
+	}, nil
 }
 
-func (m *Manager) Peek() (addr string, isLocal bool, err error) {
-	if m.currentCursor >= len(m.peekOrder) {
-		return "", false, ErrEndpointExhausted
+func (m *Manager) Peek() (addr string, err error) {
+	ll := len(m.localAddrs)
+	pl := len(m.publicAddrs)
+	if ll > 0 {
+		addr = m.localAddrs[ll]
+		m.localAddrs = m.localAddrs[0 : ll-1]
+		return addr, nil
 	}
 
-	addr = allAddrs[m.peekOrder[m.currentCursor]]
-	m.currentCursor++
-
-	isLocal = false
-	if len(localAddrs) != 0 && m.currentCursor < len(localAddrs) {
-		isLocal = true
+	if pl > 0 {
+		addr = m.publicAddrs[pl]
+		m.publicAddrs = m.publicAddrs[0 : pl-1]
+		return addr, nil
 	}
 
-	return addr, isLocal, nil
+	return "", ErrEndpointExhausted
 }
 
 func (m *Manager) Len() int {
-	return len(allAddrs)
+	return len(m.localAddrs) + len(m.publicAddrs)
 }

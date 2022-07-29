@@ -31,13 +31,15 @@ var runCmd = &cli.Command{
 	Before: func(ctx *cli.Context) error {
 		// TODO: elegent set or get env
 		config.SetENV(&config.ENVInfo{
-			Proxy:        proxyAddress,
-			SyncInterval: syncInterval,
-			Contract:     contract,
-			LogDir:       logDir,
-			LogLevel:     logLevel,
-			WanIP:        wanIP,
-			Position:     position,
+			LocalWalletAddr:  localWalletAddr,
+			PublicWalletAddr: publicWalletAddr,
+			Proxy:            proxyAddress,
+			SyncInterval:     syncInterval,
+			Contract:         contract,
+			LogDir:           logDir,
+			LogLevel:         logLevel,
+			WanIP:            wanIP,
+			Position:         position,
 		})
 		err := logger.Init(
 			logger.DebugLevel,
@@ -50,6 +52,24 @@ var runCmd = &cli.Command{
 		return nil
 	},
 	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:        "local-wallet",
+			Aliases:     []string{"lw"},
+			Usage:       "wallet address of local",
+			EnvVars:     []string{"ENV_COIN_LOCAL_API"},
+			Required:    true,
+			Value:       "",
+			Destination: &localWalletAddr,
+		},
+		&cli.StringFlag{
+			Name:        "public-wallet",
+			Aliases:     []string{"pw"},
+			Usage:       "wallet address of public",
+			EnvVars:     []string{"ENV_COIN_PUBLIC_API"},
+			Required:    true,
+			Value:       "",
+			Destination: &publicWalletAddr,
+		},
 		// proxy address
 		&cli.StringFlag{
 			Name:        "proxy",

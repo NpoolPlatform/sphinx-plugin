@@ -36,7 +36,7 @@ type BClientI interface {
 type BClients struct{}
 
 func (bClients BClients) GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (*rpcclient.Client, error) {
-	endpoint, _, err := endpointmgr.Peek()
+	endpoint, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}

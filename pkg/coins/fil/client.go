@@ -33,7 +33,7 @@ type FClientI interface {
 type FClients struct{}
 
 func (fClients FClients) GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (v0api.FullNode, jsonrpc.ClientCloser, error) {
-	endpoint, _, err := endpointmgr.Peek()
+	endpoint, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, nil, err
 	}
