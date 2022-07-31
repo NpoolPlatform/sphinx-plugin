@@ -19,6 +19,7 @@ const (
 )
 
 type Manager struct {
+	len         int
 	localAddrs  []string
 	publicAddrs []string
 }
@@ -48,6 +49,7 @@ func NewManager() (*Manager, error) {
 
 	// random start
 	return &Manager{
+		len:         len(localAddrs) + len(publicAddrs),
 		localAddrs:  localAddrs,
 		publicAddrs: publicAddrs,
 	}, nil
@@ -72,5 +74,5 @@ func (m *Manager) Peek() (addr string, err error) {
 }
 
 func (m *Manager) Len() int {
-	return len(m.localAddrs) + len(m.publicAddrs)
+	return m.len
 }
