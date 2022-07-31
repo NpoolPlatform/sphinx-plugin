@@ -19,13 +19,6 @@ const (
 	ENVCOINLOCALAPI  = "ENV_COIN_LOCAL_API"
 	ENVCOINPUBLICAPI = "ENV_COIN_PUBLIC_API"
 
-	// for btc
-	ENVCOINUSER = "ENV_COIN_USER"
-	ENVCOINPASS = "ENV_COIN_PASS"
-
-	// for fil
-	ENVCOINTOKEN = "ENV_COIN_TOKEN"
-
 	// for eth/usdt
 	ENVCONTRACT = "ENV_CONTRACT"
 
@@ -42,13 +35,6 @@ var (
 
 	ErrENVCoinLocalAPINotFound  = errors.New("env ENV_COIN_LOCAL_API not found")
 	ErrENVCoinPublicAPINotFound = errors.New("env ENV_COIN_PUBLIC_API not found")
-
-	// btc
-	ErrENVCoinUserNotFound = errors.New("env ENV_COIN_USER not found")
-	ErrENVCoinPassNotFound = errors.New("env ENV_COIN_PASS not found")
-
-	// fil
-	ErrENVCoinTokenNotFound = errors.New("env ENV_COIN_TOKEN not found")
 
 	// eth/usdt
 	ErrENVContractNotFound = errors.New("env ENV_CONTRACT not found")

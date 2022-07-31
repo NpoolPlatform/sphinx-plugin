@@ -4,7 +4,6 @@ After=network.target
 
 [Service]
 Environment="ENV_COIN_LOCAL_API="
-Environment="ENV_COIN_TOKEN="
 ExecStart=/opt/sphinx-plugin/sphinx-plugin run
 ExecStop=/bin/kill -s QUIT $MAINPID
 Restart=always
