@@ -57,13 +57,13 @@ func (m *Manager) Peek() (addr string, err error) {
 	ll := len(m.localAddrs)
 	pl := len(m.publicAddrs)
 	if ll > 0 {
-		addr = m.localAddrs[ll]
+		addr = m.localAddrs[ll-1]
 		m.localAddrs = m.localAddrs[0 : ll-1]
 		return addr, nil
 	}
 
 	if pl > 0 {
-		addr = m.publicAddrs[pl]
+		addr = m.publicAddrs[pl-1]
 		m.publicAddrs = m.publicAddrs[0 : pl-1]
 		return addr, nil
 	}
