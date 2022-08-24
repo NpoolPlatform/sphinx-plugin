@@ -24,7 +24,7 @@ type EClientI interface {
 type eClients struct{}
 
 func (eClients eClients) GetNode(ctx context.Context, endpointmgr *endpoints.Manager) (*ethclient.Client, error) {
-	endpoint, _, err := endpointmgr.Peek()
+	endpoint, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}

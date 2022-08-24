@@ -30,7 +30,7 @@ type TClientI interface {
 type tClients struct{}
 
 func (tClients *tClients) GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error) {
-	endpoint, _, err := endpointmgr.Peek()
+	endpoint, err := endpointmgr.Peek()
 	if err != nil {
 		return nil, err
 	}

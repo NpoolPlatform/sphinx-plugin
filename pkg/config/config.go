@@ -8,14 +8,12 @@ import (
 )
 
 const (
-	KeyLogDir          = "logdir"
-	KeyAppID           = "appid"
-	KeyHTTPPort        = "http_port"
-	KeyGRPCPort        = "grpc_port"
-	KeyPrometheusPort  = "prometheus_port"
-	KeySphinxProxyAddr = "sphinx_proxy_addr"
-	KeyContract        = "contract"
-	rootConfig         = "config"
+	KeyLogDir         = "logdir"
+	KeyAppID          = "appid"
+	KeyHTTPPort       = "http_port"
+	KeyGRPCPort       = "grpc_port"
+	KeyPrometheusPort = "prometheus_port"
+	rootConfig        = "config"
 )
 
 func Init(configPath, appName string) error {
@@ -66,13 +64,15 @@ func GetInt(key string) int {
 var global *ENVInfo
 
 type ENVInfo struct {
-	Proxy        string
-	SyncInterval int64
-	Contract     string
-	LogDir       string
-	LogLevel     string
-	WanIP        string
-	Position     string
+	LocalWalletAddr  string
+	PublicWalletAddr string
+	Proxy            string
+	SyncInterval     int64
+	Contract         string
+	LogDir           string
+	LogLevel         string
+	WanIP            string
+	Position         string
 }
 
 func SetENV(info *ENVInfo) {
