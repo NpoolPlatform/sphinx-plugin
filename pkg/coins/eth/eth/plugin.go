@@ -9,7 +9,6 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -31,28 +30,21 @@ func init() {
 		register.OpGetBalance,
 		walletBalance,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypeethereum,
-		sphinxproxy.TransactionState_TransactionStateWait,
+	register.RegisteTokenHandler(
+		coins.Ethereum,
+		register.OpPreSign,
 		PreSign,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypeethereum,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
+	register.RegisteTokenHandler(
+		coins.Ethereum,
+		register.OpBroadcast,
 		SendRawTransaction,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypeethereum,
-		sphinxproxy.TransactionState_TransactionStateSync,
+	register.RegisteTokenHandler(
+		coins.Ethereum,
+		register.OpSyncTx,
 		SyncTxState,
 	)
-
-	// // test
-	// register.RegisteTokenHandler(
-	// 	coins.Ethereum,
-	// 	register.OpGetBalance,
-	// 	walletBalance,
-	// )
 
 	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypeethereum, eth.TxFailErr)
 	if err != nil {
@@ -107,7 +99,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	return out, err
 }
 
-func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
+func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	baseInfo := &ct.BaseInfo{}
 	err = json.Unmarshal(in, baseInfo)
 	if err != nil {
@@ -200,7 +192,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 // SendRawTransaction eth/usdt
-func SendRawTransaction(ctx context.Context, in []byte) ([]byte, error) {
+func SendRawTransaction(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte, error) {
 	signedData := &eth.SignedData{}
 	err := json.Unmarshal(in, signedData)
 	if err != nil {
@@ -234,7 +226,7 @@ func SendRawTransaction(ctx context.Context, in []byte) ([]byte, error) {
 }
 
 // SyncTxState done(on chain) => true
-func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
+func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	broadcastedData := &ct.BroadcastInfo{}
 	err = json.Unmarshal(in, broadcastedData)
 	if err != nil {

@@ -8,21 +8,24 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/getter"
+	coins_register "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
+
 	pconst "github.com/NpoolPlatform/sphinx-plugin/pkg/message/const"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 )
 
 func init() {
 	// TODO: support from env or config dynamic set
-	if err := register("task::broadcast", 3*time.Second, broadcast); err != nil {
+	if err := register("task::broadcast", 3*time.Second, broadcastWorker); err != nil {
 		fatalf("task::broadcast", "task already register")
 	}
 }
 
-func broadcast(name string, interval time.Duration) {
+func broadcastWorker(name string, interval time.Duration) {
 	log.Infof("%v start,dispatch interval time: %v", name, interval.String())
 	for range time.NewTicker(interval).C {
 		func() {
@@ -39,16 +42,7 @@ func broadcast(name string, interval time.Duration) {
 			}
 
 			_coinType := coins.CoinStr2CoinType(coinNetwork, coinType)
-
 			tState := sphinxproxy.TransactionState_TransactionStateBroadcast
-			handler, err := coins.GetCoinPlugin(
-				_coinType,
-				tState,
-			)
-			if err != nil {
-				errorf(name, "GetCoinPlugin get handler error: %v", err)
-				return
-			}
 
 			pClient := sphinxproxy.NewSphinxProxyClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), getTransactionsTimeout)
@@ -66,73 +60,86 @@ func broadcast(name string, interval time.Duration) {
 			}
 
 			for _, transInfo := range transInfos.GetInfos() {
-				func(transInfo *sphinxproxy.TransactionInfo) {
-					ctx, cancel := context.WithTimeout(ctx, updateTransactionsTimeout)
-					defer cancel()
-
-					now := time.Now()
-					defer func() {
-						infof(
-							name,
-							"plugin handle coinType: %v transaction type: %v id: %v use: %v",
-							transInfo.GetName(),
-							transInfo.GetTransactionState(),
-							transInfo.GetTransactionID(),
-							time.Since(now).String(),
-						)
-					}()
-
-					var (
-						broadcastInfo = types.BroadcastInfo{}
-						state         = sphinxproxy.TransactionState_TransactionStateSync
-					)
-
-					respPayload, err := handler(ctx, transInfo.GetPayload())
-					if err == nil {
-						goto done
-					}
-					if coins.Abort(_coinType, err) {
-						warnf(name,
-							"broadcase transaction: %v error: %v stop",
-							transInfo.GetTransactionID(),
-							err,
-						)
-						state = sphinxproxy.TransactionState_TransactionStateFail
-
-						goto done
-					}
-
-					errorf(name,
-						"broadcase transaction: %v error: %v retry",
-						transInfo.GetTransactionID(),
-						err,
-					)
-					return
-
-					// TODO: delete this dirty code
-				done:
-					{
-						if respPayload != nil {
-							if err := json.Unmarshal(respPayload, &broadcastInfo); err != nil {
-								errorf(name, "unmarshal broadcast info error: %v", err)
-							}
-						}
-					}
-
-					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
-						TransactionID:        transInfo.GetTransactionID(),
-						TransactionState:     tState,
-						NextTransactionState: state,
-						CID:                  broadcastInfo.TxID,
-						Payload:              respPayload,
-					}); err != nil {
-						errorf(name, "UpdateTransaction transaction: %v error: %v", transInfo.GetTransactionID(), err)
-						return
-					}
-
-					infof(name, "UpdateTransaction transaction: %v done", transInfo.GetTransactionID())
-				}(transInfo)
+				broadcast(ctx, name, transInfo, pClient)
 			}
 		}()
 	}
+}
+
+func broadcast(ctx context.Context, name string, transInfo *sphinxproxy.TransactionInfo, pClient sphinxproxy.SphinxProxyClient) {
+	ctx, cancel := context.WithTimeout(ctx, updateTransactionsTimeout)
+	defer cancel()
+
+	now := time.Now()
+	defer func() {
+		infof(
+			name,
+			"plugin handle coinType: %v transaction type: %v id: %v use: %v",
+			transInfo.GetName(),
+			transInfo.GetTransactionState(),
+			transInfo.GetTransactionID(),
+			time.Since(now).String(),
+		)
+	}()
+
+	var (
+		broadcastInfo = types.BroadcastInfo{}
+		tState        = sphinxproxy.TransactionState_TransactionStateBroadcast
+		nextState     = sphinxproxy.TransactionState_TransactionStateSync
+		tokenInfo     *coins.TokenInfo
+		handler       coins_register.HandlerDef
+		respPayload   []byte
+		err           error
+	)
+	tokenInfo = getter.GetTokenInfo(transInfo.GetName())
+	if tokenInfo == nil {
+		nextState = sphinxproxy.TransactionState_TransactionStateFail
+		goto done
+	}
+	handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpBroadcast)
+	if err != nil {
+		nextState = sphinxproxy.TransactionState_TransactionStateFail
+		goto done
+	}
+	respPayload, err = handler(ctx, transInfo.GetPayload(), tokenInfo)
+	if err == nil {
+		goto done
+	}
+	if coins.Abort(tokenInfo.CoinType, err) {
+		warnf(name, "broadcase transaction: %v error: %v stop",
+			transInfo.GetTransactionID(),
+			err,
+		)
+		nextState = sphinxproxy.TransactionState_TransactionStateFail
+		goto done
+	}
+
+	errorf(name, "broadcase transaction: %v error: %v retry",
+		transInfo.GetTransactionID(),
+		err,
+	)
+	return
+
+	// TODO: delete this dirty code
+done:
+	{
+		if respPayload != nil {
+			if err := json.Unmarshal(respPayload, &broadcastInfo); err != nil {
+				errorf(name, "unmarshal broadcast info error: %v", err)
+			}
+		}
+	}
+
+	if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
+		TransactionID:        transInfo.GetTransactionID(),
+		TransactionState:     tState,
+		NextTransactionState: nextState,
+		CID:                  broadcastInfo.TxID,
+		Payload:              respPayload,
+	}); err != nil {
+		errorf(name, "UpdateTransaction transaction: %v error: %v", transInfo.GetTransactionID(), err)
+		return
+	}
+
+	infof(name, "UpdateTransaction transaction: %v done", transInfo.GetTransactionID())
 }

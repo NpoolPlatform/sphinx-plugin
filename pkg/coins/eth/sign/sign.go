@@ -8,12 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
@@ -28,16 +25,16 @@ func init() {
 		register.OpWalletNew,
 		CreateEthAccount,
 	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypeethereum,
-		sphinxproxy.TransactionState_TransactionStateSign,
+	register.RegisteTokenHandler(
+		coins.Ethereum,
+		register.OpSign,
 		ethMsg,
 	)
 }
 
 const s3KeyPrxfix = "ethereum/"
 
-func ethMsg(ctx context.Context, in []byte) (out []byte, err error) {
+func ethMsg(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	return Message(ctx, s3KeyPrxfix, in)
 }
 
