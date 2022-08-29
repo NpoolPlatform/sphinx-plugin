@@ -9,6 +9,8 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/getter"
+	coins_register "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
@@ -21,7 +23,7 @@ func init() {
 		"task::synctx",
 		// TODO register not set duration
 		3*time.Second,
-		syncTx,
+		syncTxWorker,
 	); err != nil {
 		fatalf("task::synctx", "task already register")
 	}
@@ -42,7 +44,7 @@ func calcDuration() time.Duration {
 	return coins.SyncTime[coinType]
 }
 
-func syncTx(name string, _interval time.Duration) {
+func syncTxWorker(name string, _interval time.Duration) {
 	interval := calcDuration()
 	log.Infof("%v start,dispatch interval time: %v", name, interval.String())
 	for range time.NewTicker(interval).C {
@@ -60,16 +62,7 @@ func syncTx(name string, _interval time.Duration) {
 			}
 
 			_coinType := coins.CoinStr2CoinType(coinNetwork, coinType)
-
 			tState := sphinxproxy.TransactionState_TransactionStateSync
-			handler, err := coins.GetCoinPlugin(
-				_coinType,
-				tState,
-			)
-			if err != nil {
-				errorf(name, "GetCoinPlugin get handler error: %v", err)
-				return
-			}
 
 			pClient := sphinxproxy.NewSphinxProxyClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), getTransactionsTimeout)
@@ -87,73 +80,92 @@ func syncTx(name string, _interval time.Duration) {
 			}
 
 			for _, transInfo := range transInfos.GetInfos() {
-				func(transInfo *sphinxproxy.TransactionInfo) {
-					ctx, cancel := context.WithTimeout(ctx, updateTransactionsTimeout)
-					defer cancel()
-
-					now := time.Now()
-					defer func() {
-						infof(
-							name,
-							"plugin handle coinType: %v transaction type: %v id: %v use: %v",
-							transInfo.GetName(),
-							transInfo.GetTransactionState(),
-							transInfo.GetTransactionID(),
-							time.Since(now).String(),
-						)
-					}()
-
-					var (
-						syncInfo = types.SyncResponse{}
-						state    = sphinxproxy.TransactionState_TransactionStateDone
-					)
-
-					respPayload, err := handler(ctx, transInfo.GetPayload())
-					if err == nil {
-						goto done
-					}
-					if coins.Abort(_coinType, err) {
-						errorf(name,
-							"sync transaction: %v error: %v stop",
-							transInfo.GetTransactionID(),
-							err,
-						)
-						state = sphinxproxy.TransactionState_TransactionStateFail
-						goto done
-					}
-
-					errorf(name,
-						"sync transaction: %v error: %v retry",
-						transInfo.GetTransactionID(),
-						err,
-					)
-					return
-
-					// TODO: delete this dirty code
-				done:
-					{
-						if respPayload != nil {
-							if err := json.Unmarshal(respPayload, &syncInfo); err != nil {
-								errorf(name, "unmarshal sync info error: %v", err)
-								return
-							}
-						}
-					}
-
-					if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
-						TransactionID:        transInfo.GetTransactionID(),
-						TransactionState:     tState,
-						NextTransactionState: state,
-						ExitCode:             syncInfo.ExitCode,
-						Payload:              respPayload,
-					}); err != nil {
-						errorf(name, "UpdateTransaction transaction: %v error: %v", transInfo.GetTransactionID(), err)
-						return
-					}
-
-					infof(name, "UpdateTransaction transaction: %v done", transInfo.GetTransactionID())
-				}(transInfo)
+				syncTx(ctx, name, transInfo, pClient)
 			}
 		}()
 	}
+}
+
+func syncTx(ctx context.Context, name string, transInfo *sphinxproxy.TransactionInfo, pClient sphinxproxy.SphinxProxyClient) {
+	ctx, cancel := context.WithTimeout(ctx, updateTransactionsTimeout)
+	defer cancel()
+
+	now := time.Now()
+	defer func() {
+		infof(
+			name,
+			"plugin handle coinType: %v transaction type: %v id: %v use: %v",
+			transInfo.GetName(),
+			transInfo.GetTransactionState(),
+			transInfo.GetTransactionID(),
+			time.Since(now).String(),
+		)
+	}()
+
+	var (
+		syncInfo    = types.SyncResponse{}
+		tState      = sphinxproxy.TransactionState_TransactionStateSync
+		nextState   = sphinxproxy.TransactionState_TransactionStateDone
+		tokenInfo   *coins.TokenInfo
+		handler     coins_register.HandlerDef
+		respPayload []byte
+		err         error
+	)
+
+	tokenInfo = getter.GetTokenInfo(transInfo.GetName())
+	if tokenInfo == nil {
+		nextState = sphinxproxy.TransactionState_TransactionStateFail
+		goto done
+	}
+
+	handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpSyncTx)
+	if err != nil {
+		nextState = sphinxproxy.TransactionState_TransactionStateFail
+		goto done
+	}
+
+	respPayload, err = handler(ctx, transInfo.GetPayload(), tokenInfo)
+	if err == nil {
+		goto done
+	}
+	if coins.Abort(tokenInfo.CoinType, err) {
+		errorf(name,
+			"sync transaction: %v error: %v stop",
+			transInfo.GetTransactionID(),
+			err,
+		)
+		nextState = sphinxproxy.TransactionState_TransactionStateFail
+		goto done
+	}
+
+	errorf(name,
+		"sync transaction: %v error: %v retry",
+		transInfo.GetTransactionID(),
+		err,
+	)
+	return
+
+	// TODO: delete this dirty code
+done:
+	{
+		if respPayload != nil {
+			if err := json.Unmarshal(respPayload, &syncInfo); err != nil {
+				errorf(name, "unmarshal sync info error: %v", err)
+				return
+			}
+		}
+	}
+
+	if _, err := pClient.UpdateTransaction(ctx, &sphinxproxy.UpdateTransactionRequest{
+		TransactionID:        transInfo.GetTransactionID(),
+		TransactionState:     tState,
+		NextTransactionState: nextState,
+		ExitCode:             syncInfo.ExitCode,
+		Payload:              respPayload,
+	}); err != nil {
+		errorf(name, "UpdateTransaction transaction: %v error: %v", transInfo.GetTransactionID(), err)
+		return
+	}
+
+	infof(name, "UpdateTransaction transaction: %v done", transInfo.GetTransactionID())
 }

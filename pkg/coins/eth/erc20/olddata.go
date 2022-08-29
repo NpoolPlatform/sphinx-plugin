@@ -17,6 +17,6 @@ func init() {
 }
 
 var olderc20s = []coins.TokenInfo{
-	{Waight: 100, OfficialName: "Ethereum", Decimal: 6, Unit: "ETH", Name: "ethereum", OfficialContract: "555", TokenType: coins.Ethereum},
+	{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: "ethereum", OfficialContract: "555", TokenType: coins.Ethereum},
 	{Waight: 100, OfficialName: "Coins USD", Decimal: 6, OfficialContract: "123", TokenType: coins.Erc20, Unit: "USD", Name: "usdterc20", CoinType: sphinxplugin.CoinType_CoinTypeethereum},
 }
