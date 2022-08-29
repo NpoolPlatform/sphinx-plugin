@@ -1,11 +1,36 @@
 package coins
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 )
+
+type (
+	TokenType string
+)
+
+const (
+	Ethereum TokenType = "ethereum"
+	Erc20    TokenType = "erc20"
+	Erc721   TokenType = "erc721"
+)
+
+type TokenInfo struct {
+	OfficialName     string
+	OfficialContract string
+	Contract         string // if ENV is main Contract = OfficialContract
+	TokenType        TokenType
+	Net              string
+	Unit             string
+	Decimal          int
+	Name             string
+	Waight           int
+	CoinType         sphinxplugin.CoinType
+}
 
 const (
 	CoinNetMain = "main"
@@ -162,4 +187,23 @@ func CoinStr2CoinType(netEnv, coinStr string) sphinxplugin.CoinType {
 	_netEnv := strings.ToLower(netEnv)
 	_coinStr := strings.ToLower(coinStr)
 	return netCoinMap[_netEnv][_coinStr]
+}
+
+func ToTestCoinType(coinType sphinxplugin.CoinType) sphinxplugin.CoinType {
+	if coinType == sphinxplugin.CoinType_CoinTypeUnKnow {
+		return sphinxplugin.CoinType_CoinTypeUnKnow
+	}
+	name := utils.ToCoinName(coinType)
+	return CoinStr2CoinType(CoinNetTest, name)
+}
+
+func GenerateName(chainType string, tokenType TokenType, name string) string {
+	name = strings.Trim(name, " ")
+	name = strings.ReplaceAll(name, " ", "-")
+	return fmt.Sprintf("%v_%v_%v", chainType, tokenType, name)
+}
+
+func GetChainType(in string) string {
+	ret := strings.Split(in, "_")
+	return ret[0]
 }

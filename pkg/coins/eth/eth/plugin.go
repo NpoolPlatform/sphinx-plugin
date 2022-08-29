@@ -1,4 +1,4 @@
-package plugin
+package eth
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
@@ -25,9 +26,9 @@ import (
 // here register plugin func
 func init() {
 	// main
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypeethereum,
-		sphinxproxy.TransactionType_Balance,
+	register.RegisteTokenHandler(
+		coins.Ethereum,
+		register.OpGetBalance,
 		walletBalance,
 	)
 	coins.Register(
@@ -46,40 +47,20 @@ func init() {
 		SyncTxState,
 	)
 
-	// test
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypetethereum,
-		sphinxproxy.TransactionType_Balance,
-		walletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetethereum,
-		sphinxproxy.TransactionState_TransactionStateWait,
-		PreSign,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetethereum,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		SendRawTransaction,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetethereum,
-		sphinxproxy.TransactionState_TransactionStateSync,
-		SyncTxState,
-	)
+	// // test
+	// register.RegisteTokenHandler(
+	// 	coins.Ethereum,
+	// 	register.OpGetBalance,
+	// 	walletBalance,
+	// )
 
 	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypeethereum, eth.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
-
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetethereum, eth.TxFailErr)
-	if err != nil {
-		panic(err)
-	}
 }
 
-func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	wbReq := &ct.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
@@ -111,7 +92,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		return nil, errors.New("convert balance string to float64 error")
 	}
 
-	balance.Quo(balance, big.NewFloat(math.Pow10(eth.ETHACCURACY)))
+	balance.Quo(balance, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
 	f, exact := balance.Float64()
 	if exact != big.Exact {
 		log.Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
@@ -180,38 +161,34 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 	}
 
 	gasLimit := int64(0)
-	contractID := ""
-	switch baseInfo.CoinType {
-	case sphinxplugin.CoinType_CoinTypeethereum, sphinxplugin.CoinType_CoinTypetethereum:
-		gasLimit = 21_000
-	case sphinxplugin.CoinType_CoinTypeusdterc20, sphinxplugin.CoinType_CoinTypetusdterc20:
-		// client.EstimateGas(ctx, ethereum.CallMsg{})
-		contractID = eth.USDTContract(chainID.Int64())
-		if !common.IsHexAddress(contractID) {
-			return nil, env.ErrContractInvalid
-		}
+	gasLimit = 21_000
 
-		gasLimit = 300_000
-	case sphinxplugin.CoinType_CoinTypeusdcerc20, sphinxplugin.CoinType_CoinTypetusdcerc20:
-		// client.EstimateGas(ctx, ethereum.CallMsg{})
-		contractID = eth.USDCContract(chainID.Int64())
-		if !common.IsHexAddress(contractID) {
-			return nil, env.ErrContractInvalid
-		}
+	amount := big.NewFloat(baseInfo.Value)
+	amount.Mul(amount, big.NewFloat(math.Pow10(18)))
 
-		gasLimit = 300_000
+	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
+	if !ok {
+		return nil, errors.New("invalid eth amount")
 	}
 
+	if amountBig.Cmp(common.Big0) <= 0 {
+		return nil, errors.New("invalid eth amount")
+	}
+
+	// build tx
+	tx := types.NewTransaction(
+		nonce,
+		common.HexToAddress(baseInfo.To),
+		amountBig,
+		uint64(gasLimit),
+		big.NewInt(gasPrice.Int64()),
+		nil,
+	)
+
 	info := &eth.PreSignData{
-		CoinType:   baseInfo.CoinType,
-		ChainID:    chainID.Int64(),
-		ContractID: contractID,
-		Nonce:      nonce,
-		GasPrice:   gasPrice.Int64(),
-		GasLimit:   gasLimit,
-		From:       baseInfo.From,
-		To:         baseInfo.To,
-		Value:      baseInfo.Value,
+		From:    baseInfo.From,
+		Tx:      tx,
+		ChainID: big.NewInt(chainID.Int64()),
 	}
 
 	out, err = json.Marshal(info)
