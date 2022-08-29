@@ -40,6 +40,7 @@ type SyncResponse struct {
 
 // plugin
 type WalletBalanceRequest struct {
+	Name    string `json:"name"`
 	Address string `json:"address"`
 }
 

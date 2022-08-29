@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 )
@@ -19,6 +20,12 @@ func ToCoinType(coinType string) (sphinxplugin.CoinType, error) {
 		return sphinxplugin.CoinType_CoinTypeUnKnow, ErrCoinTypeUnKnow
 	}
 	return sphinxplugin.CoinType(_coinType), nil
+}
+
+//nolint because CoinType not define in this package
+func ToCoinName(coinType sphinxplugin.CoinType) string {
+	coinName := strings.TrimPrefix(coinType.String(), coinTypePrefix)
+	return coinName
 }
 
 func MinInt(a, b int) int {
