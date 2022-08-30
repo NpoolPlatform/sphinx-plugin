@@ -154,7 +154,7 @@ func (c *pluginClient) register() {
 				continue
 			}
 
-			tokenInfos := getter.GetTokenInfos(coinType)
+			tokenInfos := getter.GetTokenInfos(coinType, coinNetwork)
 			log.Infof("register new coin: %v for %s network,has %v tokens", coinType, coinNetwork, len(tokenInfos))
 			for _, tokenInfo := range tokenInfos {
 				resp := &sphinxproxy.ProxyPluginResponse{

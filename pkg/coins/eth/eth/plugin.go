@@ -50,6 +50,11 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetethereum, eth.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
@@ -58,11 +63,12 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	if err != nil {
 		return nil, err
 	}
-	client := eth.Client()
 
 	if !common.IsHexAddress(wbReq.Address) {
 		return nil, env.ErrAddressInvalid
 	}
+
+	client := eth.Client()
 
 	var bl *big.Int
 	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
@@ -117,37 +123,28 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	client := eth.Client()
 
 	var chainID *big.Int
+	var nonce uint64
+	var gasPrice *big.Int
+
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
 		chainID, err = cli.NetworkID(ctx)
 		if err != nil || chainID == nil {
 			return true, err
 		}
-		return false, err
-	})
-	if err != nil {
-		return nil, err
-	}
 
-	var nonce uint64
-	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
 		nonce, err = cli.PendingNonceAt(ctx, common.HexToAddress(baseInfo.From))
 		if err != nil {
 			return true, err
 		}
-		return false, err
-	})
-	if err != nil {
-		return nil, err
-	}
 
-	var gasPrice *big.Int
-	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
 		gasPrice, err = cli.SuggestGasPrice(ctx)
 		if err != nil || gasPrice == nil {
 			return true, err
 		}
+
 		return false, err
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +153,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	gasLimit = 21_000
 
 	amount := big.NewFloat(baseInfo.Value)
-	amount.Mul(amount, big.NewFloat(math.Pow10(18)))
+	amount.Mul(amount, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
 
 	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
 	if !ok {

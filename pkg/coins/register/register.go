@@ -29,8 +29,9 @@ var (
 	NameToTokenInfo    = make(map[string]*coins.TokenInfo)
 	MainContractToName = make(map[string]string)
 	TestContractToName = make(map[string]string)
-	TokenInfoMap       = make(map[sphinxplugin.CoinType]map[string]*coins.TokenInfo)
-	TokenHandlers      = make(map[coins.TokenType]map[OpType]HandlerDef)
+	// cointype -> coinnet -> tokeninfo
+	TokenInfoMap  = make(map[sphinxplugin.CoinType]map[string]map[string]*coins.TokenInfo)
+	TokenHandlers = make(map[coins.TokenType]map[OpType]HandlerDef)
 )
 
 // registe tokeninfos
@@ -78,16 +79,20 @@ func registeTokenInfo(tokenInfo *coins.TokenInfo) {
 		}
 		delete(TokenInfoMap[_tokenInfo.CoinType], name)
 		delete(NameToTokenInfo, _tokenInfo.Name)
+		delete(TokenInfoMap[tokenInfo.CoinType][_tokenInfo.Net], _tokenInfo.Name)
 	}
 
 	// update
-	_, ok = TokenInfoMap[tokenInfo.CoinType]
-	if !ok {
-		TokenInfoMap[tokenInfo.CoinType] = make(map[string]*coins.TokenInfo)
+	if _, ok = TokenInfoMap[tokenInfo.CoinType]; !ok {
+		TokenInfoMap[tokenInfo.CoinType] = make(map[string]map[string]*coins.TokenInfo)
+	}
+
+	if _, ok = TokenInfoMap[tokenInfo.CoinType][tokenInfo.Net]; !ok {
+		TokenInfoMap[tokenInfo.CoinType][tokenInfo.Net] = make(map[string]*coins.TokenInfo)
 	}
 
 	ContractToName[tokenInfo.OfficialContract] = tokenInfo.Name
-	TokenInfoMap[tokenInfo.CoinType][tokenInfo.Name] = tokenInfo
+	TokenInfoMap[tokenInfo.CoinType][tokenInfo.Net][tokenInfo.Name] = tokenInfo
 	NameToTokenInfo[tokenInfo.Name] = tokenInfo
 }
 

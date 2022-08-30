@@ -5,6 +5,9 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	solana "github.com/gagliardetto/solana-go"
 )
 
@@ -56,3 +59,12 @@ func TxFailErr(err error) bool {
 	}
 	return false
 }
+
+func init() {
+	solanaToken.Net = coins.CoinNetMain
+	solanaToken.Contract = solanaToken.OfficialContract
+	solanaToken.CoinType = sphinxplugin.CoinType_CoinTypesolana
+	register.RegisteTokenInfo(solanaToken)
+}
+
+var solanaToken = &coins.TokenInfo{Waight: 100, OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: "solana", OfficialContract: "solana", TokenType: coins.Solana}
