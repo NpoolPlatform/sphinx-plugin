@@ -19,7 +19,6 @@ import (
 )
 
 func init() {
-	// main
 	register.RegisteTokenHandler(
 		coins.Ethereum,
 		register.OpWalletNew,
@@ -32,13 +31,13 @@ func init() {
 	)
 }
 
-const s3KeyPrxfix = "ethereum/"
-
 func ethMsg(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
+	s3KeyPrxfix := coins.GetS3KeyPrxfix(tokenInfo.Name)
 	return Message(ctx, s3KeyPrxfix, in)
 }
 
 func CreateEthAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
+	s3KeyPrxfix := coins.GetS3KeyPrxfix(tokenInfo.Name)
 	return CreateAccount(ctx, s3KeyPrxfix, in)
 }
 

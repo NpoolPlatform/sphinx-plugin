@@ -7,13 +7,11 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
-	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
@@ -21,29 +19,14 @@ import (
 )
 
 func init() {
-	// main
-	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypesolana,
-		sphinxproxy.TransactionType_WalletNew,
+	register.RegisteTokenHandler(
+		coins.Solana,
+		register.OpWalletNew,
 		createAccount,
 	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypesolana,
-		sphinxproxy.TransactionState_TransactionStateSign,
-		signTx,
-	)
-
-	// --------------------
-
-	// test
-	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypetsolana,
-		sphinxproxy.TransactionType_WalletNew,
-		createAccount,
-	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypetsolana,
-		sphinxproxy.TransactionState_TransactionStateSign,
+	register.RegisteTokenHandler(
+		coins.Solana,
+		register.OpSign,
 		signTx,
 	)
 }
@@ -51,7 +34,7 @@ func init() {
 const s3KeyPrxfix = "solana/"
 
 // createAccount ..
-func createAccount(ctx context.Context, in []byte) (out []byte, err error) {
+func createAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := ct.NewAccountRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -82,7 +65,7 @@ func createAccount(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 // signTx ..
-func signTx(ctx context.Context, in []byte) (out []byte, err error) {
+func signTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := sol.SignMsgTx{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err

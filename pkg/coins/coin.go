@@ -15,6 +15,7 @@ type (
 
 const (
 	Ethereum TokenType = "ethereum"
+	Solana   TokenType = "solana"
 	Erc20    TokenType = "erc20"
 	Erc721   TokenType = "erc721"
 )
@@ -97,36 +98,28 @@ var (
 		sphinxplugin.CoinType_CoinTypetusdcerc20:   CoinNetTest,
 	}
 
-	CoinUnit = map[sphinxplugin.CoinType]string{
-		sphinxplugin.CoinType_CoinTypefilecoin:  "FIL",
-		sphinxplugin.CoinType_CoinTypetfilecoin: "FIL",
-
-		sphinxplugin.CoinType_CoinTypebitcoin:  "BTC",
-		sphinxplugin.CoinType_CoinTypetbitcoin: "BTC",
-
-		sphinxplugin.CoinType_CoinTypeethereum:  "ETH",
-		sphinxplugin.CoinType_CoinTypetethereum: "ETH",
-
-		sphinxplugin.CoinType_CoinTypeusdterc20:  "USDT",
-		sphinxplugin.CoinType_CoinTypetusdterc20: "USDT",
-
-		sphinxplugin.CoinType_CoinTypesolana:  "SOL",
-		sphinxplugin.CoinType_CoinTypetsolana: "SOL",
-
-		sphinxplugin.CoinType_CoinTypeusdttrc20:  "USDT",
-		sphinxplugin.CoinType_CoinTypetusdttrc20: "USDT",
-
-		sphinxplugin.CoinType_CoinTypetron:  "TRX",
-		sphinxplugin.CoinType_CoinTypettron: "TRX",
-
-		sphinxplugin.CoinType_CoinTypebinancecoin:  "BNB",
-		sphinxplugin.CoinType_CoinTypetbinancecoin: "BNB",
-
-		sphinxplugin.CoinType_CoinTypebinanceusd:  "BUSD",
-		sphinxplugin.CoinType_CoinTypetbinanceusd: "BUSD",
-
-		sphinxplugin.CoinType_CoinTypeusdcerc20:  "USDC",
-		sphinxplugin.CoinType_CoinTypetusdcerc20: "USDC",
+	// in order to compatible
+	S3KeyPrxfixMap = map[string]string{
+		"filecoin":     "filecoin/",
+		"tfilecoin":    "filecoin/",
+		"bitcoin":      "bitcoin/",
+		"tbitcoin":     "bitcoin/",
+		"ethereum":     "ethereum/",
+		"tethereum":    "ethereum/",
+		"usdterc20":    "ethereum/",
+		"tusdterc20":   "ethereum/",
+		"solana":       "solana/",
+		"tsolana":      "solana/",
+		"usdttrc20":    "usdttrc20/",
+		"tusdttrc20":   "usdttrc20/",
+		"tron":         "tron/",
+		"ttron":        "tron/",
+		"binancecoin":  "binancecoin/",
+		"tbinancecoin": "binancecoin/",
+		"binanceusd":   "binanceusd/",
+		"tbinanceusd":  "binanceusd/",
+		"usdcerc20":    "usdcerc20/",
+		"tusdcerc20":   "usdcerc20/",
 	}
 
 	// default sync time for waitting transaction on chain
@@ -195,6 +188,13 @@ func ToTestCoinType(coinType sphinxplugin.CoinType) sphinxplugin.CoinType {
 	}
 	name := utils.ToCoinName(coinType)
 	return CoinStr2CoinType(CoinNetTest, name)
+}
+
+func GetS3KeyPrxfix(name string) string {
+	if val, ok := S3KeyPrxfixMap[name]; ok {
+		return val
+	}
+	return name
 }
 
 func GenerateName(chainType string, tokenType TokenType, name string) string {

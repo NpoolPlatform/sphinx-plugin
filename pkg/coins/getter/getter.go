@@ -11,7 +11,12 @@ import (
 
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/sign"
+	// register handle
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/sign"
 )
 
 func GetTokenInfo(name string) *coins.TokenInfo {
@@ -22,8 +27,12 @@ func GetTokenInfo(name string) *coins.TokenInfo {
 	return _tokenInfo
 }
 
-func GetTokenInfos(coinType sphinxplugin.CoinType) map[string]*coins.TokenInfo {
-	tokenInfos, ok := register.TokenInfoMap[coinType]
+func GetTokenInfos(coinType sphinxplugin.CoinType, coinNet string) map[string]*coins.TokenInfo {
+	netTokenInfos, ok := register.TokenInfoMap[coinType]
+	if !ok {
+		return nil
+	}
+	tokenInfos, ok := netTokenInfos[coinNet]
 	if !ok {
 		return nil
 	}
