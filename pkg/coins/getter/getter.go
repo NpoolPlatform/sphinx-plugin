@@ -10,8 +10,6 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/eth"
 
 	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/sign"
-	// register handle
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
