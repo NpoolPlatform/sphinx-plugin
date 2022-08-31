@@ -194,13 +194,14 @@ func GetS3KeyPrxfix(name string) string {
 	if val, ok := S3KeyPrxfixMap[name]; ok {
 		return val
 	}
-	return name
+	return fmt.Sprintf("%v/", name)
 }
 
-func GenerateName(chainType string, tokenType TokenType, name string) string {
-	name = strings.Trim(name, " ")
+func GenerateName(tokenInfo *TokenInfo) string {
+	chainType := utils.ToCoinName(tokenInfo.CoinType)
+	name := strings.Trim(tokenInfo.OfficialName, " ")
 	name = strings.ReplaceAll(name, " ", "-")
-	return fmt.Sprintf("%v_%v_%v", chainType, tokenType, name)
+	return fmt.Sprintf("%v_%v_%v", chainType, tokenInfo.TokenType, name)
 }
 
 func GetChainType(in string) string {
