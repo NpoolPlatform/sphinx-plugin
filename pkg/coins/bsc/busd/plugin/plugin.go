@@ -8,10 +8,10 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
 	bsc_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	plugin_types "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
@@ -22,47 +22,24 @@ import (
 
 // here register plugin func
 func init() {
-	// main
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypebinanceusd,
-		sphinxproxy.TransactionType_Balance,
+	register.RegisteTokenHandler(
+		coins.Bep20,
+		register.OpGetBalance,
 		walletBalance,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinanceusd,
-		sphinxproxy.TransactionState_TransactionStateWait,
+	register.RegisteTokenHandler(
+		coins.Bep20,
+		register.OpPreSign,
 		bsc_plugin.PreSign,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinanceusd,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
+	register.RegisteTokenHandler(
+		coins.Bep20,
+		register.OpBroadcast,
 		bsc_plugin.SendRawTransaction,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinanceusd,
-		sphinxproxy.TransactionState_TransactionStateSync,
-		bsc_plugin.SyncTxState,
-	)
-
-	// testTransactionStateWait
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypetbinanceusd,
-		sphinxproxy.TransactionType_Balance,
-		walletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinanceusd,
-		sphinxproxy.TransactionState_TransactionStateWait,
-		bsc_plugin.PreSign,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinanceusd,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		bsc_plugin.SendRawTransaction,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinanceusd,
-		sphinxproxy.TransactionState_TransactionStateSync,
+	register.RegisteTokenHandler(
+		coins.Bep20,
+		register.OpSyncTx,
 		bsc_plugin.SyncTxState,
 	)
 	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypebinanceusd, bsc.TxFailErr)
@@ -81,7 +58,7 @@ var (
 	ErrAccountAddrInvalid  = errors.New("account address is invalid")
 )
 
-func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	wbReq := &plugin_types.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {

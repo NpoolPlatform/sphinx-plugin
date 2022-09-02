@@ -24,6 +24,9 @@ const (
 
 	Tron  TokenType = "tron"
 	Trc20 TokenType = "trc20"
+
+	Binancecoin TokenType = "binancecoin"
+	Bep20       TokenType = "bep20"
 )
 
 type TokenInfo struct {
