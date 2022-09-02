@@ -15,11 +15,15 @@ type (
 
 const (
 	Ethereum TokenType = "ethereum"
+	Erc20    TokenType = "erc20"
+	Erc721   TokenType = "erc721"
+
 	Solana   TokenType = "solana"
 	Bitcoin  TokenType = "bitcoin"
 	Filecoin TokenType = "filecoin"
-	Erc20    TokenType = "erc20"
-	Erc721   TokenType = "erc721"
+
+	Tron  TokenType = "tron"
+	Trc20 TokenType = "trc20"
 )
 
 type TokenInfo struct {
@@ -69,35 +73,6 @@ var (
 			"binanceusd":  sphinxplugin.CoinType_CoinTypetbinanceusd,
 			"usdcerc20":   sphinxplugin.CoinType_CoinTypetusdcerc20,
 		},
-	}
-
-	// not export
-	coinNetMap = map[sphinxplugin.CoinType]string{
-		// main
-		sphinxplugin.CoinType_CoinTypefilecoin:    CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebitcoin:     CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeethereum:    CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdterc20:   CoinNetMain,
-		sphinxplugin.CoinType_CoinTypespacemesh:   CoinNetMain,
-		sphinxplugin.CoinType_CoinTypesolana:      CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdttrc20:   CoinNetMain,
-		sphinxplugin.CoinType_CoinTypetron:        CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebinancecoin: CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebinanceusd:  CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdcerc20:   CoinNetMain,
-
-		// test
-		sphinxplugin.CoinType_CoinTypetfilecoin:    CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbitcoin:     CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetethereum:    CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdterc20:   CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetspacemesh:   CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetsolana:      CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdttrc20:   CoinNetTest,
-		sphinxplugin.CoinType_CoinTypettron:        CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbinancecoin: CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbinanceusd:  CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdcerc20:   CoinNetTest,
 	}
 
 	// in order to compatible
@@ -164,11 +139,6 @@ type CoinInfo struct {
 	Unit     string
 	IP       string // wan ip
 	Location string
-}
-
-// CoinType2Net ..
-func CoinType2Net(ct sphinxplugin.CoinType) string {
-	return coinNetMap[ct]
 }
 
 // CheckSupportNet ..

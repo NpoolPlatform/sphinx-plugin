@@ -25,6 +25,13 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/sign"
+
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/sign"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/sign"
 )
 
 func GetTokenInfo(name string) *coins.TokenInfo {

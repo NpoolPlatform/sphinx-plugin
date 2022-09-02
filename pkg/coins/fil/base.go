@@ -20,10 +20,19 @@ var FILNetMap = map[string]address.Network{
 }
 
 var (
-	FilTxFaild  = `fil tx faild`
-	filNonceLow = `message nonce too low`
-	stopErrMsg  = []string{FilTxFaild, filNonceLow}
+	FilTxFaild    = `fil tx faild`
+	filNonceLow   = `message nonce too low`
+	stopErrMsg    = []string{FilTxFaild, filNonceLow}
+	filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 18, Unit: "FIL", Name: "filecoin", OfficialContract: "filecoin", TokenType: coins.Filecoin}
 )
+
+func init() {
+	filecoinToken.Waight = 100
+	filecoinToken.Net = coins.CoinNetMain
+	filecoinToken.Contract = filecoinToken.OfficialContract
+	filecoinToken.CoinType = sphinxplugin.CoinType_CoinTypefilecoin
+	register.RegisteTokenInfo(filecoinToken)
+}
 
 func SignType(signType string) (crypto.SigType, error) {
 	switch signType {
@@ -61,13 +70,3 @@ func TxFailErr(err error) bool {
 	}
 	return false
 }
-
-func init() {
-	filecoinToken.Waight = 100
-	filecoinToken.Net = coins.CoinNetMain
-	filecoinToken.Contract = filecoinToken.OfficialContract
-	filecoinToken.CoinType = sphinxplugin.CoinType_CoinTypefilecoin
-	register.RegisteTokenInfo(filecoinToken)
-}
-
-var filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 9, Unit: "FIL", Name: "filecoin", OfficialContract: "filecoin", TokenType: coins.Filecoin}
