@@ -29,7 +29,16 @@ var (
 	SolTransactionFailed = `sol transaction failed`
 	lamportsLow          = `Transfer: insufficient lamports`
 	stopErrMsg           = []string{lamportsLow, SolTransactionFailed}
+	solanaToken          = &coins.TokenInfo{OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: "solana", OfficialContract: "solana", TokenType: coins.Solana}
 )
+
+func init() {
+	solanaToken.Waight = 100
+	solanaToken.Net = coins.CoinNetMain
+	solanaToken.Contract = solanaToken.OfficialContract
+	solanaToken.CoinType = sphinxplugin.CoinType_CoinTypesolana
+	register.RegisteTokenInfo(solanaToken)
+}
 
 func ToSol(larm uint64) *big.Float {
 	// Convert lamports to sol:
@@ -59,13 +68,3 @@ func TxFailErr(err error) bool {
 	}
 	return false
 }
-
-func init() {
-	solanaToken.Waight = 100
-	solanaToken.Net = coins.CoinNetMain
-	solanaToken.Contract = solanaToken.OfficialContract
-	solanaToken.CoinType = sphinxplugin.CoinType_CoinTypesolana
-	register.RegisteTokenInfo(solanaToken)
-}
-
-var solanaToken = &coins.TokenInfo{OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: "solana", OfficialContract: "solana", TokenType: coins.Solana}

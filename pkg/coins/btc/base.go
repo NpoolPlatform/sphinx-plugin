@@ -39,7 +39,16 @@ var (
 		env.ErrAddressInvalid.Error(),
 		env.ErrAmountInvalid.Error(),
 	}
+	bitcoinToken = &coins.TokenInfo{OfficialName: "Bitcoin", Decimal: 8, Unit: "BTC", Name: "bitcoin", OfficialContract: "bitcoin", TokenType: coins.Bitcoin}
 )
+
+func init() {
+	bitcoinToken.Waight = 100
+	bitcoinToken.Net = coins.CoinNetMain
+	bitcoinToken.Contract = bitcoinToken.OfficialContract
+	bitcoinToken.CoinType = sphinxplugin.CoinType_CoinTypebitcoin
+	register.RegisteTokenInfo(bitcoinToken)
+}
 
 func TxFailErr(err error) bool {
 	if err == nil {
@@ -53,13 +62,3 @@ func TxFailErr(err error) bool {
 	}
 	return false
 }
-
-func init() {
-	bitcoinToken.Waight = 100
-	bitcoinToken.Net = coins.CoinNetMain
-	bitcoinToken.Contract = bitcoinToken.OfficialContract
-	bitcoinToken.CoinType = sphinxplugin.CoinType_CoinTypebitcoin
-	register.RegisteTokenInfo(bitcoinToken)
-}
-
-var bitcoinToken = &coins.TokenInfo{OfficialName: "Bitcoin", Decimal: 9, Unit: "BTC", Name: "bitcoin", OfficialContract: "bitcoin", TokenType: coins.Bitcoin}
