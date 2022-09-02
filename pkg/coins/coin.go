@@ -16,6 +16,8 @@ type (
 const (
 	Ethereum TokenType = "ethereum"
 	Solana   TokenType = "solana"
+	Bitcoin  TokenType = "bitcoin"
+	Filecoin TokenType = "filecoin"
 	Erc20    TokenType = "erc20"
 	Erc721   TokenType = "erc721"
 )

@@ -3,7 +3,9 @@ package fil
 import (
 	"strings"
 
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
@@ -59,3 +61,13 @@ func TxFailErr(err error) bool {
 	}
 	return false
 }
+
+func init() {
+	filecoinToken.Waight = 100
+	filecoinToken.Net = coins.CoinNetMain
+	filecoinToken.Contract = filecoinToken.OfficialContract
+	filecoinToken.CoinType = sphinxplugin.CoinType_CoinTypefilecoin
+	register.RegisteTokenInfo(filecoinToken)
+}
+
+var filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 9, Unit: "FIL", Name: "filecoin", OfficialContract: "filecoin", TokenType: coins.Filecoin}

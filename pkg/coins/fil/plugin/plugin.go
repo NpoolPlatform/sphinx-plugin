@@ -8,9 +8,9 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
@@ -29,47 +29,24 @@ import (
 
 // here register plugin func
 func init() {
-	// main
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxproxy.TransactionType_Balance,
+	register.RegisteTokenHandler(
+		coins.Filecoin,
+		register.OpGetBalance,
 		walletBalance,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxproxy.TransactionState_TransactionStateWait,
+	register.RegisteTokenHandler(
+		coins.Filecoin,
+		register.OpPreSign,
 		preSign,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
+	register.RegisteTokenHandler(
+		coins.Filecoin,
+		register.OpBroadcast,
 		broadcast,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxproxy.TransactionState_TransactionStateSync,
-		syncTx,
-	)
-
-	// test
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxproxy.TransactionType_Balance,
-		walletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxproxy.TransactionState_TransactionStateWait,
-		preSign,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		broadcast,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxproxy.TransactionState_TransactionStateSync,
+	register.RegisteTokenHandler(
+		coins.Filecoin,
+		register.OpSyncTx,
 		syncTx,
 	)
 
@@ -84,7 +61,7 @@ func init() {
 	}
 }
 
-func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := ct.WalletBalanceRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -143,7 +120,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-func preSign(ctx context.Context, in []byte) (out []byte, err error) {
+func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := ct.BaseInfo{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -195,7 +172,7 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
+func broadcast(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := fil.BroadcastRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -267,7 +244,7 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
+func syncTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
