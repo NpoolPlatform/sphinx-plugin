@@ -15,6 +15,6 @@ func init() {
 	register.RegisteTokenHandler(
 		coins.Erc20,
 		register.OpSign,
-		eth.EthMsg,
+		eth.Msg,
 	)
 }

@@ -27,11 +27,11 @@ func init() {
 	register.RegisteTokenHandler(
 		coins.Ethereum,
 		register.OpSign,
-		EthMsg,
+		Msg,
 	)
 }
 
-func EthMsg(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
+func Msg(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	s3KeyPrxfix := coins.GetS3KeyPrxfix(tokenInfo.Name)
 	return Message(ctx, s3KeyPrxfix, in)
 }

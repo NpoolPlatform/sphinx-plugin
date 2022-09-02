@@ -21,7 +21,6 @@ import (
 
 // here register plugin func
 func init() {
-	// main
 	register.RegisteTokenHandler(
 		coins.Solana,
 		register.OpGetBalance,

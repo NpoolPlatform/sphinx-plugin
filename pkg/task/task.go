@@ -20,10 +20,6 @@ import (
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
 	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"
-	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"

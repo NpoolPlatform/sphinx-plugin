@@ -61,10 +61,11 @@ func TxFailErr(err error) bool {
 }
 
 func init() {
+	solanaToken.Waight = 100
 	solanaToken.Net = coins.CoinNetMain
 	solanaToken.Contract = solanaToken.OfficialContract
 	solanaToken.CoinType = sphinxplugin.CoinType_CoinTypesolana
 	register.RegisteTokenInfo(solanaToken)
 }
 
-var solanaToken = &coins.TokenInfo{Waight: 100, OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: "solana", OfficialContract: "solana", TokenType: coins.Solana}
+var solanaToken = &coins.TokenInfo{OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: "solana", OfficialContract: "solana", TokenType: coins.Solana}

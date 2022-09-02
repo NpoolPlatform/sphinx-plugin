@@ -15,6 +15,16 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/sign"
+
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc/sign"
+
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/sign"
 )
 
 func GetTokenInfo(name string) *coins.TokenInfo {
