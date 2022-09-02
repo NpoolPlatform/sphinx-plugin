@@ -6,7 +6,6 @@ import (
 
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/erc20"
-	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/eth"
 
 	// register handle
@@ -32,6 +31,13 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/sign"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/sign"
+
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/sign"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/sign"
 )
 
 func GetTokenInfo(name string) *coins.TokenInfo {

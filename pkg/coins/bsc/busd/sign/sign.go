@@ -9,13 +9,12 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
 	bscSign "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/sign"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
-	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	busd "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -25,40 +24,25 @@ import (
 )
 
 func init() {
-	// main
-	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypebinanceusd,
-		sphinxproxy.TransactionType_WalletNew,
+	register.RegisteTokenHandler(
+		coins.Bep20,
+		register.OpWalletNew,
 		CreateBep20Account,
 	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypebinanceusd,
-		sphinxproxy.TransactionState_TransactionStateSign,
-		Bep20Msg,
-	)
-
-	// --------------------
-
-	// test
-	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypetbinanceusd,
-		sphinxproxy.TransactionType_WalletNew,
-		CreateBep20Account,
-	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypetbinanceusd,
-		sphinxproxy.TransactionState_TransactionStateSign,
+	register.RegisteTokenHandler(
+		coins.Bep20,
+		register.OpSign,
 		Bep20Msg,
 	)
 }
 
 const s3KeyPrxfix = "binanceusd/"
 
-func CreateBep20Account(ctx context.Context, in []byte) (out []byte, err error) {
+func CreateBep20Account(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byte, err error) {
 	return bscSign.CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
-func Bep20Msg(ctx context.Context, in []byte) (out []byte, err error) {
+func Bep20Msg(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byte, err error) {
 	preSignData := &bsc.PreSignData{}
 	err = json.Unmarshal(in, preSignData)
 	if err != nil {
