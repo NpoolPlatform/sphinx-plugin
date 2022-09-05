@@ -42,12 +42,12 @@ func init() {
 		syncTx,
 	)
 
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypesolana, sol.TxFailErr)
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypesolana, sol.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetsolana, sol.TxFailErr)
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetsolana, sol.TxFailErr)
 	if err != nil {
 		panic(err)
 	}

@@ -39,6 +39,7 @@ type TokenInfo struct {
 	Decimal          int
 	Name             string
 	Waight           int
+	DisableRegiste   bool
 	CoinType         sphinxplugin.CoinType
 }
 

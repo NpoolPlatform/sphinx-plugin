@@ -40,12 +40,12 @@ func init() {
 		tron_plugin.SyncTxState,
 	)
 
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypeusdttrc20, tron.TxFailErr)
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypeusdttrc20, tron.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetusdttrc20, tron.TxFailErr)
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetusdttrc20, tron.TxFailErr)
 	if err != nil {
 		panic(err)
 	}

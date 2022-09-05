@@ -7,8 +7,10 @@ import (
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 )
 
+// tokenInfo registe and tokenHandler registe --------------------
 // define handler func
 type HandlerDef func(ctx context.Context, payload []byte, token *coins.TokenInfo) ([]byte, error)
 type OpType int
@@ -51,6 +53,7 @@ func RegisteTokenInfo(tokenInfo *coins.TokenInfo) {
 	_tokenInfo.CoinType = coins.ToTestCoinType(_tokenInfo.CoinType)
 	_tokenInfo.Net = coins.CoinNetTest
 	_tokenInfo.Name = fmt.Sprintf("t%v", tokenInfo.Name)
+	_tokenInfo.DisableRegiste = true
 	registeTokenInfo(tokenInfo)
 	registeTokenInfo(&_tokenInfo)
 }
@@ -96,7 +99,6 @@ func registeTokenInfo(tokenInfo *coins.TokenInfo) {
 	NameToTokenInfo[tokenInfo.Name] = tokenInfo
 }
 
-// TODO: Other chain will support ,so it should move to public pakege
 func RegisteTokenHandler(tokenType coins.TokenType, op OpType, fn HandlerDef) {
 	if _, ok := TokenHandlers[tokenType]; !ok {
 		TokenHandlers[tokenType] = make(map[OpType]HandlerDef)
@@ -106,4 +108,65 @@ func RegisteTokenHandler(tokenType coins.TokenType, op OpType, fn HandlerDef) {
 		panic(ErrTokenHandlerAlreadyExist)
 	}
 	TokenHandlers[tokenType][op] = fn
+}
+
+var (
+	ErrCoinTypeNotFound = errors.New("coin type not found")
+	ErrOpTypeNotFound   = errors.New("op type not found")
+)
+
+// error ----------------------------
+var (
+	// ErrAbortErrorAlreadyRegister ..
+	ErrAbortErrorAlreadyRegister = errors.New("abort error already register")
+
+	// ErrAbortErrorFuncAlreadyRegister ..
+	ErrAbortErrorFuncAlreadyRegister = errors.New("abort error func already register")
+
+	// TODO: think how to check not value error
+	AbortErrs = map[error]struct{}{
+		env.ErrEVNCoinNet:      {},
+		env.ErrEVNCoinNetValue: {},
+		env.ErrAddressInvalid:  {},
+		env.ErrSignTypeInvalid: {},
+		env.ErrCIDInvalid:      {},
+		env.ErrContractInvalid: {},
+		env.ErrTransactionFail: {},
+	}
+
+	AbortFuncErrs = make(map[sphinxplugin.CoinType]func(error) bool)
+)
+
+// RegisteAbortErr ..
+func RegisteAbortErr(errs ...error) {
+	for _, err := range errs {
+		if _, ok := AbortErrs[err]; ok {
+			panic(ErrAbortErrorAlreadyRegister)
+		}
+		AbortErrs[err] = struct{}{}
+	}
+}
+
+// RegisteAbortFuncErr ..
+func RegisteAbortFuncErr(coinType sphinxplugin.CoinType, f func(error) bool) error {
+	if _, ok := AbortFuncErrs[coinType]; ok {
+		return ErrAbortErrorFuncAlreadyRegister
+	}
+
+	AbortFuncErrs[coinType] = f
+	return nil
+}
+
+// env network
+var (
+	TokenTestnetCheckHandlers               = make(map[coins.TokenType]func())
+	ErrTokenTestnetCheckHandlerAlreadyExist = errors.New("token testnet check handler is already exist")
+	ErrTokenTestnetCheckHandlerNotExist     = errors.New("token testnet check handler is not exist")
+)
+
+func RegisteTokenTestnetCheckHandler(tokenType coins.TokenType, fn func()) {
+	if _, ok := TokenTestnetCheckHandlers[tokenType]; ok {
+		panic(ErrTokenTestnetCheckHandlerAlreadyExist)
+	}
+	TokenTestnetCheckHandlers[tokenType] = fn
 }
