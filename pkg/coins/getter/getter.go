@@ -71,3 +71,39 @@ func GetTokenHandler(tokenType coins.TokenType, op register.OpType) (register.Ha
 	fn := register.TokenHandlers[tokenType][op]
 	return fn, nil
 }
+
+func GetTokenTestnetCheckHandler(tokenType coins.TokenType) (func(), error) {
+	if _, ok := register.TokenTestnetCheckHandlers[tokenType]; !ok {
+		return nil, register.ErrTokenHandlerNotExist
+	}
+
+	fn := register.TokenTestnetCheckHandlers[tokenType]
+	return fn, nil
+}
+
+func nextStop(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	_, ok := register.AbortErrs[err]
+	return ok
+}
+
+// Abort ..
+func Abort(coinType sphinxplugin.CoinType, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if nextStop(err) {
+		return true
+	}
+
+	mf, ok := register.AbortFuncErrs[coinType]
+	if ok {
+		return mf(err)
+	}
+
+	return false
+}

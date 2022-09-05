@@ -22,5 +22,3 @@ type SignedData struct {
 type BroadcastedData struct {
 	TxHash string `json:"tx_hash"`
 }
-
-// ----------use for defining various token

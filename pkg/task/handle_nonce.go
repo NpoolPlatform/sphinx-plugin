@@ -119,7 +119,7 @@ func nonce(ctx context.Context, name string, transInfo *sphinxproxy.TransactionI
 		goto done
 	}
 
-	if coins.Abort(tokenInfo.CoinType, err) {
+	if getter.Abort(tokenInfo.CoinType, err) {
 		errorf(name,
 			"pre sign transaction: %v error: %v stop",
 			transInfo.GetTransactionID(),

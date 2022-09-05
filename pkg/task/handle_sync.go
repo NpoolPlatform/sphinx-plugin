@@ -128,7 +128,7 @@ func syncTx(ctx context.Context, name string, transInfo *sphinxproxy.Transaction
 	if err == nil {
 		goto done
 	}
-	if coins.Abort(tokenInfo.CoinType, err) {
+	if getter.Abort(tokenInfo.CoinType, err) {
 		errorf(name,
 			"sync transaction: %v error: %v stop",
 			transInfo.GetTransactionID(),

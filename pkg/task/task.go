@@ -12,20 +12,8 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/getter"
 	coins_register "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
-
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin"
-	// register handle
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
@@ -153,6 +141,9 @@ func (c *pluginClient) register() {
 			tokenInfos := getter.GetTokenInfos(coinType, coinNetwork)
 			log.Infof("register new coin: %v for %s network,has %v tokens", coinType, coinNetwork, len(tokenInfos))
 			for _, tokenInfo := range tokenInfos {
+				if tokenInfo.DisableRegiste {
+					continue
+				}
 				resp := &sphinxproxy.ProxyPluginResponse{
 					CoinType:        tokenInfo.CoinType,
 					Name:            tokenInfo.Name,

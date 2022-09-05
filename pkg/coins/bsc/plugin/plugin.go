@@ -46,12 +46,12 @@ func init() {
 		SyncTxState,
 	)
 
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypebinancecoin, bsc.TxFailErr)
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypebinancecoin, bsc.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetbinancecoin, bsc.TxFailErr)
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetbinancecoin, bsc.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
