@@ -24,9 +24,10 @@ var (
 	stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
 
 	ethTokens = []coins.TokenInfo{
-		{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: "ethereum", TokenType: coins.Ethereum, OfficialContract: "ethereum"},
-		{Waight: 100, OfficialName: "Tether USD", Decimal: 6, Unit: "USDT", Name: "usdterc20", TokenType: coins.Erc20, OfficialContract: "0xdAC17F958D2ee523a2206206994597C13D831ec7"},
-		{Waight: 100, OfficialName: "Coins USD", Decimal: 6, Unit: "USDC", Name: "usdcerc20", TokenType: coins.Erc20, OfficialContract: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
+		{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: "ethereum", TokenType: coins.Ethereum, OfficialContract: "ethereum", CoinType: sphinxplugin.CoinType_CoinTypeethereum},
+		{Waight: 100, OfficialName: "Tether USD", Decimal: 6, Unit: "USDT", Name: "usdterc20", TokenType: coins.Erc20, OfficialContract: "0xdAC17F958D2ee523a2206206994597C13D831ec7", CoinType: sphinxplugin.CoinType_CoinTypeethereum},
+		// TODO: will change it to erc20 tokentype
+		{Waight: 100, OfficialName: "Coins USD", Decimal: 6, Unit: "USDC", Name: "usdcerc20", TokenType: coins.USDC, OfficialContract: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", CoinType: sphinxplugin.CoinType_CoinTypeusdcerc20},
 	}
 )
 
@@ -34,7 +35,6 @@ func init() {
 	for i := range ethTokens {
 		ethTokens[i].Net = coins.CoinNetMain
 		ethTokens[i].Contract = ethTokens[i].OfficialContract
-		ethTokens[i].CoinType = sphinxplugin.CoinType_CoinTypeethereum
 		register.RegisteTokenInfo(&ethTokens[i])
 	}
 

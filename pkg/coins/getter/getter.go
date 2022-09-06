@@ -8,6 +8,8 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/erc20"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/eth"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdc/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdc/sign"
 
 	// register handle
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
