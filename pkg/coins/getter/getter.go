@@ -5,6 +5,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 
 	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/erc20"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/eth"
 
@@ -48,12 +49,8 @@ func GetTokenInfo(name string) *coins.TokenInfo {
 	return _tokenInfo
 }
 
-func GetTokenInfos(coinType sphinxplugin.CoinType, coinNet string) map[string]*coins.TokenInfo {
-	netTokenInfos, ok := register.TokenInfoMap[coinType]
-	if !ok {
-		return nil
-	}
-	tokenInfos, ok := netTokenInfos[coinNet]
+func GetTokenInfos(coinType sphinxplugin.CoinType) map[string]*coins.TokenInfo {
+	tokenInfos, ok := register.TokenInfoMap[coinType]
 	if !ok {
 		return nil
 	}
@@ -72,12 +69,11 @@ func GetTokenHandler(tokenType coins.TokenType, op register.OpType) (register.Ha
 	return fn, nil
 }
 
-func GetTokenTestnetCheckHandler(tokenType coins.TokenType) (func(), error) {
-	if _, ok := register.TokenTestnetCheckHandlers[tokenType]; !ok {
+func GetTokenNetHandler(coinType sphinxplugin.CoinType) (register.NetHandlerDef, error) {
+	if _, ok := register.TokenNetHandlers[coinType]; !ok {
 		return nil, register.ErrTokenHandlerNotExist
 	}
-
-	fn := register.TokenTestnetCheckHandlers[tokenType]
+	fn := register.TokenNetHandlers[coinType]
 	return fn, nil
 }
 

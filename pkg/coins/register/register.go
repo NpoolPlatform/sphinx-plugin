@@ -32,7 +32,7 @@ var (
 	MainContractToName = make(map[string]string)
 	TestContractToName = make(map[string]string)
 	// cointype -> coinnet -> tokeninfo
-	TokenInfoMap  = make(map[sphinxplugin.CoinType]map[string]map[string]*coins.TokenInfo)
+	TokenInfoMap  = make(map[sphinxplugin.CoinType]map[string]*coins.TokenInfo)
 	TokenHandlers = make(map[coins.TokenType]map[OpType]HandlerDef)
 )
 
@@ -52,6 +52,7 @@ func RegisteTokenInfo(tokenInfo *coins.TokenInfo) {
 	_tokenInfo := *tokenInfo
 	_tokenInfo.CoinType = coins.ToTestCoinType(_tokenInfo.CoinType)
 	_tokenInfo.Net = coins.CoinNetTest
+	_tokenInfo.Contract = ""
 	_tokenInfo.Name = fmt.Sprintf("t%v", tokenInfo.Name)
 	_tokenInfo.DisableRegiste = true
 	registeTokenInfo(tokenInfo)
@@ -82,20 +83,16 @@ func registeTokenInfo(tokenInfo *coins.TokenInfo) {
 		}
 		delete(TokenInfoMap[_tokenInfo.CoinType], name)
 		delete(NameToTokenInfo, _tokenInfo.Name)
-		delete(TokenInfoMap[tokenInfo.CoinType][_tokenInfo.Net], _tokenInfo.Name)
+		delete(TokenInfoMap[tokenInfo.CoinType], _tokenInfo.Name)
 	}
 
 	// update
 	if _, ok = TokenInfoMap[tokenInfo.CoinType]; !ok {
-		TokenInfoMap[tokenInfo.CoinType] = make(map[string]map[string]*coins.TokenInfo)
-	}
-
-	if _, ok = TokenInfoMap[tokenInfo.CoinType][tokenInfo.Net]; !ok {
-		TokenInfoMap[tokenInfo.CoinType][tokenInfo.Net] = make(map[string]*coins.TokenInfo)
+		TokenInfoMap[tokenInfo.CoinType] = make(map[string]*coins.TokenInfo)
 	}
 
 	ContractToName[tokenInfo.OfficialContract] = tokenInfo.Name
-	TokenInfoMap[tokenInfo.CoinType][tokenInfo.Net][tokenInfo.Name] = tokenInfo
+	TokenInfoMap[tokenInfo.CoinType][tokenInfo.Name] = tokenInfo
 	NameToTokenInfo[tokenInfo.Name] = tokenInfo
 }
 
@@ -159,14 +156,17 @@ func RegisteAbortFuncErr(coinType sphinxplugin.CoinType, f func(error) bool) err
 
 // env network
 var (
-	TokenTestnetCheckHandlers               = make(map[coins.TokenType]func())
-	ErrTokenTestnetCheckHandlerAlreadyExist = errors.New("token testnet check handler is already exist")
-	ErrTokenTestnetCheckHandlerNotExist     = errors.New("token testnet check handler is not exist")
+	TokenNetHandlers               = make(map[sphinxplugin.CoinType]NetHandlerDef)
+	ErrTokenNetHandlerAlreadyExist = errors.New("token net handler is already exist")
+	ErrTokenNetHandlerNotExist     = errors.New("token net handler is not exist")
 )
 
-func RegisteTokenTestnetCheckHandler(tokenType coins.TokenType, fn func()) {
-	if _, ok := TokenTestnetCheckHandlers[tokenType]; ok {
-		panic(ErrTokenTestnetCheckHandlerAlreadyExist)
+type NetHandlerDef func([]*coins.TokenInfo) error
+
+// cannot
+func RegisteTokenNetHandler(coinType sphinxplugin.CoinType, fn NetHandlerDef) {
+	if _, ok := TokenNetHandlers[coinType]; ok {
+		panic(ErrTokenNetHandlerAlreadyExist)
 	}
-	TokenTestnetCheckHandlers[tokenType] = fn
+	TokenNetHandlers[coinType] = fn
 }

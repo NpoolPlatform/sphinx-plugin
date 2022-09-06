@@ -71,7 +71,6 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 
 	eClient := eth.Client()
 	var bl *big.Int
-
 	err = eClient.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
 		callOpts := &bind.CallOpts{
 			Pending: true,
@@ -132,6 +131,11 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, env.ErrAddressInvalid
 	}
 
+	if !common.IsHexAddress(tokenInfo.Contract) && common.HexToAddress("") != common.HexToAddress(tokenInfo.Contract) {
+		// TODO:is not env error,it will be replaced
+		return nil, env.ErrContractInvalid
+	}
+
 	client := eth.Client()
 
 	var (
@@ -188,19 +192,12 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	// build tx
 	tx := types.NewTransaction(
 		nonce,
-		common.HexToAddress(tokenInfo.OfficialContract),
+		common.HexToAddress(tokenInfo.Contract),
 		big.NewInt(0),
 		gasLimit,
 		big.NewInt(gasPrice.Int64()),
 		input,
 	)
-
-	fmt.Println(nonce,
-		common.HexToAddress(tokenInfo.OfficialContract),
-		big.NewInt(0),
-		gasLimit,
-		big.NewInt(gasPrice.Int64()),
-		input)
 
 	info := &eth.PreSignData{
 		ChainID: chainID,

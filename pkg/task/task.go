@@ -132,13 +132,13 @@ func (c *pluginClient) register() {
 		case <-time.After(registerCoinDuration):
 			// TODO coin net
 			coinNetwork, _coinType, err := env.CoinInfo()
-			coinType := coins.CoinStr2CoinType(coinNetwork, _coinType)
 			if err != nil {
 				log.Errorf("register new coin error: %v", err)
 				continue
 			}
+			coinType := coins.CoinStr2CoinType(coinNetwork, _coinType)
 
-			tokenInfos := getter.GetTokenInfos(coinType, coinNetwork)
+			tokenInfos := getter.GetTokenInfos(coinType)
 			log.Infof("register new coin: %v for %s network,has %v tokens", coinType, coinNetwork, len(tokenInfos))
 			for _, tokenInfo := range tokenInfos {
 				if tokenInfo.DisableRegiste {

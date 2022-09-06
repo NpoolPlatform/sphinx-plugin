@@ -7,40 +7,39 @@ import (
 )
 
 func init() {
-	for i := range erc20List {
-		erc20List[i].TokenType = "erc20"
-		erc20List[i].Net = "main"
-		erc20List[i].Waight = 1
-		erc20List[i].Contract = erc20List[i].OfficialContract
-		erc20List[i].CoinType = sphinxplugin.CoinType_CoinTypeethereum
-		erc20List[i].Name = coins.GenerateName(&erc20List[i])
-		register.RegisteTokenInfo(&erc20List[i])
+	for i := range erc20tokens {
+		erc20tokens[i].TokenType = "erc20"
+		erc20tokens[i].Net = "main"
+		erc20tokens[i].Waight = 1
+		erc20tokens[i].Contract = erc20tokens[i].OfficialContract
+		erc20tokens[i].CoinType = sphinxplugin.CoinType_CoinTypeethereum
+		erc20tokens[i].Name = coins.GenerateName(&erc20tokens[i])
+		register.RegisteTokenInfo(&erc20tokens[i])
 	}
 }
 
-var erc20List = []coins.TokenInfo{
-	{OfficialName: "Dogelon", Decimal: 18, Unit: "ELON", OfficialContract: "0x761d38e5ddf6ccf6cf7c55759d5210750b5d60f3"},
-	{OfficialName: "Wootrade Network", Decimal: 18, Unit: "WOO", OfficialContract: "0x4691937a7508860f876c9c0a2a617e7d9e945d4b"},
-	{OfficialName: "MXCToken", Decimal: 18, Unit: "MXC", OfficialContract: "0x5ca381bbfb58f0092df149bd3d243b08b9a8386e"},
-	{OfficialName: "Swipe", Decimal: 18, Unit: "SXP", OfficialContract: "0x8ce9137d39326ad0cd6491fb5cc0cba0e089b6a9"},
-	{OfficialName: "WAX Token", Decimal: 8, Unit: "WAX", OfficialContract: "0x39bb259f66e1c59d5abef88375979b4d20d98022"},
-	{OfficialName: "IOSToken", Decimal: 18, Unit: "IOST", OfficialContract: "0xfa1a856cfa3409cfa145fa4e20eb270df3eb21ab"},
-	{OfficialName: "Ethereum Name Service", Decimal: 18, Unit: "ENS", OfficialContract: "0xc18360217d8f7ab5e7c516566761ea12ce7f9d72"},
-	{OfficialName: "ZRX", Decimal: 18, Unit: "ZRX", OfficialContract: "0xe41d2489571d322189246dafa5ebde1f4699f498"},
-	{OfficialName: "ZEON", Decimal: 18, Unit: "ZEON", OfficialContract: "0xe5b826ca2ca02f09c1725e9bd98d9a8874c30532"},
-	{OfficialName: "IoTeX Network", Decimal: 18, Unit: "IOTX", OfficialContract: "0x6fb3e0a217407efff7ca062d46c26e5d60a14d69"},
-	{OfficialName: "WQtum", Decimal: 18, Unit: "WQTUM", OfficialContract: "0x3103df8f05c4d8af16fd22ae63e406b97fec6938"},
-	{OfficialName: "LoopringCoin V2", Decimal: 18, Unit: "LRC", OfficialContract: "0xbbbbca6a901c926f240b89eacb641d8aec7aeafd"},
-	{OfficialName: "Celsius", Decimal: 4, Unit: "CEL", OfficialContract: "0xaaaebe6fe48e54f431b0c390cfaf0b017d09d42d"},
-	{OfficialName: "Zilliqa", Decimal: 12, Unit: "ZIL", OfficialContract: "0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27"},
-	{OfficialName: "HuobiToken", Decimal: 18, Unit: "HT", OfficialContract: "0x6f259637dcd74c767781e37bc6133cd6a68aa161"},
-	{OfficialName: "Graph Token", Decimal: 18, Unit: "GRT", OfficialContract: "0xc944e90c64b2c07662a292be6244bdf05cda44a7"},
-	{OfficialName: "KuCoin Token", Decimal: 6, Unit: "KCS", OfficialContract: "0xf34960d9d60be18cc1d5afc1a6f012a723a28811"},
-	{OfficialName: "chiliZ", Decimal: 18, Unit: "CHZ", OfficialContract: "0x3506424f91fd33084466f402d5d97f05f8e3b4af"},
-	{OfficialName: "ApeCoin", Decimal: 18, Unit: "APE", OfficialContract: "0x4d224452801aced8b2f0aebe155379bb5d594381"},
-	{OfficialName: "Chain", Decimal: 18, Unit: "XCN", OfficialContract: "0xa2cd3d43c775978a96bdbf12d733d5a1ed94fb18"},
-	{OfficialName: "ChainLink Token", Decimal: 18, Unit: "LINK", OfficialContract: "0x514910771af9ca656af840dff83e8264ecf986ca"},
-	{OfficialName: "Matic Token", Decimal: 18, Unit: "MATIC", OfficialContract: "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0"},
+var erc20tokens = []coins.TokenInfo{
+	{OfficialName: "Dogelon", Decimal: 18, Unit: "ELON", OfficialContract: "0x761D38e5ddf6ccf6Cf7c55759d5210750B5D60F3"},
+	{OfficialName: "MXCToken", Decimal: 18, Unit: "MXC", OfficialContract: "0x5Ca381bBfb58f0092df149bD3D243b08B9a8386e"},
+	{OfficialName: "Wootrade Network", Decimal: 18, Unit: "WOO", OfficialContract: "0x4691937a7508860F876c9c0a2a617E7d9E945D4B"},
+	{OfficialName: "Swipe", Decimal: 18, Unit: "SXP", OfficialContract: "0x8CE9137d39326AD0cD6491fb5CC0CbA0e089b6A9"},
+	{OfficialName: "WAX Token", Decimal: 8, Unit: "WAX", OfficialContract: "0x39Bb259F66E1C59d5ABEF88375979b4D20D98022"},
+	{OfficialName: "IOSToken", Decimal: 18, Unit: "IOST", OfficialContract: "0xFA1a856Cfa3409CFa145Fa4e20Eb270dF3EB21ab"},
+	{OfficialName: "ZEON", Decimal: 18, Unit: "ZEON", OfficialContract: "0xE5B826Ca2Ca02F09c1725e9bd98d9a8874C30532"},
+	{OfficialName: "ZRX", Decimal: 18, Unit: "ZRX", OfficialContract: "0xE41d2489571d322189246DaFA5ebDe1F4699F498"},
+	{OfficialName: "IoTeX Network", Decimal: 18, Unit: "IOTX", OfficialContract: "0x6fB3e0A217407EFFf7Ca062D46c26E5d60a14d69"},
+	{OfficialName: "Ethereum Name Service", Decimal: 18, Unit: "ENS", OfficialContract: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72"},
+	{OfficialName: "WQtum", Decimal: 18, Unit: "WQTUM", OfficialContract: "0x3103dF8F05c4D8aF16fD22AE63E406b97FeC6938"},
+	{OfficialName: "LoopringCoin V2", Decimal: 18, Unit: "LRC", OfficialContract: "0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD"},
+	{OfficialName: "Celsius", Decimal: 4, Unit: "CEL", OfficialContract: "0xaaAEBE6Fe48E54f431b0C390CfaF0b017d09D42d"},
+	{OfficialName: "HuobiToken", Decimal: 18, Unit: "HT", OfficialContract: "0x6f259637dcD74C767781E37Bc6133cd6A68aa161"},
+	{OfficialName: "Graph Token", Decimal: 18, Unit: "GRT", OfficialContract: "0xc944E90C64B2c07662A292be6244BDf05Cda44a7"},
+	{OfficialName: "KuCoin Token", Decimal: 6, Unit: "KCS", OfficialContract: "0xf34960d9d60be18cC1D5Afc1A6F012A723a28811"},
+	{OfficialName: "chiliZ", Decimal: 18, Unit: "CHZ", OfficialContract: "0x3506424F91fD33084466F402d5D97f05F8e3b4AF"},
+	{OfficialName: "ApeCoin", Decimal: 18, Unit: "APE", OfficialContract: "0x4d224452801ACEd8B2F0aebE155379bb5D594381"},
+	{OfficialName: "Chain", Decimal: 18, Unit: "XCN", OfficialContract: "0xA2cd3D43c775978A96BdBf12d733D5A1ED94fb18"},
+	{OfficialName: "ChainLink Token", Decimal: 18, Unit: "LINK", OfficialContract: "0x514910771AF9Ca656af840dff83E8264EcF986CA"},
+	{OfficialName: "Matic Token", Decimal: 18, Unit: "MATIC", OfficialContract: "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"},
 	{OfficialName: "BNB", Decimal: 18, Unit: "BNB", OfficialContract: "0xB8c77482e45F1F44dE1745F52C74426C631bDD52"},
-	{OfficialName: "Tether USD", Decimal: 6, Unit: "USDT", OfficialContract: "0xdac17f958d2ee523a2206206994597c13d831ec7"},
+	{OfficialName: "Tether USD", Decimal: 6, Unit: "USDT", OfficialContract: "0xdAC17F958D2ee523a2206206994597C13D831ec7"},
 }
