@@ -17,6 +17,8 @@ const (
 	Ethereum TokenType = "ethereum"
 	Erc20    TokenType = "erc20"
 	Erc721   TokenType = "erc721"
+	// TODO: will remove,this type is for compatibility
+	USDC TokenType = "usdc"
 
 	Solana   TokenType = "solana"
 	Bitcoin  TokenType = "bitcoin"

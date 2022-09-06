@@ -1,4 +1,4 @@
-package erc20
+package plugin
 
 import (
 	"context"
@@ -8,45 +8,101 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/NpoolPlatform/build-chain/pkg/coins/eth/erc20"
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	eth_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	plugin_types "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+const USDCACCURACY = 6
+
 // here register plugin func
 func init() {
 	register.RegisteTokenHandler(
-		coins.Erc20,
+		coins.USDC,
 		register.OpGetBalance,
 		walletBalance,
 	)
 	register.RegisteTokenHandler(
-		coins.Erc20,
+		coins.USDC,
 		register.OpPreSign,
-		PreSign,
+		preSign,
 	)
 	register.RegisteTokenHandler(
-		coins.Erc20,
+		coins.USDC,
 		register.OpBroadcast,
 		eth_plugin.SendRawTransaction,
 	)
 	register.RegisteTokenHandler(
-		coins.Erc20,
+		coins.USDC,
 		register.OpSyncTx,
 		eth_plugin.SyncTxState,
 	)
+
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypeusdcerc20, bsc.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
+
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetusdcerc20, bsc.TxFailErr)
+	if err != nil {
+		panic(err)
+	}
 }
 
-func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
+type BigUSDC struct {
+	Decimal uint8
+	Balance *big.Int
+}
+
+func USDCBalance(ctx context.Context, addr string, client *ethclient.Client) (*BigUSDC, error) {
+	chainID, err := client.NetworkID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	usdcContract := USDCContract(chainID.Int64())
+	callOpts := &bind.CallOpts{
+		Pending: true,
+		Context: ctx,
+	}
+
+	usdcAddr := common.HexToAddress(usdcContract)
+	usdcImpl, err := NewUsdcv21(usdcAddr, client)
+	if err != nil {
+		return nil, err
+	}
+
+	decimal, err := usdcImpl.Decimals(callOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	balance, err := usdcImpl.BalanceOf(
+		callOpts,
+		common.HexToAddress(addr),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BigUSDC{
+		Decimal: decimal,
+		Balance: balance,
+	}, nil
+}
+
+func walletBalance(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byte, err error) {
 	wbReq := &plugin_types.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 
@@ -59,23 +115,11 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	}
 
 	eClient := eth.Client()
-	var bl *big.Int
+	var bl *BigUSDC
+
 	err = eClient.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
-		callOpts := &bind.CallOpts{
-			Pending: true,
-			Context: ctx,
-		}
-
-		usdcImpl, err := NewErc20token(common.HexToAddress(tokenInfo.Contract), c)
-		if err != nil {
-			return true, err
-		}
-
-		bl, err = usdcImpl.BalanceOf(
-			callOpts,
-			common.HexToAddress(wbReq.Address),
-		)
-		if err != nil {
+		bl, err = USDCBalance(ctx, wbReq.Address, c)
+		if err != nil || bl == nil {
 			return true, err
 		}
 		return false, err
@@ -85,12 +129,12 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, fmt.Errorf("get erc20balance faild,%v", err)
 	}
 
-	balance, ok := big.NewFloat(0).SetString(bl.String())
+	balance, ok := big.NewFloat(0).SetString(bl.Balance.String())
 	if !ok {
 		return nil, errors.New("convert balance string to float64 error")
 	}
 
-	balance.Quo(balance, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
+	balance.Quo(balance, big.NewFloat(math.Pow10(USDCACCURACY)))
 	f, exact := balance.Float64()
 	if exact != big.Exact {
 		log.Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
@@ -105,7 +149,21 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	return out, err
 }
 
-func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
+// USDCContract ...
+var USDCContract = func(chainet int64) string {
+	switch chainet {
+	case 1:
+		return "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+	default:
+		contract, ok := env.LookupEnv(env.ENVCONTRACT)
+		if !ok {
+			panic(env.ErrENVContractNotFound)
+		}
+		return contract
+	}
+}
+
+func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	baseInfo := &plugin_types.BaseInfo{}
 	err = json.Unmarshal(in, baseInfo)
 	if err != nil {
@@ -118,11 +176,6 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 
 	if !common.IsHexAddress(baseInfo.From) {
 		return nil, env.ErrAddressInvalid
-	}
-
-	if !common.IsHexAddress(tokenInfo.Contract) && common.HexToAddress("") != common.HexToAddress(tokenInfo.Contract) {
-		// TODO:is not env error,it will be replaced
-		return nil, env.ErrContractInvalid
 	}
 
 	client := eth.Client()
@@ -156,6 +209,12 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, err
 	}
 
+	tokenInfo.Contract = USDCContract(chainID.Int64())
+	if !common.IsHexAddress(tokenInfo.Contract) && common.HexToAddress("") != common.HexToAddress(tokenInfo.Contract) {
+		// TODO:is not env error,it will be replaced
+		return nil, env.ErrContractInvalid
+	}
+
 	amount := big.NewFloat(baseInfo.Value)
 	amount.Mul(amount, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
 
@@ -164,7 +223,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return in, errors.New("invalid usd amount")
 	}
 
-	_abi, err := Erc20tokenMetaData.GetAbi()
+	_abi, err := erc20.Erc20MetaData.GetAbi()
 	input, err := _abi.Pack(
 		"transfer",
 		common.HexToAddress(baseInfo.To),
