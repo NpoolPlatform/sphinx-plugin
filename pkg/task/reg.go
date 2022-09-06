@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/getter"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 )
 
@@ -61,7 +64,39 @@ func infof(prefix, template string, args ...interface{}) {
 	logger.Sugar().Infof(fmt.Sprintf("%s %v", prefix, template), args...)
 }
 
+func setUpTokensByNet() error {
+	coinNetwork, _coinType, err := env.CoinInfo()
+	if err != nil {
+		return err
+	}
+	coinType := coins.CoinStr2CoinType(coinNetwork, _coinType)
+	infos := getter.GetTokenInfos(coinType)
+	fn, err := getter.GetTokenNetHandler(coinType)
+	if err != nil {
+		for _, info := range infos {
+			info.DisableRegiste = false
+		}
+		return nil
+	}
+
+	_infos := make([]*coins.TokenInfo, len(infos))
+	idx := 0
+	for _, v := range infos {
+		_infos[idx] = v
+		idx++
+	}
+
+	return fn(_infos)
+}
+
 func Run() {
+	go func() {
+		err := setUpTokensByNet()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
 	for name, tf := range tworkers {
 		time.Sleep(time.Millisecond * time.Duration(500+rand.Int63n(200)))
 		log.Infof("run task: %v ", name)
