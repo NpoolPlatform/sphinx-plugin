@@ -3,6 +3,8 @@ package test
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -30,6 +32,10 @@ var (
 
 // run in dev-box or docker environment
 func TestEthAndTokens(t *testing.T) {
+	if runByGithubAction, err := strconv.ParseBool(os.Getenv("RUN_BY_GITHUB_ACTION")); err == nil && runByGithubAction {
+		return
+	}
+
 	ctx := context.Background()
 	coinNet, _coinType, err := env.CoinInfo()
 	assert.Nil(t, err)

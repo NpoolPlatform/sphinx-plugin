@@ -53,7 +53,7 @@ func RegisteTokenInfo(tokenInfo *coins.TokenInfo) {
 	_tokenInfo.CoinType = coins.ToTestCoinType(_tokenInfo.CoinType)
 	_tokenInfo.Net = coins.CoinNetTest
 	_tokenInfo.Contract = ""
-	_tokenInfo.Name = fmt.Sprintf("t%v", tokenInfo.Name)
+	_tokenInfo.Name = fmt.Sprintf("%v%v", coins.TestPrefix, tokenInfo.Name)
 	_tokenInfo.DisableRegiste = true
 	registeTokenInfo(tokenInfo)
 	registeTokenInfo(&_tokenInfo)
