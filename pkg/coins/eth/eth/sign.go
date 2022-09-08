@@ -32,12 +32,12 @@ func init() {
 }
 
 func Msg(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
-	s3KeyPrxfix := coins.GetS3KeyPrxfix(tokenInfo.Name)
+	s3KeyPrxfix := coins.GetS3KeyPrxfix(tokenInfo)
 	return Message(ctx, s3KeyPrxfix, in)
 }
 
 func CreateEthAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
-	s3KeyPrxfix := coins.GetS3KeyPrxfix(tokenInfo.Name)
+	s3KeyPrxfix := coins.GetS3KeyPrxfix(tokenInfo)
 	return CreateAccount(ctx, s3KeyPrxfix, in)
 }
 

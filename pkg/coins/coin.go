@@ -48,6 +48,7 @@ type TokenInfo struct {
 const (
 	CoinNetMain = "main"
 	CoinNetTest = "test"
+	TestPrefix  = "t"
 )
 
 var (
@@ -168,9 +169,14 @@ func ToTestCoinType(coinType sphinxplugin.CoinType) sphinxplugin.CoinType {
 	return CoinStr2CoinType(CoinNetTest, name)
 }
 
-func GetS3KeyPrxfix(name string) string {
-	if val, ok := S3KeyPrxfixMap[name]; ok {
+func GetS3KeyPrxfix(tokenInfo *TokenInfo) string {
+	if val, ok := S3KeyPrxfixMap[tokenInfo.Name]; ok {
 		return val
+	}
+
+	name := tokenInfo.Name
+	if tokenInfo.Net == CoinNetTest {
+		name = strings.TrimPrefix(name, TestPrefix)
 	}
 	return fmt.Sprintf("%v/", name)
 }
