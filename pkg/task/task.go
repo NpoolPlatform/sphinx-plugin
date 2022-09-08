@@ -130,7 +130,6 @@ func (c *pluginClient) register() {
 			log.Info("register new coin exit")
 			return
 		case <-time.After(registerCoinDuration):
-			// TODO coin net
 			coinNetwork, _coinType, err := env.CoinInfo()
 			if err != nil {
 				log.Errorf("register new coin error: %v", err)
@@ -140,6 +139,7 @@ func (c *pluginClient) register() {
 
 			tokenInfos := getter.GetTokenInfos(coinType)
 			log.Infof("register new coin: %v for %s network,has %v tokens", coinType, coinNetwork, len(tokenInfos))
+			// TODO: send a msg,which contain all tokentype bellow this plugin
 			for _, tokenInfo := range tokenInfos {
 				if tokenInfo.DisableRegiste {
 					continue
