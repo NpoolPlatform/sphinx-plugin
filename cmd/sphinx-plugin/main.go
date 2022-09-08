@@ -25,6 +25,7 @@ var (
 	logLevel         string
 	wanIP            string
 	position         string
+	buildChainServer string
 )
 
 func main() {

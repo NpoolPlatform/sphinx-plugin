@@ -41,7 +41,7 @@
 - [x] 连接wallet节点时检测同步状态
 - [ ] 支持同一个链plugin下可配置所有token的子集
 - [ ] CID查询链上交易状态
-- [ ] sign提供获取秘钥接口
+- [ ] 提供获取秘钥（文件）接口
 
 新币种的支持步骤
 
@@ -74,16 +74,17 @@
 
 ## 环境变量
 
-| 币种              | 变量名称            | 支持的值     | 说明                                                                          |
-|:------------------|:--------------------|:-------------|:------------------------------------------------------------------------------|
-| Comm              | ENV_COIN_NET        | main or test |                                                                               |
-|                   | ENV_COIN_TYPE       |              |                                                                               |
-|                   | ENV_SYNC_INTERVAL   |              | optional,交易状态同步间隔周期(s)                                              |
-|                   | ENV_WAN_IP          |              | plugin的wan-ip                                                                |
-|                   | ENV_POSITION        |              | plugin的位置信息(如NewYork_NO2)                                               |
-|                   | ENV_COIN_LOCAL_API  |              | 多个地址使用,分割                                                             |
-|                   | ENV_COIN_PUBLIC_API |              | 多个地址使用,分割                                                             |
-| SmartContractCoin | ENV_CONTRACT        |              | 合约币的合约地址(对于主网合约地址已硬编码,测试网需要指定为自己部署的合约地址) |
+| 币种              | 变量名称            | 支持的值       | 说明                                                                          |
+|:------------------|:--------------------|:---------------|:------------------------------------------------------------------------------|
+| Comm              | ENV_COIN_NET        | main or test   |                                                                               |
+|                   | ENV_COIN_TYPE       |                |                                                                               |
+|                   | ENV_SYNC_INTERVAL   |                | optional,交易状态同步间隔周期(s)                                              |
+|                   | ENV_WAN_IP          |                | plugin的wan-ip                                                                |
+|                   | ENV_POSITION        |                | plugin的位置信息(如NewYork_NO2)                                               |
+|                   | ENV_COIN_LOCAL_API  |                | 多个地址使用,分割                                                             |
+|                   | ENV_COIN_PUBLIC_API |                | 多个地址使用,分割                                                             |
+| SmartContractCoin | ENV_CONTRACT        |                | 合约币的合约地址(对于主网合约地址已硬编码,测试网需要指定为自己部署的合约地址) |
+| Ethereum          | ENV_BUILD_CHAIN_API | host:grpc_port | 用于eth的plugin在test环境下获取测试合约地址                                   |
 
 配置说明
 

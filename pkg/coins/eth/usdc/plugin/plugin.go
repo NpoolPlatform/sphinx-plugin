@@ -8,7 +8,6 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/NpoolPlatform/build-chain/pkg/coins/eth/erc20"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
@@ -223,7 +222,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return in, errors.New("invalid usd amount")
 	}
 
-	_abi, err := erc20.Erc20MetaData.GetAbi()
+	_abi, err := Usdcv21MetaData.GetAbi()
 	input, err := _abi.Pack(
 		"transfer",
 		common.HexToAddress(baseInfo.To),

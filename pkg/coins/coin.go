@@ -114,13 +114,13 @@ var (
 		sphinxplugin.CoinType_CoinTypetbitcoin: time.Minute * 7,
 
 		sphinxplugin.CoinType_CoinTypeethereum:  time.Second * 12,
-		sphinxplugin.CoinType_CoinTypetethereum: time.Second * 12,
+		sphinxplugin.CoinType_CoinTypetethereum: time.Second * 3,
 
 		sphinxplugin.CoinType_CoinTypeusdterc20:  time.Second * 12,
-		sphinxplugin.CoinType_CoinTypetusdterc20: time.Second * 12,
+		sphinxplugin.CoinType_CoinTypetusdterc20: time.Second * 3,
 
 		sphinxplugin.CoinType_CoinTypeusdcerc20:  time.Second * 12,
-		sphinxplugin.CoinType_CoinTypetusdcerc20: time.Second * 12,
+		sphinxplugin.CoinType_CoinTypetusdcerc20: time.Second * 3,
 
 		sphinxplugin.CoinType_CoinTypesolana:  time.Second * 1,
 		sphinxplugin.CoinType_CoinTypetsolana: time.Second * 1,

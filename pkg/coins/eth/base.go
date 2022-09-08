@@ -11,20 +11,23 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 )
 
 const (
-	gasToLow    = `intrinsic gas too low`
-	fundsToLow  = `insufficient funds for gas * price + value`
-	nonceToLow  = `nonce too low`
-	dialTimeout = 3 * time.Second
+	gasToLow      = `intrinsic gas too low`
+	fundsToLow    = `insufficient funds for gas * price + value`
+	nonceToLow    = `nonce too low`
+	AmountInvalid = `invalid amount`
+	TokenToLow    = `token funds to low`
+	dialTimeout   = 3 * time.Second
 )
 
 var (
-	stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow}
+	stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow, AmountInvalid, TokenToLow}
 
 	ethTokens = []coins.TokenInfo{
-		{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: "ethereum", TokenType: coins.Ethereum, OfficialContract: "ethereum", CoinType: sphinxplugin.CoinType_CoinTypeethereum},
+		{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: string(coins.Ethereum), TokenType: coins.Ethereum, OfficialContract: string(coins.Ethereum), CoinType: sphinxplugin.CoinType_CoinTypeethereum},
 		{Waight: 100, OfficialName: "Tether USD", Decimal: 6, Unit: "USDT", Name: "usdterc20", TokenType: coins.Erc20, OfficialContract: "0xdAC17F958D2ee523a2206206994597C13D831ec7", CoinType: sphinxplugin.CoinType_CoinTypeethereum},
 		// TODO: will change it to erc20 tokentype
 		{Waight: 100, OfficialName: "Coins USD", Decimal: 6, Unit: "USDC", Name: "usdcerc20", TokenType: coins.USDC, OfficialContract: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", CoinType: sphinxplugin.CoinType_CoinTypeusdcerc20},
@@ -43,13 +46,18 @@ func init() {
 
 func netHandle(tokenInfos []*coins.TokenInfo) error {
 	ctx := context.Background()
-	bcConn, bcConnErr := bc_client.NewClientConn("192.168.49.1:50491")
+	bcServer, ok := env.LookupEnv(env.ENVBUIILDCHIANSERVER)
+	if !ok {
+		return env.ErrENVBuildChainServerNotFound
+	}
+
+	bcConn, bcConnErr := bc_client.NewClientConn(ctx, bcServer)
+	if bcConnErr != nil {
+		return fmt.Errorf("connect server faild, %v", bcConnErr)
+	}
 
 	for _, tokenInfo := range tokenInfos {
 		if tokenInfo.TokenType == coins.Erc20 {
-			if bcConnErr != nil {
-				return fmt.Errorf("connect server faild, %v", bcConnErr)
-			}
 			go func() {
 				_tokenInfo, err := build_chain.CrawlOne(ctx, bcConn, tokenInfo.OfficialContract, false)
 				if err != nil {
