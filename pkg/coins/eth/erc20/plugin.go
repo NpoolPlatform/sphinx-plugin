@@ -82,7 +82,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	})
 
 	if bl == nil || err != nil {
-		return nil, fmt.Errorf("get erc20balance faild,%v", err)
+		return nil, fmt.Errorf("get erc20balance failed,%v", err)
 	}
 
 	balance, ok := big.NewFloat(0).SetString(bl.String())

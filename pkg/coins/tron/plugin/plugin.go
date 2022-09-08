@@ -174,7 +174,7 @@ func BroadcastTransaction(ctx context.Context, in []byte, tokenInfo *coins.Token
 		return in, err
 	}
 	if result == nil {
-		return in, fmt.Errorf("get result faild")
+		return in, fmt.Errorf("get result failed")
 	}
 
 	if api.Return_SUCCESS == result.Code {

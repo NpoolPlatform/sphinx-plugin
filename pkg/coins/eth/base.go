@@ -53,12 +53,12 @@ func netHandle(tokenInfos []*coins.TokenInfo) error {
 
 	bcConn, bcConnErr := bc_client.NewClientConn(ctx, bcServer)
 	if bcConnErr != nil {
-		return fmt.Errorf("connect server faild, %v", bcConnErr)
+		return fmt.Errorf("connect server failed, %v", bcConnErr)
 	}
 
 	for _, tokenInfo := range tokenInfos {
 		if tokenInfo.TokenType == coins.Erc20 {
-			go func() {
+			go func(tokenInfo *coins.TokenInfo) {
 				_tokenInfo, err := build_chain.CrawlOne(ctx, bcConn, tokenInfo.OfficialContract, false)
 				if err != nil {
 					return
@@ -66,9 +66,10 @@ func netHandle(tokenInfos []*coins.TokenInfo) error {
 
 				tokenInfo.Contract = _tokenInfo.PrivateContract
 				tokenInfo.DisableRegiste = false
-			}()
+			}(tokenInfo)
 			// prevent to be baned
-			time.Sleep(build_chain.CrawlInterval)
+			// time.Sleep(coins.SyncTime[tokenInfo.CoinType])
+			time.Sleep(time.Second)
 		} else {
 			tokenInfo.DisableRegiste = false
 		}

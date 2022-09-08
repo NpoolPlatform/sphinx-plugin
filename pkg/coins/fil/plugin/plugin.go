@@ -309,7 +309,7 @@ func syncTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []b
 		if err != nil {
 			return nil, err
 		}
-		return out, fmt.Errorf("%v,%v", fil.FilTxFaild, chainMsg.Receipt.ExitCode.Error())
+		return out, fmt.Errorf("%v,%v", fil.FilTxFailed, chainMsg.Receipt.ExitCode.Error())
 	}
 
 	// check message on chain done

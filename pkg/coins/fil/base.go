@@ -20,9 +20,9 @@ var FILNetMap = map[string]address.Network{
 }
 
 var (
-	FilTxFaild    = `fil tx faild`
+	FilTxFailed   = `fil tx failed`
 	filNonceLow   = `message nonce too low`
-	stopErrMsg    = []string{FilTxFaild, filNonceLow}
+	stopErrMsg    = []string{FilTxFailed, filNonceLow}
 	filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 18, Unit: "FIL", Name: "filecoin", OfficialContract: "filecoin", TokenType: coins.Filecoin}
 )
 

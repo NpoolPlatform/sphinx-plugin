@@ -15,7 +15,6 @@
     - [交易上链状态查询默认周期](#交易上链状态查询默认周期)
     - [wallet-status-check](#wallet-status-check)
     - [account-check](#account-check)
-    - [ethereum 部署](#ethereum-部署)
     - [升级说明](#升级说明)
     - [推荐](#推荐)
     - [说明](#说明)
@@ -42,6 +41,7 @@
 - [ ] 支持同一个链plugin下可配置所有token的子集
 - [ ] CID查询链上交易状态
 - [ ] 提供获取秘钥（文件）接口
+- [ ] Proxy提供查询plugin对应信息接口
 
 新币种的支持步骤
 
@@ -129,14 +129,14 @@
 
 ### 交易上链状态查询默认周期
 
-|             币种             | 默认值 | 出块时间 |
-|:----------------------------:|:------:|:--------:|
-|           filecoin           |  20s   |   30s    |
-|           bitcoin            |  7min  |  10min   |
-|            solana            |   1s   |   0.4s   |
-| ethereum/usdterc20/usdcerc20 |  12s   |  10~20s  |
-|    binancecoin/binanceusd    |   4s   |    5s    |
-|        tron/usdttrc20        |   2s   |    3s    |
+|                  币种                   | 默认值 | 出块时间 |
+|:---------------------------------------:|:------:|:--------:|
+|                filecoin                 |  20s   |   30s    |
+|                 bitcoin                 |  7min  |  10min   |
+|                 solana                  |   1s   |   0.4s   |
+| ethereum(eth、23 erc20 tokens)/usdcerc20 |  12s   |  10~20s  |
+|         binancecoin/binanceusd          |   4s   |    5s    |
+|             tron/usdttrc20              |   2s   |    3s    |
 
 ### wallet-status-check
 
@@ -146,22 +146,6 @@ tron链的币种暂无
 ### account-check
 
 账户验证
-
-### ethereum 部署
-
-1. 启动测试网
-
-2. 部署智能合约
-
-   1. 部署合约
-
-      ```sh
-      sphinx-plugin usdterc20 -addr 127.0.0.1 -port 8545
-      ```
-
-   2. 上述的命令会返回合约的**ID**,设置到配置文件**ENV_CONTRACT**的值
-
-   3. 部署支持 ethereum/usdterc20 的 plugin
 
 ### 升级说明
 
