@@ -125,6 +125,14 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, env.ErrContractInvalid
 	}
 
+	amount := big.NewFloat(baseInfo.Value)
+	amount.Mul(amount, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
+
+	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
+	if !ok {
+		return in, fmt.Errorf("%v,amount %v", eth.AmountInvalid, amount)
+	}
+
 	client := eth.Client()
 
 	var (
@@ -133,8 +141,27 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		gasPrice *big.Int
 		gasLimit = uint64(300_000)
 	)
+	callOpts := &bind.CallOpts{
+		Pending: true,
+		Context: ctx,
+	}
 
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
+		usdcImpl, err := NewErc20token(common.HexToAddress(tokenInfo.Contract), cli)
+		if err != nil {
+			return true, err
+		}
+		bl, err := usdcImpl.BalanceOf(
+			callOpts,
+			common.HexToAddress(baseInfo.From),
+		)
+		if err != nil {
+			return true, err
+		}
+		if bl.Cmp(amountBig) != 1 {
+			return false, fmt.Errorf("%v,transfer amount %v", eth.TokenToLow, amount)
+		}
+
 		chainID, err = cli.NetworkID(ctx)
 		if err != nil || chainID == nil {
 			return true, err
@@ -156,15 +183,11 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, err
 	}
 
-	amount := big.NewFloat(baseInfo.Value)
-	amount.Mul(amount, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
-
-	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
-	if !ok {
-		return in, errors.New("invalid usd amount")
+	_abi, err := Erc20tokenMetaData.GetAbi()
+	if err != nil {
+		return nil, err
 	}
 
-	_abi, err := Erc20tokenMetaData.GetAbi()
 	input, err := _abi.Pack(
 		"transfer",
 		common.HexToAddress(baseInfo.To),

@@ -12,15 +12,16 @@ const (
 	// ENVSYNCINTERVAL sync transaction status on chain interval
 	ENVSYNCINTERVAL = "ENV_SYNC_INTERVAL"
 
-	// eg: filecoin/tfilecoin
-	ENVCOINTYPE = "ENV_COIN_TYPE"
-
-	// fil btc ip:port
+	// for all chain
+	ENVCOINTYPE      = "ENV_COIN_TYPE"
 	ENVCOINLOCALAPI  = "ENV_COIN_LOCAL_API"
 	ENVCOINPUBLICAPI = "ENV_COIN_PUBLIC_API"
 
-	// for eth/usdt
+	// for tokens
 	ENVCONTRACT = "ENV_CONTRACT"
+
+	ENVBUIILDCHIANSERVER = "ENV_BUILD_CHAIN_SERVER"
+	ENVPROXY             = "ENV_PROXY"
 )
 
 var (
@@ -33,7 +34,10 @@ var (
 	ErrENVCoinPublicAPINotFound = errors.New("env ENV_COIN_PUBLIC_API not found")
 
 	// eth/usdt
-	ErrENVContractNotFound = errors.New("env ENV_CONTRACT not found")
+	ErrENVContractNotFound         = errors.New("env ENV_CONTRACT not found")
+	ErrENVBuildChainServerNotFound = errors.New("env ENV_BUILD_CHAIN_SERVER not found")
+	ErrENVBuildChainServerInvalid  = errors.New("env ENV_BUILD_CHAIN_SERVER invalid")
+	ErrENVProxyInvalid             = errors.New("env ENV_PROXY invalid")
 
 	// tron
 	ErrENVCOINJSONRPCAPINotFound = errors.New("env ENV_COIN_JSONRPC_API not found")

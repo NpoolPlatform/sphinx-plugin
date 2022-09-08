@@ -40,6 +40,7 @@ var runCmd = &cli.Command{
 			LogLevel:         logLevel,
 			WanIP:            wanIP,
 			Position:         position,
+			BuildChainServer: buildChainServer,
 		})
 		err := logger.Init(
 			logger.DebugLevel,
@@ -137,6 +138,16 @@ var runCmd = &cli.Command{
 			Required:    true,
 			Value:       "",
 			Destination: &position,
+		},
+		// position
+		&cli.StringFlag{
+			Name:        "build-chain-server",
+			Aliases:     []string{"b"},
+			Usage:       "build-chain server address",
+			EnvVars:     []string{"ENV_BUILD_CHAIN_SERVER"},
+			Required:    false,
+			Value:       "",
+			Destination: &buildChainServer,
 		},
 	},
 	Action: func(c *cli.Context) error {
