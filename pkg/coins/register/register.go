@@ -37,7 +37,6 @@ var (
 )
 
 // registe tokeninfos
-
 func RegisteTokenInfos(tokenInfos []*coins.TokenInfo) {
 	if len(tokenInfos) == 0 {
 		return

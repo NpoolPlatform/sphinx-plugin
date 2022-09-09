@@ -138,7 +138,8 @@ func (c *pluginClient) register() {
 			coinType := coins.CoinStr2CoinType(coinNetwork, _coinType)
 
 			tokenInfos := getter.GetTokenInfos(coinType)
-			log.Infof("register new coin: %v for %s network,has %v tokens", coinType, coinNetwork, len(tokenInfos))
+
+			tokensLen := 0
 			// TODO: send a msg,which contain all tokentype bellow this plugin
 			for _, tokenInfo := range tokenInfos {
 				if tokenInfo.DisableRegiste {
@@ -153,8 +154,10 @@ func (c *pluginClient) register() {
 					PluginWanIP:     config.GetENV().WanIP,
 					PluginPosition:  config.GetENV().Position,
 				}
+				tokensLen++
 				c.sendChannel <- resp
 			}
+			log.Infof("register new coin: %v for %s network,has %v tokens,registered %v", coinType, coinNetwork, len(tokenInfos), tokensLen)
 		}
 	}
 }

@@ -11,7 +11,6 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdc/plugin"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdc/sign"
 
-	// register handle
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
