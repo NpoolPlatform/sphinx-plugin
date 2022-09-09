@@ -64,7 +64,7 @@ func infof(prefix, template string, args ...interface{}) {
 	logger.Sugar().Infof(fmt.Sprintf("%s %v", prefix, template), args...)
 }
 
-func setUpTokensByNet() error {
+func setUpTokens() error {
 	coinNetwork, _coinType, err := env.CoinInfo()
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func setUpTokensByNet() error {
 
 func Run() {
 	go func() {
-		err := setUpTokensByNet()
+		err := setUpTokens()
 		if err != nil {
 			panic(err)
 		}
