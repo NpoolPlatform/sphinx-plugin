@@ -25,11 +25,28 @@ type Manager struct {
 }
 
 func NewManager() (*Manager, error) {
-	_localAddrs := config.GetENV().LocalWalletAddr
-	_publicAddrs := config.GetENV().PublicWalletAddr
+	localWalletAddrs := config.GetENV().LocalWalletAddr
+	publicWalletAddrs := config.GetENV().PublicWalletAddr
 
-	localAddrs := strings.Split(_localAddrs, AddrSplitter)
-	publicAddrs := strings.Split(_publicAddrs, AddrSplitter)
+	localWalletAddrs = strings.Trim(localWalletAddrs, " ")
+	publicWalletAddrs = strings.Trim(publicWalletAddrs, " ")
+
+	_localAddrs := strings.Split(localWalletAddrs, AddrSplitter)
+	localAddrs := []string{}
+	_publicAddrs := strings.Split(publicWalletAddrs, AddrSplitter)
+	publicAddrs := []string{}
+
+	for i := range _localAddrs {
+		if len(_localAddrs[i]) > 0 {
+			localAddrs = append(localAddrs, _localAddrs[i])
+		}
+	}
+
+	for i := range _publicAddrs {
+		if len(_publicAddrs[i]) > 0 {
+			publicAddrs = append(publicAddrs, _publicAddrs[i])
+		}
+	}
 
 	if len(localAddrs) == 0 &&
 		len(publicAddrs) == 0 {
