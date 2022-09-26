@@ -20,7 +20,7 @@ const (
 	retriesSleepTime = 200 * time.Millisecond
 	EndpointSep      = `|`
 	EndpointAuthSep  = `@`
-	EndpointInvalid  = `fil endpoint invalid`
+	EndpointInvalid  = `btc endpoint invalid`
 )
 
 var configParam = map[string]string{
