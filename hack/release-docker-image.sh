@@ -16,6 +16,8 @@ if git_status=$(git status --porcelain --untracked=no 2>/dev/null) && [[ -z "${g
     git_tree_state=clean
 fi
 
+version=latest
+
 set +e
 version=`git describe --tags --abbrev=0`
 if [ ! $? -eq 0 ]; then
