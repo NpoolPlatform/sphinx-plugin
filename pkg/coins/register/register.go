@@ -12,8 +12,10 @@ import (
 
 // tokenInfo registe and tokenHandler registe --------------------
 // define handler func
-type HandlerDef func(ctx context.Context, payload []byte, token *coins.TokenInfo) ([]byte, error)
-type OpType int
+type (
+	HandlerDef func(ctx context.Context, payload []byte, token *coins.TokenInfo) ([]byte, error)
+	OpType     int
+)
 
 const (
 	OpGetBalance OpType = 0
