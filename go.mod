@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/Geapefurit/gotron-sdk v0.0.0-20220724074720-3d7ea3cbd771
-	github.com/NpoolPlatform/build-chain v0.0.0-20220908125832-e7977d24c3da
+	github.com/NpoolPlatform/build-chain v0.0.0-20220929071150-cec24a390901
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220818105452-9457611ae070
 	github.com/NpoolPlatform/libent-cruder v0.0.0-20220801075201-cab5db8b6290
 	github.com/NpoolPlatform/message v0.0.0-20220907092247-3f77de01ec70

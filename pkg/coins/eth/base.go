@@ -58,15 +58,16 @@ func netHandle(tokenInfos []*coins.TokenInfo) error {
 
 	for _, tokenInfo := range tokenInfos {
 		if tokenInfo.TokenType == coins.Erc20 {
-			go func(tokenInfo *coins.TokenInfo) {
+			go func(token *coins.TokenInfo) {
 				_tokenInfo, err := build_chain.CrawlOne(ctx, bcConn, tokenInfo.OfficialContract, false)
 				if err != nil {
 					return
 				}
 
-				tokenInfo.Contract = _tokenInfo.PrivateContract
-				tokenInfo.DisableRegiste = false
+				token.Contract = _tokenInfo.PrivateContract
+				token.DisableRegiste = false
 			}(tokenInfo)
+
 			// prevent to be baned
 			// time.Sleep(coins.SyncTime[tokenInfo.CoinType])
 			time.Sleep(time.Second)
