@@ -24,14 +24,13 @@ var (
 		switch chainet {
 		case 56:
 			return "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
-		case 97:
+		default:
 			contract, ok := env.LookupEnv(env.ENVCONTRACT)
 			if !ok {
 				panic(env.ErrENVContractNotFound)
 			}
 			return contract
 		}
-		return ""
 	}
 
 	bscTokenList = []*coins.TokenInfo{
