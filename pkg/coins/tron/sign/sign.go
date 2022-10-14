@@ -9,10 +9,9 @@ import (
 
 	addr "github.com/Geapefurit/gotron-sdk/pkg/address"
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
-	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -21,40 +20,25 @@ import (
 )
 
 func init() {
-	// main
-	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypetron,
-		sphinxproxy.TransactionType_WalletNew,
+	register.RegisteTokenHandler(
+		coins.Tron,
+		register.OpWalletNew,
 		CreateTrxAccount,
 	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypetron,
-		sphinxproxy.TransactionState_TransactionStateSign,
-		SignTrxMSG,
-	)
-
-	// --------------------
-
-	// test
-	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypettron,
-		sphinxproxy.TransactionType_WalletNew,
-		CreateTrxAccount,
-	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypettron,
-		sphinxproxy.TransactionState_TransactionStateSign,
+	register.RegisteTokenHandler(
+		coins.Tron,
+		register.OpSign,
 		SignTrxMSG,
 	)
 }
 
 const s3KeyPrxfix = "tron/"
 
-func SignTrxMSG(ctx context.Context, in []byte) (out []byte, err error) {
+func SignTrxMSG(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	return SignTronMSG(ctx, s3KeyPrxfix, in)
 }
 
-func CreateTrxAccount(ctx context.Context, in []byte) (out []byte, err error) {
+func CreateTrxAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	return CreateTronAccount(ctx, s3KeyPrxfix, in)
 }
 

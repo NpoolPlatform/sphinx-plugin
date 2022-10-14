@@ -3,7 +3,9 @@ package fil
 import (
 	"strings"
 
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
@@ -18,10 +20,19 @@ var FILNetMap = map[string]address.Network{
 }
 
 var (
-	FilTxFaild  = `fil tx faild`
-	filNonceLow = `message nonce too low`
-	stopErrMsg  = []string{FilTxFaild, filNonceLow}
+	FilTxFailed   = `fil tx failed`
+	filNonceLow   = `message nonce too low`
+	stopErrMsg    = []string{FilTxFailed, filNonceLow}
+	filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 18, Unit: "FIL", Name: "filecoin", OfficialContract: "filecoin", TokenType: coins.Filecoin}
 )
+
+func init() {
+	filecoinToken.Waight = 100
+	filecoinToken.Net = coins.CoinNetMain
+	filecoinToken.Contract = filecoinToken.OfficialContract
+	filecoinToken.CoinType = sphinxplugin.CoinType_CoinTypefilecoin
+	register.RegisteTokenInfo(filecoinToken)
+}
 
 func SignType(signType string) (crypto.SigType, error) {
 	switch signType {

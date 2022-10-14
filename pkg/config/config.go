@@ -73,6 +73,7 @@ type ENVInfo struct {
 	LogLevel         string
 	WanIP            string
 	Position         string
+	BuildChainServer string
 }
 
 func SetENV(info *ENVInfo) {

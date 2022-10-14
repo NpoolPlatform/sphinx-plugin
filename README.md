@@ -15,7 +15,6 @@
     - [交易上链状态查询默认周期](#交易上链状态查询默认周期)
     - [wallet-status-check](#wallet-status-check)
     - [account-check](#account-check)
-    - [ethereum 部署](#ethereum-部署)
     - [升级说明](#升级说明)
     - [推荐](#推荐)
     - [说明](#说明)
@@ -31,6 +30,7 @@
 - [x] 自定义错误处理
 - [ ] 链路追踪
 - [ ] 监控
+- [ ] 币种单位转换统一处理
 - [x] 上报meta信息到proxy
 - [ ] 优化配置
 - [ ] 相同地址的并发处理
@@ -38,6 +38,10 @@
 - [ ] 动态调整 **gas fee**
 - [ ] 支持多 **pod** 部署
 - [x] 连接wallet节点时检测同步状态
+- [ ] 支持同一个链plugin下可配置所有token的子集
+- [ ] CID查询链上交易状态
+- [ ] 提供获取秘钥（文件）接口
+- [ ] Proxy提供查询plugin对应信息接口
 
 新币种的支持步骤
 
@@ -70,16 +74,19 @@
 
 ## 环境变量
 
-| 币种              | 变量名称            | 支持的值     | 说明                                                                          |
-|:------------------|:--------------------|:-------------|:------------------------------------------------------------------------------|
-| Comm              | ENV_COIN_NET        | main or test |                                                                               |
-|                   | ENV_COIN_TYPE       |              |                                                                               |
-|                   | ENV_SYNC_INTERVAL   |              | optional,交易状态同步间隔周期(s)                                              |
-|                   | ENV_WAN_IP          |              | plugin的wan-ip                                                                |
-|                   | ENV_POSITION        |              | plugin的位置信息(如NewYork_NO2)                                               |
-|                   | ENV_COIN_LOCAL_API  |              | 多个地址使用,分割                                                             |
-|                   | ENV_COIN_PUBLIC_API |              | 多个地址使用,分割                                                             |
-| SmartContractCoin | ENV_CONTRACT        |              | 合约币的合约地址(对于主网合约地址已硬编码,测试网需要指定为自己部署的合约地址) |
+| 币种              | 变量名称               | 支持的值       | 说明                                                                          |
+|:------------------|:-----------------------|:---------------|:------------------------------------------------------------------------------|
+| Comm              | ENV_COIN_NET           | main or test   |                                                                               |
+|                   | ENV_COIN_TYPE          |                |                                                                               |
+|                   | ENV_SYNC_INTERVAL      |                | optional,交易状态同步间隔周期(s)                                              |
+|                   | ENV_WAN_IP             |                | plugin的wan-ip                                                                |
+|                   | ENV_POSITION           |                | plugin的位置信息(如NewYork_NO2)                                               |
+|                   | ENV_COIN_LOCAL_API     |                | 多个地址使用,分割                                                             |
+|                   | ENV_COIN_PUBLIC_API    |                | 多个地址使用,分割                                                             |
+|                   | ENV_WAN_IP             |                | 上报网络IP                                                                    |
+|                   | ENV_POSITION           |                | 上报位置信息如:HongKong-05                                                    |
+| SmartContractCoin | ENV_CONTRACT           |                | 合约币的合约地址(对于主网合约地址已硬编码,测试网需要指定为自己部署的合约地址) |
+| Ethereum          | ENV_BUILD_CHAIN_SERVER | host:grpc_port | 用于eth的plugin在test环境下获取测试合约地址                                   |
 
 配置说明
 
@@ -123,15 +130,18 @@
 | 格式3 | fil              |      |
 
 ### 交易上链状态查询默认周期
-
-|             币种             | 默认值 | 出块时间 |
-|:----------------------------:|:------:|:--------:|
-|           filecoin           |  20s   |   30s    |
-|           bitcoin            |  7min  |  10min   |
-|            solana            |   1s   |   0.4s   |
-| ethereum/usdterc20/usdcerc20 |  12s   |  10~20s  |
-|    binancecoin/binanceusd    |   4s   |    5s    |
-|        tron/usdttrc20        |   2s   |    3s    |
+以下表格也是所有类型plugin的列表
+|              币种              | 默认值 | 出块时间 |
+|:------------------------------:|:------:|:--------:|
+|            filecoin            |  20s   |   30s    |
+|            bitcoin             |  7min  |  10min   |
+|             solana             |   1s   |   0.4s   |
+| ethereum(eth、23种erc20 tokens) |  12s   |  10~20s  |
+|           usdcerc20            |  12s   |  10~20s  |
+|           binanceusd           |   4s   |    5s    |
+|          binancecoin           |   4s   |    5s    |
+|              tron              |   2s   |    3s    |
+|           usdttrc20            |   2s   |    3s    |
 
 ### wallet-status-check
 
@@ -141,22 +151,6 @@ tron链的币种暂无
 ### account-check
 
 账户验证
-
-### ethereum 部署
-
-1. 启动测试网
-
-2. 部署智能合约
-
-   1. 部署合约
-
-      ```sh
-      sphinx-plugin usdterc20 -addr 127.0.0.1 -port 8545
-      ```
-
-   2. 上述的命令会返回合约的**ID**,设置到配置文件**ENV_CONTRACT**的值
-
-   3. 部署支持 ethereum/usdterc20 的 plugin
 
 ### 升级说明
 

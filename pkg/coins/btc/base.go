@@ -4,7 +4,9 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/btcsuite/btcd/chaincfg"
 )
@@ -37,7 +39,16 @@ var (
 		env.ErrAddressInvalid.Error(),
 		env.ErrAmountInvalid.Error(),
 	}
+	bitcoinToken = &coins.TokenInfo{OfficialName: "Bitcoin", Decimal: 8, Unit: "BTC", Name: "bitcoin", OfficialContract: "bitcoin", TokenType: coins.Bitcoin}
 )
+
+func init() {
+	bitcoinToken.Waight = 100
+	bitcoinToken.Net = coins.CoinNetMain
+	bitcoinToken.Contract = bitcoinToken.OfficialContract
+	bitcoinToken.CoinType = sphinxplugin.CoinType_CoinTypebitcoin
+	register.RegisteTokenInfo(bitcoinToken)
+}
 
 func TxFailErr(err error) bool {
 	if err == nil {

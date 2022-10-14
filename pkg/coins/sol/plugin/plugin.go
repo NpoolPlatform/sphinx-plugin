@@ -7,8 +7,8 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
@@ -21,62 +21,39 @@ import (
 
 // here register plugin func
 func init() {
-	// main
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypesolana,
-		sphinxproxy.TransactionType_Balance,
+	register.RegisteTokenHandler(
+		coins.Solana,
+		register.OpGetBalance,
 		walletBalance,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypesolana,
-		sphinxproxy.TransactionState_TransactionStateWait,
+	register.RegisteTokenHandler(
+		coins.Solana,
+		register.OpPreSign,
 		preSign,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypesolana,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
+	register.RegisteTokenHandler(
+		coins.Solana,
+		register.OpBroadcast,
 		broadcast,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypesolana,
-		sphinxproxy.TransactionState_TransactionStateSync,
+	register.RegisteTokenHandler(
+		coins.Solana,
+		register.OpSyncTx,
 		syncTx,
 	)
 
-	// test
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypetsolana,
-		sphinxproxy.TransactionType_Balance,
-		walletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetsolana,
-		sphinxproxy.TransactionState_TransactionStateWait,
-		preSign,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetsolana,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		broadcast,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetsolana,
-		sphinxproxy.TransactionState_TransactionStateSync,
-		syncTx,
-	)
-
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypesolana, sol.TxFailErr)
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypesolana, sol.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetsolana, sol.TxFailErr)
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetsolana, sol.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := ct.WalletBalanceRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return in, err
@@ -126,7 +103,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-func preSign(ctx context.Context, in []byte) (out []byte, err error) {
+func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := ct.BaseInfo{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return in, err
@@ -158,7 +135,7 @@ func preSign(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(_out)
 }
 
-func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
+func broadcast(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := sol.BroadcastRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return in, err
@@ -198,7 +175,7 @@ func broadcast(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 // syncTx sync transaction status on chain
-func syncTx(ctx context.Context, in []byte) (out []byte, err error) {
+func syncTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := ct.SyncRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return in, err

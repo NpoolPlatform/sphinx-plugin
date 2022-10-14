@@ -114,6 +114,8 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 			time.Sleep(retriesSleepTime)
 		}
 		client, err = tClients.GetGRPCClient(dialTimeout, endpointmgr)
+		fmt.Println(err)
+
 		if err != nil {
 			continue
 		}

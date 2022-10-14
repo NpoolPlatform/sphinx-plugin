@@ -1,21 +1,20 @@
-package sign
+package erc20
 
 import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	eth_sign "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/eth"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 )
 
 func init() {
-	// main
 	register.RegisteTokenHandler(
-		coins.USDC,
+		coins.Erc20,
 		register.OpWalletNew,
-		eth_sign.CreateEthAccount,
+		eth.CreateEthAccount,
 	)
 	register.RegisteTokenHandler(
-		coins.USDC,
+		coins.Erc20,
 		register.OpSign,
-		eth_sign.Msg,
+		eth.Msg,
 	)
 }

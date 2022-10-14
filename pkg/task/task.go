@@ -12,26 +12,8 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdt/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/sol/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/trc20/plugin"
-	// register handle
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/usdc/plugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/getter"
+	coins_register "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/config"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
@@ -148,23 +130,34 @@ func (c *pluginClient) register() {
 			log.Info("register new coin exit")
 			return
 		case <-time.After(registerCoinDuration):
-			// TODO coin net
-			coinNetwork, coinType, err := env.CoinInfo()
+			coinNetwork, _coinType, err := env.CoinInfo()
 			if err != nil {
 				log.Errorf("register new coin error: %v", err)
 				continue
 			}
+			coinType := coins.CoinStr2CoinType(coinNetwork, _coinType)
 
-			log.Infof("register new coin: %v for %s network", coinType, coinNetwork)
-			resp := &sphinxproxy.ProxyPluginResponse{
-				CoinType:        coins.CoinStr2CoinType(coinNetwork, coinType),
-				TransactionType: sphinxproxy.TransactionType_RegisterCoin,
-				ENV:             coinNetwork,
-				Unit:            coins.CoinUnit[coins.CoinStr2CoinType(coinNetwork, coinType)],
-				PluginWanIP:     config.GetENV().WanIP,
-				PluginPosition:  config.GetENV().Position,
+			tokenInfos := getter.GetTokenInfos(coinType)
+
+			tokensLen := 0
+			// TODO: send a msg,which contain all tokentype bellow this plugin
+			for _, tokenInfo := range tokenInfos {
+				if tokenInfo.DisableRegiste {
+					continue
+				}
+				resp := &sphinxproxy.ProxyPluginResponse{
+					CoinType:        tokenInfo.CoinType,
+					Name:            tokenInfo.Name,
+					TransactionType: sphinxproxy.TransactionType_RegisterCoin,
+					ENV:             tokenInfo.Net,
+					Unit:            tokenInfo.Unit,
+					PluginWanIP:     config.GetENV().WanIP,
+					PluginPosition:  config.GetENV().Position,
+				}
+				tokensLen++
+				c.sendChannel <- resp
 			}
-			c.sendChannel <- resp
+			log.Infof("register new coin: %v for %s network,has %v tokens,registered %v", coinType, coinNetwork, len(tokenInfos), tokensLen)
 		}
 	}
 }
@@ -210,7 +203,22 @@ func (c *pluginClient) recv() {
 				}()
 
 				var resp *sphinxproxy.ProxyPluginResponse
-				handler, err := coins.GetCoinBalancePlugin(coinType, transactionType)
+				var err error
+				var handler coins_register.HandlerDef
+				// handler, err := coins.GetCoinBalancePlugin(coinType, transactionType)
+				tokenInfo := getter.GetTokenInfo(req.Name)
+				if tokenInfo == nil {
+					log.Errorf("GetCoinPlugin get handler error: %v", err)
+					resp = &sphinxproxy.ProxyPluginResponse{
+						TransactionType: req.GetTransactionType(),
+						CoinType:        req.GetCoinType(),
+						TransactionID:   req.GetTransactionID(),
+						RPCExitMessage:  err.Error(),
+					}
+					goto send
+				}
+
+				handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpGetBalance)
 				if err != nil {
 					log.Errorf("GetCoinPlugin get handler error: %v", err)
 					resp = &sphinxproxy.ProxyPluginResponse{
@@ -222,7 +230,7 @@ func (c *pluginClient) recv() {
 					goto send
 				}
 				{
-					respPayload, err := handler(context.Background(), req.GetPayload())
+					respPayload, err := handler(context.Background(), req.GetPayload(), tokenInfo)
 					if err != nil {
 						log.Errorf("GetCoinPlugin handle deal transaction error: %v", err)
 						resp = &sphinxproxy.ProxyPluginResponse{

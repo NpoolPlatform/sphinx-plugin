@@ -9,12 +9,12 @@ import (
 	"math/big"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 
 	bsc "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -25,62 +25,39 @@ import (
 
 // here register plugin func
 func init() {
-	// main
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypebinancecoin,
-		sphinxproxy.TransactionType_Balance,
+	register.RegisteTokenHandler(
+		coins.Binancecoin,
+		register.OpGetBalance,
 		walletBalance,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinancecoin,
-		sphinxproxy.TransactionState_TransactionStateWait,
+	register.RegisteTokenHandler(
+		coins.Binancecoin,
+		register.OpPreSign,
 		PreSign,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinancecoin,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
+	register.RegisteTokenHandler(
+		coins.Binancecoin,
+		register.OpBroadcast,
 		SendRawTransaction,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypebinancecoin,
-		sphinxproxy.TransactionState_TransactionStateSync,
+	register.RegisteTokenHandler(
+		coins.Binancecoin,
+		register.OpSyncTx,
 		SyncTxState,
 	)
 
-	// test
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypetbinancecoin,
-		sphinxproxy.TransactionType_Balance,
-		walletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinancecoin,
-		sphinxproxy.TransactionState_TransactionStateWait,
-		PreSign,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinancecoin,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		SendRawTransaction,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetbinancecoin,
-		sphinxproxy.TransactionState_TransactionStateSync,
-		SyncTxState,
-	)
-
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypebinancecoin, bsc.TxFailErr)
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypebinancecoin, bsc.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetbinancecoin, bsc.TxFailErr)
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetbinancecoin, bsc.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	wbReq := &ct.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
@@ -124,7 +101,7 @@ func walletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	return out, err
 }
 
-func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
+func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	baseInfo := &ct.BaseInfo{}
 	err = json.Unmarshal(in, baseInfo)
 	if err != nil {
@@ -198,7 +175,7 @@ func PreSign(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 // SendRawTransaction bsc
-func SendRawTransaction(ctx context.Context, in []byte) (out []byte, err error) {
+func SendRawTransaction(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	signedData := &bsc.SignedData{}
 	err = json.Unmarshal(in, signedData)
 	if err != nil {
@@ -234,7 +211,7 @@ func SendRawTransaction(ctx context.Context, in []byte) (out []byte, err error) 
 }
 
 // done(on chain) => true
-func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
+func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	broadcastedData := &ct.BroadcastInfo{}
 	err = json.Unmarshal(in, broadcastedData)
 	if err != nil {

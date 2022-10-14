@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/version"
-	"github.com/NpoolPlatform/sphinx-plugin/cmd/usdt"
 	banner "github.com/common-nighthawk/go-figure"
 	cli "github.com/urfave/cli/v2"
 )
@@ -26,11 +25,11 @@ var (
 	logLevel         string
 	wanIP            string
 	position         string
+	buildChainServer string
 )
 
 func main() {
 	commands := cli.Commands{runCmd}
-	commands = append(commands, usdt.USDTCmd...)
 	description := fmt.Sprintf(
 		"%v service cli\nFor help on any individual command run <%v COMMAND -h>\n",
 		serviceName,

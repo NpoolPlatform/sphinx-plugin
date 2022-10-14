@@ -9,7 +9,9 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/shopspring/decimal"
@@ -18,43 +20,53 @@ import (
 const (
 	TRC20ACCURACY = 6
 	TRXACCURACY   = 6
-)
 
-var (
-	EmptyTRC20 = big.NewInt(0)
-	EmptyTRX   = int64(0)
-)
+	// feeLimit-10^6=1trx
+	TRC20FeeLimit int64 = 15000000
 
-var (
-	AddressSize            = 42
-	AddressPreFixByte byte = 0x41
-)
-
-const (
 	txExpired        = `Transaction expired`
 	fundsToLow       = `balance is not sufficient`
 	AddressNotActive = `account not found`
 	AddressInvalid   = `address is invalid`
 )
 
-var stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive}
+var (
+	EmptyTRC20 = big.NewInt(0)
+	EmptyTRX   = int64(0)
 
-var USDTContract = func(chainet string) string {
-	switch chainet {
-	case coins.CoinNetMain:
-		return "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
-	case coins.CoinNetTest:
-		contract, ok := env.LookupEnv(env.ENVCONTRACT)
-		if !ok {
-			panic(env.ErrENVContractNotFound)
+	AddressSize            = 42
+	AddressPreFixByte byte = 0x41
+
+	stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive}
+
+	USDTContract = func(chainet string) string {
+		switch chainet {
+		case coins.CoinNetMain:
+			return "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+		case coins.CoinNetTest:
+			contract, ok := env.LookupEnv(env.ENVCONTRACT)
+			if !ok {
+				panic(env.ErrENVContractNotFound)
+			}
+			return contract
 		}
-		return contract
+		return ""
 	}
-	return ""
-}
 
-// feeLimit-10^6=1trx
-const TRC20FeeLimit int64 = 15000000
+	tronTokenList = []*coins.TokenInfo{
+		{OfficialName: "Tron", Decimal: 6, Unit: "TRX", Name: "tron", OfficialContract: "tron", TokenType: coins.Tron, CoinType: sphinxplugin.CoinType_CoinTypetron},
+		{OfficialName: "Tether USD", Decimal: 6, Unit: "USDT", Name: "usdttrc20", OfficialContract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", TokenType: coins.Trc20, CoinType: sphinxplugin.CoinType_CoinTypeusdttrc20},
+	}
+)
+
+func init() {
+	for _, token := range tronTokenList {
+		token.Waight = 100
+		token.Net = coins.CoinNetMain
+		token.Contract = token.OfficialContract
+		register.RegisteTokenInfo(token)
+	}
+}
 
 func TRC20ToBigInt(value float64) *big.Int {
 	return decimal.NewFromFloat(value).Mul(decimal.NewFromBigInt(big.NewInt(1), TRC20ACCURACY)).BigInt()

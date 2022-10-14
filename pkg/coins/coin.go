@@ -1,15 +1,54 @@
 package coins
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 )
+
+type (
+	TokenType string
+)
+
+const (
+	Ethereum TokenType = "ethereum"
+	Erc20    TokenType = "erc20"
+	Erc721   TokenType = "erc721"
+	// TODO: will remove,this type is for compatibility
+	USDC TokenType = "usdc"
+
+	Solana   TokenType = "solana"
+	Bitcoin  TokenType = "bitcoin"
+	Filecoin TokenType = "filecoin"
+
+	Tron  TokenType = "tron"
+	Trc20 TokenType = "trc20"
+
+	Binancecoin TokenType = "binancecoin"
+	Bep20       TokenType = "bep20"
+)
+
+type TokenInfo struct {
+	OfficialName     string
+	OfficialContract string
+	Contract         string // if ENV is main Contract = OfficialContract
+	TokenType        TokenType
+	Net              string
+	Unit             string
+	Decimal          int
+	Name             string
+	Waight           int
+	DisableRegiste   bool
+	CoinType         sphinxplugin.CoinType
+}
 
 const (
 	CoinNetMain = "main"
 	CoinNetTest = "test"
+	TestPrefix  = "t"
 )
 
 var (
@@ -43,65 +82,28 @@ var (
 		},
 	}
 
-	// not export
-	coinNetMap = map[sphinxplugin.CoinType]string{
-		// main
-		sphinxplugin.CoinType_CoinTypefilecoin:    CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebitcoin:     CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeethereum:    CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdterc20:   CoinNetMain,
-		sphinxplugin.CoinType_CoinTypespacemesh:   CoinNetMain,
-		sphinxplugin.CoinType_CoinTypesolana:      CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdttrc20:   CoinNetMain,
-		sphinxplugin.CoinType_CoinTypetron:        CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebinancecoin: CoinNetMain,
-		sphinxplugin.CoinType_CoinTypebinanceusd:  CoinNetMain,
-		sphinxplugin.CoinType_CoinTypeusdcerc20:   CoinNetMain,
-
-		// test
-		sphinxplugin.CoinType_CoinTypetfilecoin:    CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbitcoin:     CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetethereum:    CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdterc20:   CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetspacemesh:   CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetsolana:      CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdttrc20:   CoinNetTest,
-		sphinxplugin.CoinType_CoinTypettron:        CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbinancecoin: CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetbinanceusd:  CoinNetTest,
-		sphinxplugin.CoinType_CoinTypetusdcerc20:   CoinNetTest,
-	}
-
-	CoinUnit = map[sphinxplugin.CoinType]string{
-		sphinxplugin.CoinType_CoinTypefilecoin:  "FIL",
-		sphinxplugin.CoinType_CoinTypetfilecoin: "FIL",
-
-		sphinxplugin.CoinType_CoinTypebitcoin:  "BTC",
-		sphinxplugin.CoinType_CoinTypetbitcoin: "BTC",
-
-		sphinxplugin.CoinType_CoinTypeethereum:  "ETH",
-		sphinxplugin.CoinType_CoinTypetethereum: "ETH",
-
-		sphinxplugin.CoinType_CoinTypeusdterc20:  "USDT",
-		sphinxplugin.CoinType_CoinTypetusdterc20: "USDT",
-
-		sphinxplugin.CoinType_CoinTypesolana:  "SOL",
-		sphinxplugin.CoinType_CoinTypetsolana: "SOL",
-
-		sphinxplugin.CoinType_CoinTypeusdttrc20:  "USDT",
-		sphinxplugin.CoinType_CoinTypetusdttrc20: "USDT",
-
-		sphinxplugin.CoinType_CoinTypetron:  "TRX",
-		sphinxplugin.CoinType_CoinTypettron: "TRX",
-
-		sphinxplugin.CoinType_CoinTypebinancecoin:  "BNB",
-		sphinxplugin.CoinType_CoinTypetbinancecoin: "BNB",
-
-		sphinxplugin.CoinType_CoinTypebinanceusd:  "BUSD",
-		sphinxplugin.CoinType_CoinTypetbinanceusd: "BUSD",
-
-		sphinxplugin.CoinType_CoinTypeusdcerc20:  "USDC",
-		sphinxplugin.CoinType_CoinTypetusdcerc20: "USDC",
+	// in order to compatible
+	S3KeyPrxfixMap = map[string]string{
+		"filecoin":     "filecoin/",
+		"tfilecoin":    "filecoin/",
+		"bitcoin":      "bitcoin/",
+		"tbitcoin":     "bitcoin/",
+		"ethereum":     "ethereum/",
+		"tethereum":    "ethereum/",
+		"usdterc20":    "ethereum/",
+		"tusdterc20":   "ethereum/",
+		"solana":       "solana/",
+		"tsolana":      "solana/",
+		"usdttrc20":    "usdttrc20/",
+		"tusdttrc20":   "usdttrc20/",
+		"tron":         "tron/",
+		"ttron":        "tron/",
+		"binancecoin":  "binancecoin/",
+		"tbinancecoin": "binancecoin/",
+		"binanceusd":   "binanceusd/",
+		"tbinanceusd":  "binanceusd/",
+		"usdcerc20":    "usdcerc20/",
+		"tusdcerc20":   "usdcerc20/",
 	}
 
 	// default sync time for waitting transaction on chain
@@ -113,13 +115,13 @@ var (
 		sphinxplugin.CoinType_CoinTypetbitcoin: time.Minute * 7,
 
 		sphinxplugin.CoinType_CoinTypeethereum:  time.Second * 12,
-		sphinxplugin.CoinType_CoinTypetethereum: time.Second * 12,
+		sphinxplugin.CoinType_CoinTypetethereum: time.Second * 3,
 
 		sphinxplugin.CoinType_CoinTypeusdterc20:  time.Second * 12,
-		sphinxplugin.CoinType_CoinTypetusdterc20: time.Second * 12,
+		sphinxplugin.CoinType_CoinTypetusdterc20: time.Second * 3,
 
 		sphinxplugin.CoinType_CoinTypeusdcerc20:  time.Second * 12,
-		sphinxplugin.CoinType_CoinTypetusdcerc20: time.Second * 12,
+		sphinxplugin.CoinType_CoinTypetusdcerc20: time.Second * 3,
 
 		sphinxplugin.CoinType_CoinTypesolana:  time.Second * 1,
 		sphinxplugin.CoinType_CoinTypetsolana: time.Second * 1,
@@ -146,11 +148,6 @@ type CoinInfo struct {
 	Location string
 }
 
-// CoinType2Net ..
-func CoinType2Net(ct sphinxplugin.CoinType) string {
-	return coinNetMap[ct]
-}
-
 // CheckSupportNet ..
 func CheckSupportNet(netEnv string) bool {
 	return (netEnv == CoinNetMain ||
@@ -162,4 +159,36 @@ func CoinStr2CoinType(netEnv, coinStr string) sphinxplugin.CoinType {
 	_netEnv := strings.ToLower(netEnv)
 	_coinStr := strings.ToLower(coinStr)
 	return netCoinMap[_netEnv][_coinStr]
+}
+
+func ToTestCoinType(coinType sphinxplugin.CoinType) sphinxplugin.CoinType {
+	if coinType == sphinxplugin.CoinType_CoinTypeUnKnow {
+		return sphinxplugin.CoinType_CoinTypeUnKnow
+	}
+	name := utils.ToCoinName(coinType)
+	return CoinStr2CoinType(CoinNetTest, name)
+}
+
+func GetS3KeyPrxfix(tokenInfo *TokenInfo) string {
+	if val, ok := S3KeyPrxfixMap[tokenInfo.Name]; ok {
+		return val
+	}
+
+	name := tokenInfo.Name
+	if tokenInfo.Net == CoinNetTest {
+		name = strings.TrimPrefix(name, TestPrefix)
+	}
+	return fmt.Sprintf("%v/", name)
+}
+
+func GenerateName(tokenInfo *TokenInfo) string {
+	chainType := utils.ToCoinName(tokenInfo.CoinType)
+	name := strings.Trim(tokenInfo.OfficialName, " ")
+	name = strings.ReplaceAll(name, " ", "-")
+	return fmt.Sprintf("%v_%v_%v", chainType, tokenInfo.TokenType, name)
+}
+
+func GetChainType(in string) string {
+	ret := strings.Split(in, "_")
+	return ret[0]
 }

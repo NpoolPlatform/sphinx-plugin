@@ -9,8 +9,8 @@ import (
 	tronclient "github.com/Geapefurit/gotron-sdk/pkg/client"
 	"github.com/Geapefurit/gotron-sdk/pkg/proto/api"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	tron_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron/plugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
@@ -19,62 +19,39 @@ import (
 
 // here register plugin func
 func init() {
-	// // main
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypeusdttrc20,
-		sphinxproxy.TransactionType_Balance,
+	register.RegisteTokenHandler(
+		coins.Trc20,
+		register.OpGetBalance,
 		WalletBalance,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypeusdttrc20,
-		sphinxproxy.TransactionState_TransactionStateWait,
+	register.RegisteTokenHandler(
+		coins.Trc20,
+		register.OpPreSign,
 		BuildTransaciton,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypeusdttrc20,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
+	register.RegisteTokenHandler(
+		coins.Trc20,
+		register.OpBroadcast,
 		tron_plugin.BroadcastTransaction,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypeusdttrc20,
-		sphinxproxy.TransactionState_TransactionStateSync,
+	register.RegisteTokenHandler(
+		coins.Trc20,
+		register.OpSyncTx,
 		tron_plugin.SyncTxState,
 	)
 
-	// // test
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypetusdttrc20,
-		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetusdttrc20,
-		sphinxproxy.TransactionState_TransactionStateWait,
-		BuildTransaciton,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetusdttrc20,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		tron_plugin.BroadcastTransaction,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetusdttrc20,
-		sphinxproxy.TransactionState_TransactionStateSync,
-		tron_plugin.SyncTxState,
-	)
-
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypeusdttrc20, tron.TxFailErr)
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypeusdttrc20, tron.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetusdttrc20, tron.TxFailErr)
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetusdttrc20, tron.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func WalletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	wbReq := &ct.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
@@ -127,7 +104,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	return out, err
 }
 
-func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
+func BuildTransaciton(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	baseInfo := &ct.BaseInfo{}
 	err = json.Unmarshal(in, baseInfo)
 	if err != nil {

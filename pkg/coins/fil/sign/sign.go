@@ -5,12 +5,10 @@ import (
 	"encoding/json"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
-	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/fil"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/sign"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
@@ -21,29 +19,14 @@ import (
 )
 
 func init() {
-	// main
-	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxproxy.TransactionType_WalletNew,
+	register.RegisteTokenHandler(
+		coins.Filecoin,
+		register.OpWalletNew,
 		createAccount,
 	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypefilecoin,
-		sphinxproxy.TransactionState_TransactionStateSign,
-		signTx,
-	)
-
-	// --------------------
-
-	// test
-	sign.RegisterWallet(
-		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxproxy.TransactionType_WalletNew,
-		createAccount,
-	)
-	sign.Register(
-		sphinxplugin.CoinType_CoinTypetfilecoin,
-		sphinxproxy.TransactionState_TransactionStateSign,
+	register.RegisteTokenHandler(
+		coins.Filecoin,
+		register.OpSign,
 		signTx,
 	)
 }
@@ -51,7 +34,7 @@ func init() {
 const s3KeyPrxfix = "filecoin/"
 
 // createAccount create new account address
-func createAccount(ctx context.Context, in []byte) (out []byte, err error) {
+func createAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := ct.NewAccountRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err
@@ -84,7 +67,7 @@ func createAccount(ctx context.Context, in []byte) (out []byte, err error) {
 }
 
 // signTx sign a raw transaction
-func signTx(ctx context.Context, in []byte) (out []byte, err error) {
+func signTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	info := fil.SignRequest{}
 	if err := json.Unmarshal(in, &info); err != nil {
 		return nil, err

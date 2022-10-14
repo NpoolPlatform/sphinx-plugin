@@ -53,6 +53,7 @@ func NewManager() (*Manager, error) {
 		return nil, ErrEndpointsEmpty
 	}
 
+	// TODO:probability is not equal, should use Fisher-Yates algorithm
 	if len(localAddrs) > 1 {
 		rand.Shuffle(len(localAddrs), func(i, j int) {
 			localAddrs[i], localAddrs[j] = localAddrs[j], localAddrs[i]

@@ -9,8 +9,8 @@ import (
 
 	tronclient "github.com/Geapefurit/gotron-sdk/pkg/client"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
-	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 
@@ -22,56 +22,33 @@ import (
 
 // here register plugin func
 func init() {
-	// // main
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypetron,
-		sphinxproxy.TransactionType_Balance,
+	register.RegisteTokenHandler(
+		coins.Tron,
+		register.OpGetBalance,
 		WalletBalance,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetron,
-		sphinxproxy.TransactionState_TransactionStateWait,
+	register.RegisteTokenHandler(
+		coins.Tron,
+		register.OpPreSign,
 		BuildTransaciton,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetron,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
+	register.RegisteTokenHandler(
+		coins.Tron,
+		register.OpBroadcast,
 		BroadcastTransaction,
 	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypetron,
-		sphinxproxy.TransactionState_TransactionStateSync,
+	register.RegisteTokenHandler(
+		coins.Tron,
+		register.OpSyncTx,
 		SyncTxState,
 	)
 
-	// // test
-	coins.RegisterBalance(
-		sphinxplugin.CoinType_CoinTypettron,
-		sphinxproxy.TransactionType_Balance,
-		WalletBalance,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypettron,
-		sphinxproxy.TransactionState_TransactionStateWait,
-		BuildTransaciton,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypettron,
-		sphinxproxy.TransactionState_TransactionStateBroadcast,
-		BroadcastTransaction,
-	)
-	coins.Register(
-		sphinxplugin.CoinType_CoinTypettron,
-		sphinxproxy.TransactionState_TransactionStateSync,
-		SyncTxState,
-	)
-
-	err := coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypetron, tron.TxFailErr)
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetron, tron.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = coins.RegisterAbortFuncErr(sphinxplugin.CoinType_CoinTypettron, tron.TxFailErr)
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypettron, tron.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +60,7 @@ const (
 	TransactionInfoFAILED  = 1
 )
 
-func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
+func WalletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	wbReq := &ct.WalletBalanceRequest{}
 	err = json.Unmarshal(in, wbReq)
 	if err != nil {
@@ -109,7 +86,6 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 		bl = acc.GetBalance()
 		return false, nil
 	})
-
 	if err != nil {
 		return in, err
 	}
@@ -123,7 +99,7 @@ func WalletBalance(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(wbResp)
 }
 
-func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
+func BuildTransaciton(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	baseInfo := &ct.BaseInfo{}
 	err = json.Unmarshal(in, baseInfo)
 	if err != nil {
@@ -172,7 +148,7 @@ func BuildTransaciton(ctx context.Context, in []byte) (out []byte, err error) {
 	return json.Marshal(signTx)
 }
 
-func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error) {
+func BroadcastTransaction(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	bReq := &tron.BroadcastRequest{}
 	err = json.Unmarshal(in, bReq)
 	if err != nil {
@@ -198,7 +174,7 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 		return in, err
 	}
 	if result == nil {
-		return in, fmt.Errorf("get result faild")
+		return in, fmt.Errorf("get result failed")
 	}
 
 	if api.Return_SUCCESS == result.Code {
@@ -234,7 +210,7 @@ func BroadcastTransaction(ctx context.Context, in []byte) (out []byte, err error
 }
 
 // done(on chain) => true
-func SyncTxState(ctx context.Context, in []byte) (out []byte, err error) {
+func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	syncReq := &ct.SyncRequest{}
 	err = json.Unmarshal(in, syncReq)
 	if err != nil {

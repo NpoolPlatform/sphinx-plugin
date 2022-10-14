@@ -16,12 +16,25 @@ if git_status=$(git status --porcelain --untracked=no 2>/dev/null) && [[ -z "${g
     git_tree_state=clean
 fi
 
-set +e
-version=`git describe --tags --abbrev=0`
-if [ ! $? -eq 0 ]; then
-    version=latest
+version=latest
+
+## For testing or production environment, pass the second variable
+if [ "x" != "x$2" ]; then
+  version=$2
 fi
-set -e
+
+registry=uhub.service.ucloud.cn
+
+if [ "x" != $3 ]; then
+  registry=$3
+fi
+
+# set +e
+# version=`git describe --tags --abbrev=0`
+# if [ ! $? -eq 0 ]; then
+#     version=latest
+# fi
+# set -e
 
 service_name=$1
 
