@@ -187,8 +187,8 @@ func (c *pluginClient) recv() {
 				log.Infof(
 					"sphinx plugin recv info TransactionID: %v CoinType: %v TransactionType: %v",
 					transactionID,
-					transactionType,
 					coinType,
+					transactionType,
 				)
 
 				now := time.Now()
