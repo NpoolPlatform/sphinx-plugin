@@ -12,6 +12,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/tron"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -80,6 +81,15 @@ func SignTronMSG(ctx context.Context, s3Strore string, in []byte) (out []byte, e
 }
 
 func CreateTronAccount(ctx context.Context, s3Strore string, in []byte) (out []byte, err error) {
+	info := ct.NewAccountRequest{}
+	if err := json.Unmarshal(in, &info); err != nil {
+		return nil, err
+	}
+
+	if !coins.CheckSupportNet(info.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	priv, err := btcec.NewPrivateKey(btcec.S256())
 	if err != nil {
 		return nil, err

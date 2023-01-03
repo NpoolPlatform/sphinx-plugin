@@ -11,6 +11,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
@@ -76,6 +77,15 @@ func Message(ctx context.Context, s3Store string, in []byte) ([]byte, error) {
 }
 
 func CreateAccount(ctx context.Context, s3Store string, in []byte) (out []byte, err error) {
+	info := ct.NewAccountRequest{}
+	if err := json.Unmarshal(in, &info); err != nil {
+		return nil, err
+	}
+
+	if !coins.CheckSupportNet(info.ENV) {
+		return nil, env.ErrEVNCoinNetValue
+	}
+
 	privateKey, err := crypto.GenerateKey()
 	if err != nil {
 		return nil, err
