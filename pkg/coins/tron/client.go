@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+
 	tronclient "github.com/Geapefurit/gotron-sdk/pkg/client"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
@@ -17,31 +19,31 @@ import (
 
 const (
 	MinNodeNum       = 1
-	MaxRetries       = 3
+	MaxRetries       = 20
 	retriesSleepTime = 200 * time.Millisecond
 	dialTimeout      = 3 * time.Second
 )
 
 type TClientI interface {
-	GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error)
+	GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, string, error)
 	WithClient(fn func(*tronclient.GrpcClient) (bool, error)) error
 }
 
 type tClients struct{}
 
-func (tClients *tClients) GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, error) {
+func (tClients *tClients) GetGRPCClient(timeout time.Duration, endpointmgr *endpoints.Manager) (*tronclient.GrpcClient, string, error) {
 	endpoint, err := endpointmgr.Peek()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	ntc := tronclient.NewGrpcClientWithTimeout(endpoint, timeout)
 	err = ntc.Start(grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return ntc, nil
+	return ntc, "", nil
 }
 
 type SyncBlock struct {
@@ -101,7 +103,6 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 	var (
 		err, apiErr error
 		retry       bool
-		client      *tronclient.GrpcClient
 	)
 
 	endpointmgr, err := endpoints.NewManager()
@@ -113,16 +114,16 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		if i > 0 {
 			time.Sleep(retriesSleepTime)
 		}
-		client, err = tClients.GetGRPCClient(dialTimeout, endpointmgr)
-		fmt.Println(err)
-
+		client, ep, err := tClients.GetGRPCClient(dialTimeout, endpointmgr)
 		if err != nil {
+			logger.Sugar().Errorw("WithClient", "Endpoint", ep, "Error", err)
 			continue
 		}
 
 		retry, apiErr = fn(client)
 		client.Stop()
 		if !retry {
+			logger.Sugar().Errorw("WithClient", "Endpoint", ep, "Error", apiErr)
 			return apiErr
 		}
 	}
