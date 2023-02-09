@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+
 	tronclient "github.com/Geapefurit/gotron-sdk/pkg/client"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
@@ -214,6 +216,7 @@ func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	syncReq := &ct.SyncRequest{}
 	err = json.Unmarshal(in, syncReq)
 	if err != nil {
+		logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Error", err)
 		return in, err
 	}
 	client := tron.Client()
@@ -222,20 +225,24 @@ func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	err = client.WithClient(func(cli *tronclient.GrpcClient) (bool, error) {
 		txInfo, err = cli.GetTransactionInfoByID(syncReq.TxID)
 		if err != nil {
+			logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Error", err)
 			return true, err
 		}
 		return false, err
 	})
 
 	if txInfo == nil || err != nil {
+		logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Info", txInfo, "Error", err)
 		return in, env.ErrWaitMessageOnChain
 	}
 
 	if txInfo.GetResult() != TransactionInfoSUCCESS {
+		logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Result", txInfo.GetResult())
 		return in, env.ErrTransactionFail
 	}
 
 	if txInfo.Receipt.GetResult() != core.Transaction_Result_SUCCESS && txInfo.Receipt.GetResult() != core.Transaction_Result_DEFAULT {
+		logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Recepit", txInfo.GetReceipt())
 		return in, env.ErrTransactionFail
 	}
 
