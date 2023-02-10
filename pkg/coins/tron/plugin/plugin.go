@@ -237,12 +237,12 @@ func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	}
 
 	if txInfo.GetResult() != TransactionInfoSUCCESS {
-		logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Result", txInfo.GetResult())
+		logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Info", txInfo, "Result", txInfo.GetResult())
 		return in, env.ErrTransactionFail
 	}
 
 	if txInfo.Receipt.GetResult() != core.Transaction_Result_SUCCESS && txInfo.Receipt.GetResult() != core.Transaction_Result_DEFAULT {
-		logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Recepit", txInfo.GetReceipt())
+		logger.Sugar().Errorw("SyncTxState", "Req", syncReq, "Info", txInfo, "Result", txInfo.GetResult())
 		return in, env.ErrTransactionFail
 	}
 
