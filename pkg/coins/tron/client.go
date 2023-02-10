@@ -43,7 +43,7 @@ func (tClients *tClients) GetGRPCClient(timeout time.Duration, endpointmgr *endp
 		return nil, "", err
 	}
 
-	return ntc, "", nil
+	return ntc, endpoint, nil
 }
 
 type SyncBlock struct {
