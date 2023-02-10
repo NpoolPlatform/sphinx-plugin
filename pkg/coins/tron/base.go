@@ -22,7 +22,7 @@ const (
 	TRXACCURACY   = 6
 
 	// feeLimit-10^6=1trx
-	TRC20FeeLimit int64 = 15000000
+	TRC20FeeLimit int64 = 30000000
 
 	txExpired        = `Transaction expired`
 	fundsToLow       = `balance is not sufficient`
