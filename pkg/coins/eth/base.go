@@ -8,6 +8,7 @@ import (
 
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	build_chain "github.com/NpoolPlatform/build-chain/pkg/coins/eth"
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -53,6 +54,7 @@ func netHandle(tokenInfos []*coins.TokenInfo) error {
 
 	bcConn, bcConnErr := bc_client.NewClientConn(ctx, bcServer)
 	if bcConnErr != nil {
+		logger.Sugar().Error(bcConnErr)
 		return fmt.Errorf("connect server failed, %v", bcConnErr)
 	}
 
@@ -61,6 +63,7 @@ func netHandle(tokenInfos []*coins.TokenInfo) error {
 			go func(token *coins.TokenInfo) {
 				_tokenInfo, err := build_chain.CrawlOne(ctx, bcConn, tokenInfo.OfficialContract, false)
 				if err != nil {
+					logger.Sugar().Error(err)
 					return
 				}
 
