@@ -106,6 +106,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	accountAmount := .0
 	for _, sp := range unspents {
 		if sp.Address == info.Address {
+			// TODO: bug not accuracy, use bigint
 			accountAmount += sp.Amount
 		}
 	}

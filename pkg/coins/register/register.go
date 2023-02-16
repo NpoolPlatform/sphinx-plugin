@@ -60,7 +60,7 @@ func RegisteTokenInfo(tokenInfo *coins.TokenInfo) {
 	registeTokenInfo(&_tokenInfo)
 }
 
-//  registe tokeninfo
+// registe tokeninfo
 // one contract to one name,contract and name is both unique
 // allow to repeated registe,wahgit to decide whether to update
 // please submit mainnet tokeninfo
