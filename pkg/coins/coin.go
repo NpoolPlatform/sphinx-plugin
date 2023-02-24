@@ -20,9 +20,10 @@ const (
 	// TODO: will remove,this type is for compatibility
 	USDC TokenType = "usdc"
 
-	Solana   TokenType = "solana"
-	Bitcoin  TokenType = "bitcoin"
-	Filecoin TokenType = "filecoin"
+	Spacemesh TokenType = "Spacemesh"
+	Solana    TokenType = "solana"
+	Bitcoin   TokenType = "bitcoin"
+	Filecoin  TokenType = "filecoin"
 
 	Tron  TokenType = "tron"
 	Trc20 TokenType = "trc20"
@@ -92,6 +93,8 @@ var (
 		"tethereum":    "ethereum/",
 		"usdterc20":    "ethereum/",
 		"tusdterc20":   "ethereum/",
+		"spacemesh":    "spacemesh/",
+		"tspacemesh":   "spacemesh/",
 		"solana":       "solana/",
 		"tsolana":      "solana/",
 		"usdttrc20":    "usdttrc20/",
@@ -122,6 +125,9 @@ var (
 
 		sphinxplugin.CoinType_CoinTypeusdcerc20:  time.Second * 12,
 		sphinxplugin.CoinType_CoinTypetusdcerc20: time.Second * 3,
+
+		sphinxplugin.CoinType_CoinTypespacemesh:  time.Second * 30,
+		sphinxplugin.CoinType_CoinTypetspacemesh: time.Second * 30,
 
 		sphinxplugin.CoinType_CoinTypesolana:  time.Second * 1,
 		sphinxplugin.CoinType_CoinTypetsolana: time.Second * 1,
