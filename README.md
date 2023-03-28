@@ -127,7 +127,7 @@
 |-----|------------------|------|
 | 格式1 | sol bsc eth tron |      |
 | 格式2 | btc              |      |
-| 格式3 | fil              |      |
+| 格式3 | fil ironfish              |      |
 
 ### 交易上链状态查询默认周期
 以下表格也是所有类型plugin的列表
@@ -135,6 +135,7 @@
 |:------------------------------:|:------:|:--------:|
 |            filecoin            |  20s   |   30s    |
 |            bitcoin             |  7min  |  10min   |
+|            ironfish             |  1min  |  1~2min   |
 |             solana             |   1s   |   0.4s   |
 | ethereum(eth、23种erc20 tokens) |  12s   |  10~20s  |
 |           usdcerc20            |  12s   |  10~20s  |
