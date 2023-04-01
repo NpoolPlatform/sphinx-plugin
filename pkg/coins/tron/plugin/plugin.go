@@ -133,8 +133,11 @@ func BuildTransaciton(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo
 			return false, err
 		}
 		txExtension, err = cli.Transfer(from, to, amount)
-		if err != nil || txExtension == nil {
+		if err != nil {
 			return true, err
+		}
+		if txExtension == nil {
+			return false, fmt.Errorf("invalid tx info")
 		}
 		return false, err
 	})
