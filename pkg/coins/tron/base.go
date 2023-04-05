@@ -24,10 +24,12 @@ const (
 	// feeLimit-10^6=1trx
 	TRC20FeeLimit int64 = 30000000
 
-	txExpired        = `Transaction expired`
-	fundsToLow       = `balance is not sufficient`
-	AddressNotActive = `account not found`
-	AddressInvalid   = `address is invalid`
+	txExpired              = `Transaction expired`
+	fundsToLow             = `balance is not sufficient`
+	AddressNotActive       = `account not found`
+	AddressInvalid         = `address is invalid`
+	GetAccountFailed       = `the tron node get account failed`
+	BuildTransactionFailed = `the tron node build transaction failed`
 )
 
 var (
@@ -37,7 +39,7 @@ var (
 	AddressSize            = 42
 	AddressPreFixByte byte = 0x41
 
-	stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive}
+	stopErrs = []string{txExpired, fundsToLow, AddressInvalid, AddressNotActive, BuildTransactionFailed}
 
 	USDTContract = func(chainet string) string {
 		switch chainet {

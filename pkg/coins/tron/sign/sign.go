@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	addr "github.com/Geapefurit/gotron-sdk/pkg/address"
@@ -50,7 +51,7 @@ func SignTronMSG(ctx context.Context, s3Strore string, in []byte) (out []byte, e
 		return in, err
 	}
 	if signMsgTx.TxExtension == nil {
-		return in, fmt.Errorf("invalid tx info")
+		return in, errors.New(tron.BuildTransactionFailed)
 	}
 
 	pk, err := oss.GetObject(ctx, s3Strore+signMsgTx.Base.From, true)

@@ -82,8 +82,11 @@ func WalletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 			bl = tron.EmptyTRX
 			return false, nil
 		}
-		if err != nil || acc == nil {
+		if err != nil {
 			return true, err
+		}
+		if acc == nil {
+			return true, errors.New(tron.GetAccountFailed)
 		}
 		bl = acc.GetBalance()
 		return false, nil
@@ -108,18 +111,18 @@ func BuildTransaciton(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo
 		return in, err
 	}
 
+	err = tron.ValidAddress(baseInfo.From)
+	if err != nil {
+		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
+	}
+	err = tron.ValidAddress(baseInfo.To)
+	if err != nil {
+		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
+	}
+
 	from := baseInfo.From
 	to := baseInfo.To
 	amount := tron.TRXToInt(baseInfo.Value)
-
-	err = tron.ValidAddress(from)
-	if err != nil {
-		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
-	}
-	err = tron.ValidAddress(to)
-	if err != nil {
-		return in, fmt.Errorf("%v,%v", tron.AddressInvalid, err)
-	}
 
 	client := tron.Client()
 
@@ -137,7 +140,7 @@ func BuildTransaciton(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo
 			return true, err
 		}
 		if txExtension == nil {
-			return false, fmt.Errorf("invalid tx info")
+			return false, errors.New(tron.BuildTransactionFailed)
 		}
 		return false, err
 	})
