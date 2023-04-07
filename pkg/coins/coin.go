@@ -20,7 +20,7 @@ const (
 	// TODO: will remove,this type is for compatibility
 	USDC TokenType = "usdc"
 
-	Spacemesh TokenType = "Spacemesh"
+	Spacemesh TokenType = "spacemesh"
 	Solana    TokenType = "solana"
 	Bitcoin   TokenType = "bitcoin"
 	Filecoin  TokenType = "filecoin"
