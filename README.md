@@ -125,7 +125,7 @@
 
 | 格式  | 链               | 说明 |
 |-----|------------------|------|
-| 格式1 | sol bsc eth tron |      |
+| 格式1 | sol bsc eth tron smh |      |
 | 格式2 | btc              |      |
 | 格式3 | fil ironfish              |      |
 
@@ -136,6 +136,7 @@
 |            filecoin            |  20s   |   30s    |
 |            bitcoin             |  7min  |  10min   |
 |            ironfish             |  1min  |  1~2min   |
+|            spacemesh             |  0.5min  |  2min   |
 |             solana             |   1s   |   0.4s   |
 | ethereum(eth、23种erc20 tokens) |  12s   |  10~20s  |
 |           usdcerc20            |  12s   |  10~20s  |
