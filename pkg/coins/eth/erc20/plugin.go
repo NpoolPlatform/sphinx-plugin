@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	eth_plugin "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth/eth"
@@ -136,10 +137,11 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	client := eth.Client()
 
 	var (
-		chainID  *big.Int
-		nonce    uint64
-		gasPrice *big.Int
-		gasLimit = uint64(300_000)
+		chainID    *big.Int
+		nonce      uint64
+		ethBalance *big.Int
+		gasPrice   *big.Int
+		gasLimit   = uint64(300_000)
 	)
 	callOpts := &bind.CallOpts{
 		Pending: true,
@@ -172,6 +174,14 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 			return true, err
 		}
 
+		ethBalance, err = cli.BalanceAt(ctx, common.HexToAddress(baseInfo.From), nil)
+		if err == nil && ethBalance != nil {
+			return false, err
+		}
+		if err != nil {
+			return true, err
+		}
+
 		gasPrice, err = cli.SuggestGasPrice(ctx)
 		if err != nil || gasPrice == nil {
 			return true, err
@@ -182,6 +192,22 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	if err != nil {
 		return nil, err
 	}
+
+	gasLimitBig := big.NewInt(int64(gasLimit))
+	totalGas := big.NewInt(0).Mul(gasPrice, gasLimitBig)
+
+	if ethBalance.Cmp(totalGas) <= 0 {
+		return nil, fmt.Errorf("%v, suggest gas  <= balance: %v <= %v",
+			eth.FundsTooLow,
+			eth.ToEth(totalGas),
+			eth.ToEth(ethBalance),
+		)
+	}
+
+	logger.Sugar().Infof("suggest gas: %v, balance: %v",
+		eth.ToEth(totalGas),
+		eth.ToEth(ethBalance),
+	)
 
 	_abi, err := Erc20tokenMetaData.GetAbi()
 	if err != nil {
