@@ -19,17 +19,17 @@ import (
 )
 
 const (
-	gasToLow      = `intrinsic gas too low`
-	FundsToLow    = `insufficient funds for gas * price + value`
-	nonceToLow    = `nonce too low`
+	GasTooLow     = `intrinsic gas too low`
+	FundsTooLow   = `insufficient funds for gas * price + value`
+	NonceTooLow   = `nonce too low`
 	AmountInvalid = `invalid amount`
-	TokenToLow    = `token funds to low`
-	dialTimeout   = 3 * time.Second
+	TokenTooLow   = `token funds to low`
+	DialTimeout   = 3 * time.Second
 	EthExp        = -18
 )
 
 var (
-	stopErrMsg = []string{gasToLow, FundsToLow, nonceToLow, AmountInvalid, TokenToLow}
+	stopErrMsg = []string{GasTooLow, FundsTooLow, NonceTooLow, AmountInvalid, TokenTooLow}
 
 	ethTokens = []coins.TokenInfo{
 		{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: string(coins.Ethereum), TokenType: coins.Ethereum, OfficialContract: string(coins.Ethereum), CoinType: sphinxplugin.CoinType_CoinTypeethereum},

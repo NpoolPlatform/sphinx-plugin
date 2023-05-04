@@ -29,7 +29,7 @@ func (eClients eClients) GetNode(ctx context.Context, endpointmgr *endpoints.Man
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, dialTimeout)
+	ctx, cancel := context.WithTimeout(ctx, DialTimeout)
 	defer cancel()
 
 	cli, err := ethclient.DialContext(ctx, endpoint)
