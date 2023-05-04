@@ -175,10 +175,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		}
 
 		ethBalance, err = cli.BalanceAt(ctx, common.HexToAddress(baseInfo.From), nil)
-		if err == nil && ethBalance != nil {
-			return false, err
-		}
-		if err != nil {
+		if err != nil || ethBalance == nil {
 			return true, err
 		}
 
@@ -191,6 +188,10 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if ethBalance == nil || gasPrice == nil {
+		return nil,errors.New("node is busy")
 	}
 
 	gasLimitBig := big.NewInt(int64(gasLimit))
