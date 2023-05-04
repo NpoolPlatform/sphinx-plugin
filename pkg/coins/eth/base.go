@@ -23,7 +23,7 @@ const (
 	FundsTooLow   = `insufficient funds for gas * price + value`
 	NonceTooLow   = `nonce too low`
 	AmountInvalid = `invalid amount`
-	TokenTooLow   = `token funds to low`
+	TokenTooLow   = `token funds too low`
 	DialTimeout   = 3 * time.Second
 	EthExp        = -18
 )
