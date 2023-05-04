@@ -162,10 +162,8 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 
 	gasLimitBig := big.NewInt(int64(gasLimit))
 	totalGas := big.NewInt(0).Mul(gasPrice, gasLimitBig)
-	fmt.Println(totalGas)
 
 	totalFunds := big.NewInt(0).Add(totalGas, amountBig)
-	fmt.Println(totalGas)
 
 	if bl.Cmp(totalFunds) <= 0 {
 		return nil, fmt.Errorf("%v, suggest gas + amount = totalFunds <= balance: %v + %v = %v <= %v",
