@@ -172,6 +172,8 @@ bitcoin 钱包节点的配置文件中, **rpcclienttimeout=30** 需要配置
 ### 说明
 
 - 不支持 **Windows**
+- 新特性或问题请提到Issue
+- 币种处理流程在本项目newcoin.md
 
 ## 优化
 
