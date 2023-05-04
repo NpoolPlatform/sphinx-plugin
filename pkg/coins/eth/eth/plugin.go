@@ -166,7 +166,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	totalFunds := big.NewInt(0).Add(totalGas, amountBig)
 
 	if bl.Cmp(totalFunds) <= 0 {
-		return nil, fmt.Errorf("%v, suggest gas + amount = totalFunds <= balance: %v + %v = %v <= %v",
+		return nil, fmt.Errorf("%v, suggest gas + amount = totalFunds <= balance: %v + %v = %v >= %v",
 			eth.FundsTooLow,
 			eth.ToEth(totalGas),
 			eth.ToEth(amountBig),

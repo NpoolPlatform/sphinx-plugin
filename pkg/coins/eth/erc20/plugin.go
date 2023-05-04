@@ -198,7 +198,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	totalGas := big.NewInt(0).Mul(gasPrice, gasLimitBig)
 
 	if ethBalance.Cmp(totalGas) <= 0 {
-		return nil, fmt.Errorf("%v, suggest gas  <= balance: %v <= %v",
+		return nil, fmt.Errorf("%v, suggest gas  >= balance: %v >= %v",
 			eth.FundsTooLow,
 			eth.ToEth(totalGas),
 			eth.ToEth(ethBalance),
