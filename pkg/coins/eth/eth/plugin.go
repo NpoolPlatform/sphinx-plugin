@@ -5,15 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"math"
+	"fmt"
 	"math/big"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -84,19 +84,10 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, err
 	}
 
-	balance, ok := big.NewFloat(0).SetString(bl.String())
-	if !ok {
-		return nil, errors.New("convert balance string to float64 error")
-	}
-
-	balance.Quo(balance, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
-	f, exact := balance.Float64()
-	if exact != big.Exact {
-		log.Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
-	}
+	balance := eth.ToEth(bl)
 
 	wbResp := &ct.WalletBalanceResponse{
-		Balance:    f,
+		Balance:    balance.InexactFloat64(),
 		BalanceStr: balance.String(),
 	}
 	out, err = json.Marshal(wbResp)
@@ -124,6 +115,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	var (
 		chainID  *big.Int
 		nonce    uint64
+		bl       *big.Int
 		gasPrice *big.Int
 		gasLimit = uint64(21_000)
 	)
@@ -144,6 +136,14 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 			return true, err
 		}
 
+		bl, err = cli.BalanceAt(ctx, common.HexToAddress(baseInfo.From), nil)
+		if err == nil && bl != nil {
+			return false, err
+		}
+		if err != nil {
+			return true, err
+		}
+
 		return false, err
 	})
 
@@ -151,17 +151,36 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, err
 	}
 
-	amount := big.NewFloat(baseInfo.Value)
-	amount.Mul(amount, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
-
-	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
+	amountBig, ok := eth.ToWei(baseInfo.Value)
 	if !ok {
-		return nil, errors.New("invalid eth amount")
+		return nil, errors.New(eth.AmountInvalid)
 	}
 
 	if amountBig.Cmp(common.Big0) <= 0 {
-		return nil, errors.New("invalid eth amount")
+		return nil, errors.New(eth.AmountInvalid)
 	}
+
+	gasLimitBig := big.NewInt(int64(gasLimit))
+	totalGas := big.NewInt(0).Mul(gasPrice, gasLimitBig)
+
+	totalFunds := big.NewInt(0).Add(totalGas, amountBig)
+
+	if bl.Cmp(totalFunds) <= 0 {
+		return nil, fmt.Errorf("%v, suggest gas + amount = totalFunds <= balance: %v + %v = %v <= %v",
+			eth.FundsTooLow,
+			eth.ToEth(totalGas),
+			eth.ToEth(amountBig),
+			eth.ToEth(totalFunds),
+			eth.ToEth(bl),
+		)
+	}
+
+	logger.Sugar().Infof("suggest gas + amount = totalFunds: %v + %v = %v, balance: %v",
+		eth.ToEth(totalGas),
+		eth.ToEth(amountBig),
+		eth.ToEth(totalFunds),
+		eth.ToEth(bl),
+	)
 
 	// build tx
 	tx := types.NewTransaction(

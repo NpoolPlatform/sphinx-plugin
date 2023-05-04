@@ -159,7 +159,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 			return true, err
 		}
 		if bl.Cmp(amountBig) != 1 {
-			return false, fmt.Errorf("%v,transfer amount %v", eth.TokenToLow, amount)
+			return false, fmt.Errorf("%v,transfer amount %v", eth.TokenTooLow, amount)
 		}
 
 		chainID, err = cli.NetworkID(ctx)
