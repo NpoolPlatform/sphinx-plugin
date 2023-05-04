@@ -3,6 +3,8 @@ package eth
 import (
 	"context"
 	"fmt"
+	"math"
+	"math/big"
 	"strings"
 	"time"
 
@@ -13,19 +15,21 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
+	"github.com/shopspring/decimal"
 )
 
 const (
 	gasToLow      = `intrinsic gas too low`
-	fundsToLow    = `insufficient funds for gas * price + value`
+	FundsToLow    = `insufficient funds for gas * price + value`
 	nonceToLow    = `nonce too low`
 	AmountInvalid = `invalid amount`
 	TokenToLow    = `token funds to low`
 	dialTimeout   = 3 * time.Second
+	EthExp        = -18
 )
 
 var (
-	stopErrMsg = []string{gasToLow, fundsToLow, nonceToLow, AmountInvalid, TokenToLow}
+	stopErrMsg = []string{gasToLow, FundsToLow, nonceToLow, AmountInvalid, TokenToLow}
 
 	ethTokens = []coins.TokenInfo{
 		{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: string(coins.Ethereum), TokenType: coins.Ethereum, OfficialContract: string(coins.Ethereum), CoinType: sphinxplugin.CoinType_CoinTypeethereum},
@@ -93,4 +97,13 @@ func TxFailErr(err error) bool {
 		}
 	}
 	return false
+}
+
+func WeiToEth(value *big.Int) decimal.Decimal {
+	return decimal.NewFromBigInt(value, EthExp)
+}
+
+func EthToWei(value float64) (*big.Int, bool) {
+	wei := big.NewFloat(0).Mul(big.NewFloat(value), big.NewFloat(math.Pow10(-EthExp)))
+	return big.NewInt(0).SetString(wei.Text('f', 0), 10)
 }

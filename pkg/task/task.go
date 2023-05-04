@@ -25,6 +25,7 @@ var (
 	chanBuff             = 1000
 	delayDuration        = time.Second * 2
 	registerCoinDuration = time.Second * 5
+	logInterval          = 10
 )
 
 type pluginClient struct {
@@ -124,6 +125,8 @@ func (c *pluginClient) watch(exitSig chan os.Signal, cleanChan chan struct{}) {
 }
 
 func (c *pluginClient) register() {
+	logCount := 0
+
 	for {
 		select {
 		case <-c.exitChan:
@@ -157,7 +160,11 @@ func (c *pluginClient) register() {
 				tokensLen++
 				c.sendChannel <- resp
 			}
-			log.Infof("register new coin: %v for %s network,has %v tokens,registered %v", coinType, coinNetwork, len(tokenInfos), tokensLen)
+			if logCount%logInterval == 0 {
+				log.Infof("register new coin: %v for %s network,has %v tokens,registered %v", coinType, coinNetwork, len(tokenInfos), tokensLen)
+				logCount = 0
+			}
+			logCount++
 		}
 	}
 }
