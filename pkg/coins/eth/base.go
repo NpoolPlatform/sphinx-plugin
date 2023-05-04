@@ -99,11 +99,11 @@ func TxFailErr(err error) bool {
 	return false
 }
 
-func WeiToEth(value *big.Int) decimal.Decimal {
+func ToEth(value *big.Int) decimal.Decimal {
 	return decimal.NewFromBigInt(value, EthExp)
 }
 
-func EthToWei(value float64) (*big.Int, bool) {
+func ToWei(value float64) (*big.Int, bool) {
 	wei := big.NewFloat(0).Mul(big.NewFloat(value), big.NewFloat(math.Pow10(-EthExp)))
 	return big.NewInt(0).SetString(wei.Text('f', 0), 10)
 }

@@ -84,7 +84,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, err
 	}
 
-	balance := eth.WeiToEth(bl)
+	balance := eth.ToEth(bl)
 
 	wbResp := &ct.WalletBalanceResponse{
 		Balance:    balance.InexactFloat64(),
@@ -151,7 +151,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, err
 	}
 
-	amountBig, ok := eth.EthToWei(baseInfo.Value)
+	amountBig, ok := eth.ToWei(baseInfo.Value)
 	if !ok {
 		return nil, errors.New(eth.AmountInvalid)
 	}
@@ -168,18 +168,18 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	if bl.Cmp(totalFunds) <= 0 {
 		return nil, fmt.Errorf("%v, suggest gas + amount = totalFunds <= balance: %v + %v = %v <= %v",
 			eth.FundsToLow,
-			eth.WeiToEth(totalGas),
-			eth.WeiToEth(amountBig),
-			eth.WeiToEth(totalFunds),
-			eth.WeiToEth(bl),
+			eth.ToEth(totalGas),
+			eth.ToEth(amountBig),
+			eth.ToEth(totalFunds),
+			eth.ToEth(bl),
 		)
 	}
 
 	logger.Sugar().Infof("suggest gas + amount = totalFunds: %v + %v = %v, balance: %v",
-		eth.WeiToEth(totalGas),
-		eth.WeiToEth(amountBig),
-		eth.WeiToEth(totalFunds),
-		eth.WeiToEth(bl),
+		eth.ToEth(totalGas),
+		eth.ToEth(amountBig),
+		eth.ToEth(totalFunds),
+		eth.ToEth(bl),
 	)
 
 	// build tx
