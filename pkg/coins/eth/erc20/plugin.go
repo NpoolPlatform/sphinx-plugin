@@ -204,7 +204,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		)
 	}
 
-	logger.Sugar().Infof("suggest gas : %v, balance: %v",
+	logger.Sugar().Infof("suggest gas: %v, balance: %v",
 		eth.ToEth(totalGas),
 		eth.ToEth(ethBalance),
 	)
