@@ -237,6 +237,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 			return true, err
 		}
 
+		// get estimate gas
 		to := common.HexToAddress(tokenInfo.Contract)
 		estimateGas, err = cli.EstimateGas(ctx, ethereum.CallMsg{
 			From:  common.HexToAddress(baseInfo.From),
