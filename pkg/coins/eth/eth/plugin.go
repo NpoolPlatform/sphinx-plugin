@@ -299,7 +299,6 @@ func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	}
 
 	if receipt.Status == types.ReceiptStatusSuccessful {
-
 		sResp := &ct.SyncResponse{ExitCode: 0}
 		out, err = json.Marshal(sResp)
 		if err != nil {
