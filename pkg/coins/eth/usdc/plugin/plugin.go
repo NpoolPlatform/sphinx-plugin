@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
@@ -17,6 +18,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	plugin_types "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
+	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -177,13 +179,41 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, env.ErrAddressInvalid
 	}
 
+	amount := big.NewFloat(baseInfo.Value)
+	amount.Mul(amount, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
+
+	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
+	if !ok {
+		return in, errors.New("invalid usd amount")
+	}
+
+	_abi, err := Usdcv21MetaData.GetAbi()
+	if err != nil {
+		return in, err
+	}
+
+	input, err := _abi.Pack(
+		"transfer",
+		common.HexToAddress(baseInfo.To),
+		amountBig,
+	)
+	if err != nil {
+		return in, err
+	}
+
+	if amountBig.Cmp(common.Big0) <= 0 {
+		return nil, errors.New("invalid eth amount")
+	}
+
 	client := eth.Client()
 
 	var (
-		chainID  *big.Int
-		nonce    uint64
-		gasPrice *big.Int
-		gasLimit = uint64(300_000)
+		chainID     *big.Int
+		ethBalance  *big.Int
+		nonce       uint64
+		estimateGas uint64
+		gasPrice    *big.Int
+		gasLimit    = uint64(300_000)
 	)
 
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
@@ -202,38 +232,53 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 			return true, err
 		}
 
+		ethBalance, err = cli.BalanceAt(ctx, common.HexToAddress(baseInfo.From), nil)
+		if err != nil || ethBalance == nil {
+			return true, err
+		}
+
+		to := common.HexToAddress(tokenInfo.Contract)
+		estimateGas, err = cli.EstimateGas(ctx, ethereum.CallMsg{
+			From:  common.HexToAddress(baseInfo.From),
+			To:    &to,
+			Value: big.NewInt(0),
+			Data:  input,
+		})
+		if err != nil {
+			return true, err
+		}
+
 		return false, err
 	})
 	if err != nil {
 		return nil, err
 	}
 
+	if ethBalance == nil || gasPrice == nil {
+		return nil, errors.New(eth.GetInfoFailed)
+	}
+
+	estimateGasBig := big.NewInt(int64(estimateGas))
+	estimateFee := big.NewInt(0).Mul(gasPrice, estimateGasBig)
+
+	if ethBalance.Cmp(estimateFee) <= 0 {
+		logger.Sugar().Warnf("from %v, estimate fee >= balance: %v >= %v",
+			baseInfo.From,
+			eth.ToEth(estimateFee),
+			eth.ToEth(ethBalance),
+		)
+	}
+
+	logger.Sugar().Infof("from %v, estimate fee: %v, balance: %v",
+		baseInfo.From,
+		eth.ToEth(estimateFee),
+		eth.ToEth(ethBalance),
+	)
+
 	tokenInfo.Contract = USDCContract(chainID.Int64())
 	if !common.IsHexAddress(tokenInfo.Contract) && common.HexToAddress("") != common.HexToAddress(tokenInfo.Contract) {
 		// TODO:is not env error,it will be replaced
 		return nil, env.ErrContractInvalid
-	}
-
-	amount := big.NewFloat(baseInfo.Value)
-	amount.Mul(amount, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
-
-	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
-	if !ok {
-		return in, errors.New("invalid usd amount")
-	}
-
-	_abi, err := Usdcv21MetaData.GetAbi()
-	input, err := _abi.Pack(
-		"transfer",
-		common.HexToAddress(baseInfo.To),
-		amountBig,
-	)
-	if err != nil {
-		return in, err
-	}
-
-	if amountBig.Cmp(common.Big0) <= 0 {
-		return nil, errors.New("invalid eth amount")
 	}
 
 	// build tx

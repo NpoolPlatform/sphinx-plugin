@@ -173,21 +173,23 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	}
 
 	estimateGasBig := big.NewInt(int64(estimateGas))
-	totalGas := big.NewInt(0).Mul(gasPrice, estimateGasBig)
+	estimateFee := big.NewInt(0).Mul(gasPrice, estimateGasBig)
 
-	totalFunds := big.NewInt(0).Add(totalGas, amountBig)
+	totalFunds := big.NewInt(0).Add(estimateFee, amountBig)
 
 	if bl.Cmp(totalFunds) <= 0 {
-		logger.Sugar().Errorf("estimate gas + amount = totalFunds >= balance: %v + %v = %v >= %v",
-			eth.ToEth(totalGas),
+		logger.Sugar().Warnf("from: %v, estimate fee + amount = totalFunds >= balance: %v + %v = %v >= %v",
+			baseInfo.From,
+			eth.ToEth(estimateFee),
 			eth.ToEth(amountBig),
 			eth.ToEth(totalFunds),
 			eth.ToEth(bl),
 		)
 	}
 
-	logger.Sugar().Infof("estimate gas + amount = totalFunds: %v + %v = %v, balance: %v",
-		eth.ToEth(totalGas),
+	logger.Sugar().Infof("from: %v, estimate fee + amount = totalFunds: %v + %v = %v, balance: %v",
+		baseInfo.From,
+		eth.ToEth(estimateFee),
 		eth.ToEth(amountBig),
 		eth.ToEth(totalFunds),
 		eth.ToEth(bl),
@@ -291,7 +293,13 @@ func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 		return nil, env.ErrWaitMessageOnChain
 	}
 
+	if receipt.EffectiveGasPrice != nil {
+		effectiveFee := big.NewInt(0).Mul(receipt.EffectiveGasPrice, big.NewInt(int64(receipt.GasUsed)))
+		logger.Sugar().Infof("tx %v, effactive fee: %v", broadcastedData.TxID, effectiveFee)
+	}
+
 	if receipt.Status == types.ReceiptStatusSuccessful {
+
 		sResp := &ct.SyncResponse{ExitCode: 0}
 		out, err = json.Marshal(sResp)
 		if err != nil {
