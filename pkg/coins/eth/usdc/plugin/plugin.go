@@ -213,7 +213,6 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		nonce       uint64
 		estimateGas uint64
 		gasPrice    *big.Int
-		gasLimit    = uint64(300_000)
 	)
 
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
@@ -259,6 +258,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, errors.New(eth.GetInfoFailed)
 	}
 
+	estimateGas = uint64(float64(estimateGas) * eth.GasTolerance)
 	estimateGasBig := big.NewInt(int64(estimateGas))
 	estimateFee := big.NewInt(0).Mul(gasPrice, estimateGasBig)
 
@@ -287,7 +287,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		nonce,
 		common.HexToAddress(tokenInfo.Contract),
 		big.NewInt(0),
-		gasLimit,
+		estimateGas,
 		big.NewInt(gasPrice.Int64()),
 		input,
 	)

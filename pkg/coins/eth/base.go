@@ -27,6 +27,7 @@ const (
 	GetInfoFailed = `get info failed from the eth node`
 	DialTimeout   = 3 * time.Second
 	EthExp        = -18
+	GasTolerance  = 1.25
 )
 
 var (

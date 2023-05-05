@@ -157,7 +157,6 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		estimateGas uint64
 		ethBalance  *big.Int
 		gasPrice    *big.Int
-		gasLimit    = uint64(300_000)
 	)
 	callOpts := &bind.CallOpts{
 		Pending: true,
@@ -221,6 +220,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, errors.New(eth.GetInfoFailed)
 	}
 
+	estimateGas = uint64(float64(estimateGas) * eth.GasTolerance)
 	estimateGasBig := big.NewInt(int64(estimateGas))
 	estimateFee := big.NewInt(0).Mul(gasPrice, estimateGasBig)
 
@@ -247,7 +247,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		nonce,
 		common.HexToAddress(tokenInfo.Contract),
 		big.NewInt(0),
-		gasLimit,
+		estimateGas,
 		big.NewInt(gasPrice.Int64()),
 		input,
 	)
