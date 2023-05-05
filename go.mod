@@ -11,7 +11,7 @@ require (
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
-	github.com/ethereum/go-ethereum v1.11.6
+	github.com/ethereum/go-ethereum v1.10.26
 	github.com/filecoin-project/go-address v0.0.6
 	github.com/filecoin-project/go-jsonrpc v0.1.5
 	github.com/filecoin-project/go-state-types v0.1.3
@@ -46,9 +46,9 @@ require (
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/coocood/freecache v1.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/deckarep/golang-set/v2 v2.1.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/dfuse-io/logging v0.0.0-20210109005628-b97a57253f70 // indirect
 	github.com/fatih/color v1.13.0 // indirect
@@ -86,6 +86,7 @@ require (
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect

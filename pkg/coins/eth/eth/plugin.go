@@ -293,11 +293,6 @@ func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 		return nil, env.ErrWaitMessageOnChain
 	}
 
-	if receipt.EffectiveGasPrice != nil {
-		effectiveFee := big.NewInt(0).Mul(receipt.EffectiveGasPrice, big.NewInt(int64(receipt.GasUsed)))
-		logger.Sugar().Infof("tx %v, effactive fee: %v", broadcastedData.TxID, effectiveFee)
-	}
-
 	if receipt.Status == types.ReceiptStatusSuccessful {
 		sResp := &ct.SyncResponse{ExitCode: 0}
 		out, err = json.Marshal(sResp)
