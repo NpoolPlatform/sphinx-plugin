@@ -24,6 +24,7 @@ const (
 	NonceTooLow   = `nonce too low`
 	AmountInvalid = `invalid amount`
 	TokenTooLow   = `token funds too low`
+	GetInfoFailed = `get info failed from the eth node`
 	DialTimeout   = 3 * time.Second
 	EthExp        = -18
 )
