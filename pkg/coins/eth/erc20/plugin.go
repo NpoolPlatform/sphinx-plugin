@@ -17,6 +17,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	plugin_types "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 
+	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -134,14 +135,28 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return in, fmt.Errorf("%v,amount %v", eth.AmountInvalid, amount)
 	}
 
+	_abi, err := Erc20tokenMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+
+	input, err := _abi.Pack(
+		"transfer",
+		common.HexToAddress(baseInfo.To),
+		amountBig,
+	)
+	if err != nil {
+		return in, err
+	}
+
 	client := eth.Client()
 
 	var (
-		chainID    *big.Int
-		nonce      uint64
-		ethBalance *big.Int
-		gasPrice   *big.Int
-		gasLimit   = uint64(300_000)
+		chainID     *big.Int
+		nonce       uint64
+		estimateGas uint64
+		ethBalance  *big.Int
+		gasPrice    *big.Int
 	)
 	callOpts := &bind.CallOpts{
 		Pending: true,
@@ -184,6 +199,17 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 			return true, err
 		}
 
+		to := common.HexToAddress(tokenInfo.Contract)
+		estimateGas, err = cli.EstimateGas(ctx, ethereum.CallMsg{
+			From:  common.HexToAddress(baseInfo.From),
+			To:    &to,
+			Value: big.NewInt(0),
+			Data:  input,
+		})
+		if err != nil {
+			return true, err
+		}
+
 		return false, err
 	})
 	if err != nil {
@@ -191,38 +217,26 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	}
 
 	if ethBalance == nil || gasPrice == nil {
-		return nil, errors.New("node is busy")
+		return nil, errors.New(eth.GetInfoFailed)
 	}
 
-	gasLimitBig := big.NewInt(int64(gasLimit))
-	totalGas := big.NewInt(0).Mul(gasPrice, gasLimitBig)
+	estimateGas = uint64(float64(estimateGas) * eth.GasTolerance)
+	estimateGasBig := big.NewInt(int64(estimateGas))
+	estimateFee := big.NewInt(0).Mul(gasPrice, estimateGasBig)
 
-	if ethBalance.Cmp(totalGas) <= 0 {
-		return nil, fmt.Errorf("%v, suggest gas  >= balance: %v >= %v",
-			eth.FundsTooLow,
-			eth.ToEth(totalGas),
+	if ethBalance.Cmp(estimateFee) <= 0 {
+		logger.Sugar().Warnf("from %v, estimate fee >= balance: %v >= %v",
+			baseInfo.From,
+			eth.ToEth(estimateFee),
 			eth.ToEth(ethBalance),
 		)
 	}
 
-	logger.Sugar().Infof("suggest gas: %v, balance: %v",
-		eth.ToEth(totalGas),
+	logger.Sugar().Infof("from %v, estimate fee: %v, balance: %v",
+		baseInfo.From,
+		eth.ToEth(estimateFee),
 		eth.ToEth(ethBalance),
 	)
-
-	_abi, err := Erc20tokenMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
-
-	input, err := _abi.Pack(
-		"transfer",
-		common.HexToAddress(baseInfo.To),
-		amountBig,
-	)
-	if err != nil {
-		return in, err
-	}
 
 	if amountBig.Cmp(common.Big0) <= 0 {
 		return nil, errors.New("invalid eth amount")
@@ -233,7 +247,7 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		nonce,
 		common.HexToAddress(tokenInfo.Contract),
 		big.NewInt(0),
-		gasLimit,
+		estimateGas,
 		big.NewInt(gasPrice.Int64()),
 		input,
 	)

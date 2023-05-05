@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
@@ -15,6 +14,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -110,14 +110,20 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, env.ErrAddressInvalid
 	}
 
+	amountBig, ok := eth.ToWei(baseInfo.Value)
+	if !ok {
+		return nil, errors.New(eth.AmountInvalid)
+	}
+
 	client := eth.Client()
 
 	var (
-		chainID  *big.Int
-		nonce    uint64
-		bl       *big.Int
-		gasPrice *big.Int
-		gasLimit = uint64(21_000)
+		chainID     *big.Int
+		nonce       uint64
+		estimateGas uint64
+		bl          *big.Int
+		gasPrice    *big.Int
+		gasLimit    = uint64(21_000)
 	)
 
 	err = client.WithClient(ctx, func(ctx context.Context, cli *ethclient.Client) (bool, error) {
@@ -136,10 +142,17 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 			return true, err
 		}
 
-		bl, err = cli.BalanceAt(ctx, common.HexToAddress(baseInfo.From), nil)
-		if err == nil && bl != nil {
-			return false, err
+		to := common.HexToAddress(baseInfo.To)
+		estimateGas, err = cli.EstimateGas(ctx, ethereum.CallMsg{
+			From:  common.HexToAddress(baseInfo.From),
+			To:    &to,
+			Value: amountBig,
+		})
+		if err != nil {
+			return true, err
 		}
+
+		bl, err = cli.BalanceAt(ctx, common.HexToAddress(baseInfo.From), nil)
 		if err != nil {
 			return true, err
 		}
@@ -151,32 +164,32 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, err
 	}
 
-	amountBig, ok := eth.ToWei(baseInfo.Value)
-	if !ok {
-		return nil, errors.New(eth.AmountInvalid)
+	if bl == nil {
+		return nil, errors.New(eth.GetInfoFailed)
 	}
 
 	if amountBig.Cmp(common.Big0) <= 0 {
 		return nil, errors.New(eth.AmountInvalid)
 	}
 
-	gasLimitBig := big.NewInt(int64(gasLimit))
-	totalGas := big.NewInt(0).Mul(gasPrice, gasLimitBig)
+	estimateGasBig := big.NewInt(int64(estimateGas))
+	estimateFee := big.NewInt(0).Mul(gasPrice, estimateGasBig)
 
-	totalFunds := big.NewInt(0).Add(totalGas, amountBig)
+	totalFunds := big.NewInt(0).Add(estimateFee, amountBig)
 
 	if bl.Cmp(totalFunds) <= 0 {
-		return nil, fmt.Errorf("%v, suggest gas + amount = totalFunds <= balance: %v + %v = %v >= %v",
-			eth.FundsTooLow,
-			eth.ToEth(totalGas),
+		logger.Sugar().Warnf("from: %v, estimate fee + amount = totalFunds >= balance: %v + %v = %v >= %v",
+			baseInfo.From,
+			eth.ToEth(estimateFee),
 			eth.ToEth(amountBig),
 			eth.ToEth(totalFunds),
 			eth.ToEth(bl),
 		)
 	}
 
-	logger.Sugar().Infof("suggest gas + amount = totalFunds: %v + %v = %v, balance: %v",
-		eth.ToEth(totalGas),
+	logger.Sugar().Infof("from: %v, estimate fee + amount = totalFunds: %v + %v = %v, balance: %v",
+		baseInfo.From,
+		eth.ToEth(estimateFee),
 		eth.ToEth(amountBig),
 		eth.ToEth(totalFunds),
 		eth.ToEth(bl),
@@ -269,6 +282,7 @@ func SyncTxState(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 		if err != nil {
 			return true, err
 		}
+
 		return false, err
 	})
 	if err != nil {
