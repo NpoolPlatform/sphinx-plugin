@@ -18,12 +18,13 @@ type (
 )
 
 const (
-	OpGetBalance OpType = 0
-	OpPreSign    OpType = 1
-	OpBroadcast  OpType = 2
-	OpSyncTx     OpType = 3
-	OpWalletNew  OpType = 20
-	OpSign       OpType = 21
+	OpGetBalance  OpType = 0
+	OpPreSign     OpType = 1
+	OpBroadcast   OpType = 2
+	OpSyncTx      OpType = 3
+	OpWalletNew   OpType = 20
+	OpSign        OpType = 21
+	OpEstimateGas OpType = 30
 )
 
 var (

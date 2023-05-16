@@ -23,8 +23,10 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/test-go/testify v1.1.4
 	github.com/urfave/cli/v2 v2.17.2-0.20221006022127-8f469abc00aa
-	google.golang.org/grpc v1.54.0
+	google.golang.org/grpc v1.55.0
 )
+
+replace github.com/NpoolPlatform/message => github.com/NpoolPlatform/message v0.0.0-20230516071441-055b7bd6fc71
 
 require (
 	ariga.io/atlas v0.5.1-0.20220717122844-8593d7eb1a8e // indirect
@@ -253,7 +255,7 @@ require (
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923 // indirect
+	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect

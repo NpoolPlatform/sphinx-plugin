@@ -225,7 +225,13 @@ func (c *pluginClient) recv() {
 					goto send
 				}
 
-				handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpGetBalance)
+				switch transactionType {
+				case sphinxproxy.TransactionType_Balance:
+					handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpGetBalance)
+				case sphinxproxy.TransactionType_EstimateGas:
+					handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpEstimateGas)
+				}
+
 				if err != nil {
 					log.Errorf("GetCoinPlugin get handler error: %v", err)
 					resp = &sphinxproxy.ProxyPluginResponse{

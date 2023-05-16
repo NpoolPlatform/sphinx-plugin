@@ -5,10 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
+	"github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -28,6 +30,11 @@ func init() {
 		coins.Ethereum,
 		register.OpGetBalance,
 		walletBalance,
+	)
+	register.RegisteTokenHandler(
+		coins.Ethereum,
+		register.OpEstimateGas,
+		estimateGas,
 	)
 	register.RegisteTokenHandler(
 		coins.Ethereum,
@@ -93,6 +100,67 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	out, err = json.Marshal(wbResp)
 
 	return out, err
+}
+
+func estimateGas(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
+	esGasReq := &sphinxproxy.GetEstimateGasRequest{}
+	err = json.Unmarshal(in, esGasReq)
+	if err != nil {
+		return nil, err
+	}
+
+	client := eth.Client()
+	mockFrom := common.HexToAddress("")
+	mockTo := common.HexToAddress("")
+	var mockValueInt int64 = 112233
+	mockValue := big.NewInt(mockValueInt)
+
+	var gasLimit uint64
+	var blockHeight uint64
+	var gasPrice *big.Int
+	var gasTips *big.Int
+	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		gasLimit, err = c.EstimateGas(ctx, ethereum.CallMsg{
+			From:  mockFrom,
+			To:    &mockTo,
+			Value: mockValue,
+		})
+		if err != nil {
+			return true, err
+		}
+
+		gasPrice, err = c.SuggestGasPrice(ctx)
+		if err != nil {
+			return true, err
+		}
+
+		gasTips, err = c.SuggestGasTipCap(ctx)
+		if err != nil {
+			return true, err
+		}
+
+		blockHeight, err = c.BlockNumber(ctx)
+		if err != nil {
+			return true, err
+		}
+
+		return false, err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	gasLimitBig := big.NewInt(int64(gasLimit))
+	estimateFee := big.NewInt(0).Mul(gasPrice, gasLimitBig)
+
+	wbResp := &sphinxproxy.GetEstimateGasResponse{
+		GasLimit:  fmt.Sprint(gasLimit),
+		GasPrice:  gasPrice.String(),
+		Fee:       eth.ToEth(estimateFee).String(),
+		TipsPrice: gasTips.String(),
+		BlockNum:  blockHeight,
+	}
+	return json.Marshal(wbResp)
 }
 
 func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
