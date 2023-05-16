@@ -26,7 +26,7 @@ require (
 	google.golang.org/grpc v1.55.0
 )
 
-replace github.com/NpoolPlatform/message => github.com/NpoolPlatform/message v0.0.0-20230516071441-055b7bd6fc71
+replace github.com/NpoolPlatform/message => github.com/NpoolPlatform/message v0.0.0-20230516092517-db9374403bf7
 
 require (
 	ariga.io/atlas v0.5.1-0.20220717122844-8593d7eb1a8e // indirect

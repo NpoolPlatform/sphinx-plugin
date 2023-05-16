@@ -12,3 +12,7 @@
 
 - Gas + Value < Balance
 - 链上估计gasPrice
+
+## 其他功能
+
+estimateGas 目前只有eth链上的支持

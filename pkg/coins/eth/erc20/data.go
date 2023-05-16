@@ -3,11 +3,18 @@ package erc20
 import (
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 )
 
 func init() {
 	for i := range erc20tokens {
+		// set chain info
+		erc20tokens[i].ChainType = eth.ChainType
+		erc20tokens[i].ChainNativeUnit = eth.ChainNativeUnit
+		erc20tokens[i].ChainAtomicUnit = eth.ChainAtomicUnit
+		erc20tokens[i].ChainUnitExp = eth.ChainUnitExp
+
 		erc20tokens[i].TokenType = "erc20"
 		erc20tokens[i].Net = "main"
 		erc20tokens[i].Waight = 1

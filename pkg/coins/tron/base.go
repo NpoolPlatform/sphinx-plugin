@@ -30,6 +30,11 @@ const (
 	AddressInvalid         = `address is invalid`
 	GetAccountFailed       = `the tron node get account failed`
 	BuildTransactionFailed = `the tron node build transaction failed`
+
+	ChainType       = sphinxplugin.ChainType_Tron
+	ChainNativeUnit = "TRX"
+	ChainAtomicUnit = "SUN"
+	ChainUnitExp    = 6
 )
 
 var (
@@ -63,6 +68,12 @@ var (
 
 func init() {
 	for _, token := range tronTokenList {
+		// set chain info
+		token.ChainType = ChainType
+		token.ChainNativeUnit = ChainNativeUnit
+		token.ChainAtomicUnit = ChainAtomicUnit
+		token.ChainUnitExp = ChainUnitExp
+
 		token.Waight = 100
 		token.Net = coins.CoinNetMain
 		token.Contract = token.OfficialContract

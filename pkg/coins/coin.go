@@ -44,6 +44,10 @@ type TokenInfo struct {
 	Waight           int
 	DisableRegiste   bool
 	CoinType         sphinxplugin.CoinType
+	ChainType        sphinxplugin.ChainType
+	ChainNativeUnit  string
+	ChainAtomicUnit  string
+	ChainUnitExp     int64
 }
 
 const (
@@ -165,6 +169,21 @@ func CoinStr2CoinType(netEnv, coinStr string) sphinxplugin.CoinType {
 	_netEnv := strings.ToLower(netEnv)
 	_coinStr := strings.ToLower(coinStr)
 	return netCoinMap[_netEnv][_coinStr]
+}
+
+func ToTestChainType(chainType sphinxplugin.ChainType) sphinxplugin.ChainType {
+	if chainType == sphinxplugin.ChainType_UnKnow {
+		return sphinxplugin.ChainType_UnKnow
+	}
+	name, ok := sphinxplugin.ChainType_name[int32(chainType)]
+	if !ok {
+		return sphinxplugin.ChainType_UnKnow
+	}
+	_chainType, ok := sphinxplugin.ChainType_value[fmt.Sprintf("T%v", name)]
+	if !ok {
+		return sphinxplugin.ChainType_UnKnow
+	}
+	return sphinxplugin.ChainType(_chainType)
 }
 
 func ToTestCoinType(coinType sphinxplugin.CoinType) sphinxplugin.CoinType {

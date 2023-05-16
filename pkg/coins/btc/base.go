@@ -18,6 +18,11 @@ const (
 	DefaultMinConfirms = 6
 	// DefaultMaxConfirms ..
 	DefaultMaxConfirms = 9999999
+
+	ChainType       = sphinxplugin.ChainType_Bitcoin
+	ChainNativeUnit = "BTC"
+	ChainAtomicUnit = "Satoshi"
+	ChainUnitExp    = 8
 )
 
 // BTCNetMap btc net map
@@ -43,6 +48,12 @@ var (
 )
 
 func init() {
+	// set chain info
+	bitcoinToken.ChainType = ChainType
+	bitcoinToken.ChainNativeUnit = ChainNativeUnit
+	bitcoinToken.ChainAtomicUnit = ChainAtomicUnit
+	bitcoinToken.ChainUnitExp = ChainUnitExp
+
 	bitcoinToken.Waight = 100
 	bitcoinToken.Net = coins.CoinNetMain
 	bitcoinToken.Contract = bitcoinToken.OfficialContract

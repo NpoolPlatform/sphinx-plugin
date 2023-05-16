@@ -19,15 +19,19 @@ import (
 )
 
 const (
-	GasTooLow     = `intrinsic gas too low`
-	FundsTooLow   = `insufficient funds for gas * price + value`
-	NonceTooLow   = `nonce too low`
-	AmountInvalid = `invalid amount`
-	TokenTooLow   = `token funds too low`
-	GetInfoFailed = `get info failed from the eth node`
-	DialTimeout   = 3 * time.Second
-	EthExp        = -18
-	GasTolerance  = 1.25
+	GasTooLow       = `intrinsic gas too low`
+	FundsTooLow     = `insufficient funds for gas * price + value`
+	NonceTooLow     = `nonce too low`
+	AmountInvalid   = `invalid amount`
+	TokenTooLow     = `token funds too low`
+	GetInfoFailed   = `get info failed from the eth node`
+	DialTimeout     = 3 * time.Second
+	EthExp          = -18
+	GasTolerance    = 1.25
+	ChainType       = sphinxplugin.ChainType_Ethereum
+	ChainNativeUnit = "Eth"
+	ChainAtomicUnit = "Wei"
+	ChainUnitExp    = 18
 )
 
 var (
@@ -43,6 +47,12 @@ var (
 
 func init() {
 	for i := range ethTokens {
+		// set chain info
+		ethTokens[i].ChainType = ChainType
+		ethTokens[i].ChainNativeUnit = ChainNativeUnit
+		ethTokens[i].ChainAtomicUnit = ChainAtomicUnit
+		ethTokens[i].ChainUnitExp = ChainUnitExp
+
 		ethTokens[i].Net = coins.CoinNetMain
 		ethTokens[i].Contract = ethTokens[i].OfficialContract
 		register.RegisteTokenInfo(&ethTokens[i])

@@ -19,14 +19,28 @@ var FILNetMap = map[string]address.Network{
 	coins.CoinNetTest: address.Testnet,
 }
 
+const (
+	ChainType       = sphinxplugin.ChainType_Filecoin
+	ChainNativeUnit = "FIL"
+	ChainAtomicUnit = "attoFIL"
+	ChainUnitExp    = 18
+)
+
 var (
-	FilTxFailed   = `fil tx failed`
-	filNonceLow   = `message nonce too low`
-	stopErrMsg    = []string{FilTxFailed, filNonceLow}
+	FilTxFailed = `fil tx failed`
+	filNonceLow = `message nonce too low`
+	stopErrMsg  = []string{FilTxFailed, filNonceLow}
+
 	filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 18, Unit: "FIL", Name: "filecoin", OfficialContract: "filecoin", TokenType: coins.Filecoin}
 )
 
 func init() {
+	// set chain info
+	filecoinToken.ChainType = ChainType
+	filecoinToken.ChainNativeUnit = ChainNativeUnit
+	filecoinToken.ChainAtomicUnit = ChainAtomicUnit
+	filecoinToken.ChainUnitExp = ChainUnitExp
+
 	filecoinToken.Waight = 100
 	filecoinToken.Net = coins.CoinNetMain
 	filecoinToken.Contract = filecoinToken.OfficialContract

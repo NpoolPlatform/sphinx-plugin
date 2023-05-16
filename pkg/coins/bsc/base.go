@@ -12,6 +12,11 @@ import (
 const (
 	BNBACCURACY   = 18
 	BEP20ACCURACY = 18
+
+	ChainType       = sphinxplugin.ChainType_Binancecoin
+	ChainNativeUnit = "BNB"
+	ChainAtomicUnit = "Wei"
+	ChainUnitExp    = 18
 )
 
 var (
@@ -41,6 +46,12 @@ var (
 
 func init() {
 	for _, token := range bscTokenList {
+		// set chain info
+		token.ChainType = ChainType
+		token.ChainNativeUnit = ChainNativeUnit
+		token.ChainAtomicUnit = ChainAtomicUnit
+		token.ChainUnitExp = ChainUnitExp
+
 		token.Waight = 100
 		token.Net = coins.CoinNetMain
 		token.Contract = token.OfficialContract

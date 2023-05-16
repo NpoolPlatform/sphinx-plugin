@@ -18,6 +18,13 @@ var (
 	EmptyWalletS = big.Float{}
 )
 
+const (
+	ChainType       = sphinxplugin.ChainType_Solana
+	ChainNativeUnit = "SOL"
+	ChainAtomicUnit = "lamport"
+	ChainUnitExp    = 9
+)
+
 var (
 	// ErrSolBlockNotFound ..
 	ErrSolBlockNotFound = errors.New("not found confirmed block in solana chain")
@@ -33,6 +40,12 @@ var (
 )
 
 func init() {
+	// set chain info
+	solanaToken.ChainType = ChainType
+	solanaToken.ChainNativeUnit = ChainNativeUnit
+	solanaToken.ChainAtomicUnit = ChainAtomicUnit
+	solanaToken.ChainUnitExp = ChainUnitExp
+
 	solanaToken.Waight = 100
 	solanaToken.Net = coins.CoinNetMain
 	solanaToken.Contract = solanaToken.OfficialContract
