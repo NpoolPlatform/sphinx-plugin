@@ -3,6 +3,7 @@ package fil
 import (
 	"strings"
 
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -40,6 +41,7 @@ func init() {
 	filecoinToken.ChainNativeUnit = ChainNativeUnit
 	filecoinToken.ChainAtomicUnit = ChainAtomicUnit
 	filecoinToken.ChainUnitExp = ChainUnitExp
+	filecoinToken.GasType = v1.GasType_GasUnsupported
 
 	filecoinToken.Waight = 100
 	filecoinToken.Net = coins.CoinNetMain

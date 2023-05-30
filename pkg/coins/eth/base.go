@@ -11,6 +11,7 @@ import (
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	build_chain "github.com/NpoolPlatform/build-chain/pkg/coins/eth"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -52,6 +53,7 @@ func init() {
 		ethTokens[i].ChainNativeUnit = ChainNativeUnit
 		ethTokens[i].ChainAtomicUnit = ChainAtomicUnit
 		ethTokens[i].ChainUnitExp = ChainUnitExp
+		ethTokens[i].GasType = v1.GasType_DynamicGas
 
 		ethTokens[i].Net = coins.CoinNetMain
 		ethTokens[i].Contract = ethTokens[i].OfficialContract

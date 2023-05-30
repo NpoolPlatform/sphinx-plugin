@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"strings"
 
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -73,6 +74,7 @@ func init() {
 		token.ChainNativeUnit = ChainNativeUnit
 		token.ChainAtomicUnit = ChainAtomicUnit
 		token.ChainUnitExp = ChainUnitExp
+		token.GasType = v1.GasType_GasUnsupported
 
 		token.Waight = 100
 		token.Net = coins.CoinNetMain

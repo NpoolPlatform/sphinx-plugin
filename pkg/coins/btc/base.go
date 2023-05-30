@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -53,6 +54,7 @@ func init() {
 	bitcoinToken.ChainNativeUnit = ChainNativeUnit
 	bitcoinToken.ChainAtomicUnit = ChainAtomicUnit
 	bitcoinToken.ChainUnitExp = ChainUnitExp
+	bitcoinToken.GasType = v1.GasType_GasUnsupported
 
 	bitcoinToken.Waight = 100
 	bitcoinToken.Net = coins.CoinNetMain

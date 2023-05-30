@@ -1,6 +1,7 @@
 package erc20
 
 import (
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
@@ -14,6 +15,7 @@ func init() {
 		erc20tokens[i].ChainNativeUnit = eth.ChainNativeUnit
 		erc20tokens[i].ChainAtomicUnit = eth.ChainAtomicUnit
 		erc20tokens[i].ChainUnitExp = eth.ChainUnitExp
+		erc20tokens[i].GasType = v1.GasType_DynamicGas
 
 		erc20tokens[i].TokenType = "erc20"
 		erc20tokens[i].Net = "main"

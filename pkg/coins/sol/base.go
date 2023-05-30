@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strings"
 
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -45,6 +46,7 @@ func init() {
 	solanaToken.ChainNativeUnit = ChainNativeUnit
 	solanaToken.ChainAtomicUnit = ChainAtomicUnit
 	solanaToken.ChainUnitExp = ChainUnitExp
+	solanaToken.GasType = v1.GasType_GasUnsupported
 
 	solanaToken.Waight = 100
 	solanaToken.Net = coins.CoinNetMain
