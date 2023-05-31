@@ -49,7 +49,9 @@ type TokenInfo struct {
 	ChainType        sphinxplugin.ChainType
 	ChainNativeUnit  string
 	ChainAtomicUnit  string
-	ChainUnitExp     int64
+	ChainUnitExp     uint32
+	ChainID          string
+	ChainNickName    string
 	GasType          v1.GasType
 }
 

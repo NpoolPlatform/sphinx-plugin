@@ -133,13 +133,13 @@ func (c *pluginClient) register() {
 			log.Info("register new coin exit")
 			return
 		case <-time.After(registerCoinDuration):
-			coinNetwork, _coinType, err := env.CoinInfo()
+			coinInfo, err := env.GetCoinInfo()
 			if err != nil {
 				log.Errorf("register new coin error: %v", err)
 				continue
 			}
-			coinType := coins.CoinStr2CoinType(coinNetwork, _coinType)
 
+			coinType := coins.CoinStr2CoinType(coinInfo.NetworkType, coinInfo.CoinType)
 			tokenInfos := getter.GetTokenInfos(coinType)
 
 			tokensLen := 0
@@ -154,6 +154,8 @@ func (c *pluginClient) register() {
 					ChainNativeUnit: tokenInfo.ChainNativeUnit,
 					ChainAtomicUnit: tokenInfo.ChainAtomicUnit,
 					ChainUnitExp:    tokenInfo.ChainUnitExp,
+					ChainID:         tokenInfo.ChainID,
+					ChainNickName:   tokenInfo.ChainNickName,
 					GasType:         tokenInfo.GasType,
 					Name:            tokenInfo.Name,
 					TransactionType: sphinxproxy.TransactionType_RegisterCoin,
@@ -166,7 +168,7 @@ func (c *pluginClient) register() {
 				c.sendChannel <- resp
 			}
 			if logCount%logInterval == 0 {
-				log.Infof("register new coin: %v for %s network,has %v tokens,registered %v", coinType, coinNetwork, len(tokenInfos), tokensLen)
+				log.Infof("register new coin: %v for %s network,has %v tokens,registered %v", coinType, coinInfo.NetworkType, len(tokenInfos), tokensLen)
 				logCount = 0
 			}
 			logCount++

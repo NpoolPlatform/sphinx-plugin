@@ -42,6 +42,8 @@ func init() {
 	filecoinToken.ChainAtomicUnit = ChainAtomicUnit
 	filecoinToken.ChainUnitExp = ChainUnitExp
 	filecoinToken.GasType = v1.GasType_GasUnsupported
+	filecoinToken.ChainID = "314"
+	filecoinToken.ChainNickName = ChainType.String()
 
 	filecoinToken.Waight = 100
 	filecoinToken.Net = coins.CoinNetMain

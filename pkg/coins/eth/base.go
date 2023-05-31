@@ -54,6 +54,8 @@ func init() {
 		ethTokens[i].ChainAtomicUnit = ChainAtomicUnit
 		ethTokens[i].ChainUnitExp = ChainUnitExp
 		ethTokens[i].GasType = v1.GasType_DynamicGas
+		ethTokens[i].ChainID = "1"
+		ethTokens[i].ChainNickName = ChainType.String()
 
 		ethTokens[i].Net = coins.CoinNetMain
 		ethTokens[i].Contract = ethTokens[i].OfficialContract

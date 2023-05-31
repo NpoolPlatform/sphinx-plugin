@@ -47,6 +47,8 @@ func init() {
 	solanaToken.ChainAtomicUnit = ChainAtomicUnit
 	solanaToken.ChainUnitExp = ChainUnitExp
 	solanaToken.GasType = v1.GasType_GasUnsupported
+	solanaToken.ChainID = "101"
+	solanaToken.ChainNickName = ChainType.String()
 
 	solanaToken.Waight = 100
 	solanaToken.Net = coins.CoinNetMain

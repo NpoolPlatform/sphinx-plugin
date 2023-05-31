@@ -55,6 +55,8 @@ func init() {
 	bitcoinToken.ChainAtomicUnit = ChainAtomicUnit
 	bitcoinToken.ChainUnitExp = ChainUnitExp
 	bitcoinToken.GasType = v1.GasType_GasUnsupported
+	bitcoinToken.ChainID = "1"
+	bitcoinToken.ChainNickName = ChainType.String()
 
 	bitcoinToken.Waight = 100
 	bitcoinToken.Net = coins.CoinNetMain

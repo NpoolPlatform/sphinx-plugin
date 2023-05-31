@@ -14,6 +14,8 @@ const (
 
 	// for all chain
 	ENVCOINTYPE      = "ENV_COIN_TYPE"
+	ENVCHAINID       = "ENV_CHAIN_ID"
+	ENVCHAINNICKNAME = "ENV_CHAIN_NICKNAME"
 	ENVCOINLOCALAPI  = "ENV_COIN_LOCAL_API"
 	ENVCOINPUBLICAPI = "ENV_COIN_PUBLIC_API"
 
@@ -26,9 +28,11 @@ const (
 
 var (
 	// env error----------------------------
-	ErrEVNCoinType     = errors.New("env ENV_COIN_TYPE not found")
-	ErrEVNCoinNet      = errors.New("env ENV_COIN_NET not found")
-	ErrEVNCoinNetValue = errors.New("env ENV_COIN_NET value only support main|test")
+	ErrEVNCoinType      = errors.New("env ENV_COIN_TYPE not found")
+	ErrEVNCoinNet       = errors.New("env ENV_COIN_NET not found")
+	ErrEVNChainID       = errors.New("env ENV_CHAIN_ID not found")
+	ErrEVNChainNickName = errors.New("env ENV_CHAIN_NICKNAME not found")
+	ErrEVNCoinNetValue  = errors.New("env ENV_COIN_NET value only support main|test")
 
 	ErrENVCoinLocalAPINotFound  = errors.New("env ENV_COIN_LOCAL_API not found")
 	ErrENVCoinPublicAPINotFound = errors.New("env ENV_COIN_PUBLIC_API not found")
@@ -59,15 +63,21 @@ func LookupEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
-func CoinInfo() (networkType, coinType string, err error) {
+type CoinInfo struct {
+	NetworkType string
+	CoinType    string
+}
+
+func GetCoinInfo() (coinInfo *CoinInfo, err error) {
 	var ok bool
-	networkType, ok = LookupEnv(ENVCOINNET)
+	coinInfo = &CoinInfo{}
+	coinInfo.NetworkType, ok = LookupEnv(ENVCOINNET)
 	if !ok {
 		err = ErrEVNCoinNet
 		return
 	}
 
-	coinType, ok = LookupEnv(ENVCOINTYPE)
+	coinInfo.CoinType, ok = LookupEnv(ENVCOINTYPE)
 	if !ok {
 		err = ErrEVNCoinType
 		return
