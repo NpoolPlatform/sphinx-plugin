@@ -31,7 +31,7 @@ var (
 	ErrEVNCoinType      = errors.New("env ENV_COIN_TYPE not found")
 	ErrEVNCoinNet       = errors.New("env ENV_COIN_NET not found")
 	ErrEVNChainID       = errors.New("env ENV_CHAIN_ID not found")
-	ErrEVNChainNickName = errors.New("env ENV_CHAIN_NICKNAME not found")
+	ErrEVNChainNickname = errors.New("env ENV_CHAIN_NICKNAME not found")
 	ErrEVNCoinNetValue  = errors.New("env ENV_COIN_NET value only support main|test")
 
 	ErrENVCoinLocalAPINotFound  = errors.New("env ENV_COIN_LOCAL_API not found")

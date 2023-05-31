@@ -20,10 +20,11 @@ const (
 	// DefaultMaxConfirms ..
 	DefaultMaxConfirms = 9999999
 
-	ChainType       = sphinxplugin.ChainType_Bitcoin
-	ChainNativeUnit = "BTC"
-	ChainAtomicUnit = "Satoshi"
-	ChainUnitExp    = 8
+	ChainType           = sphinxplugin.ChainType_Bitcoin
+	ChainNativeUnit     = "BTC"
+	ChainAtomicUnit     = "Satoshi"
+	ChainUnitExp        = 8
+	ChainNativeCoinName = "bitcoin"
 )
 
 // BTCNetMap btc net map
@@ -45,7 +46,7 @@ var (
 		env.ErrAddressInvalid.Error(),
 		env.ErrAmountInvalid.Error(),
 	}
-	bitcoinToken = &coins.TokenInfo{OfficialName: "Bitcoin", Decimal: 8, Unit: "BTC", Name: "bitcoin", OfficialContract: "bitcoin", TokenType: coins.Bitcoin}
+	bitcoinToken = &coins.TokenInfo{OfficialName: "Bitcoin", Decimal: 8, Unit: "BTC", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Bitcoin}
 )
 
 func init() {
@@ -56,7 +57,8 @@ func init() {
 	bitcoinToken.ChainUnitExp = ChainUnitExp
 	bitcoinToken.GasType = v1.GasType_GasUnsupported
 	bitcoinToken.ChainID = "1"
-	bitcoinToken.ChainNickName = ChainType.String()
+	bitcoinToken.ChainNickname = ChainType.String()
+	bitcoinToken.ChainNativeCoinName = ChainNativeCoinName
 
 	bitcoinToken.Waight = 100
 	bitcoinToken.Net = coins.CoinNetMain

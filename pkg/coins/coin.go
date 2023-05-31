@@ -35,24 +35,25 @@ const (
 )
 
 type TokenInfo struct {
-	OfficialName     string
-	OfficialContract string
-	Contract         string // if ENV is main Contract = OfficialContract
-	TokenType        TokenType
-	Net              string
-	Unit             string
-	Decimal          int
-	Name             string
-	Waight           int
-	DisableRegiste   bool
-	CoinType         sphinxplugin.CoinType
-	ChainType        sphinxplugin.ChainType
-	ChainNativeUnit  string
-	ChainAtomicUnit  string
-	ChainUnitExp     uint32
-	ChainID          string
-	ChainNickName    string
-	GasType          v1.GasType
+	OfficialName        string
+	OfficialContract    string
+	Contract            string // if ENV is main Contract = OfficialContract
+	TokenType           TokenType
+	Net                 string
+	Unit                string
+	Decimal             int
+	Name                string
+	Waight              int
+	DisableRegiste      bool
+	CoinType            sphinxplugin.CoinType
+	ChainType           sphinxplugin.ChainType
+	ChainNativeUnit     string
+	ChainAtomicUnit     string
+	ChainUnitExp        uint32
+	ChainID             string
+	ChainNickname       string
+	ChainNativeCoinName string
+	GasType             v1.GasType
 }
 
 const (

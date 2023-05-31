@@ -149,20 +149,21 @@ func (c *pluginClient) register() {
 					continue
 				}
 				resp := &sphinxproxy.ProxyPluginResponse{
-					CoinType:        tokenInfo.CoinType,
-					ChainType:       tokenInfo.ChainType,
-					ChainNativeUnit: tokenInfo.ChainNativeUnit,
-					ChainAtomicUnit: tokenInfo.ChainAtomicUnit,
-					ChainUnitExp:    tokenInfo.ChainUnitExp,
-					ChainID:         tokenInfo.ChainID,
-					ChainNickName:   tokenInfo.ChainNickName,
-					GasType:         tokenInfo.GasType,
-					Name:            tokenInfo.Name,
-					TransactionType: sphinxproxy.TransactionType_RegisterCoin,
-					ENV:             tokenInfo.Net,
-					Unit:            tokenInfo.Unit,
-					PluginWanIP:     config.GetENV().WanIP,
-					PluginPosition:  config.GetENV().Position,
+					CoinType:            tokenInfo.CoinType,
+					ChainType:           tokenInfo.ChainType,
+					ChainNativeUnit:     tokenInfo.ChainNativeUnit,
+					ChainAtomicUnit:     tokenInfo.ChainAtomicUnit,
+					ChainUnitExp:        tokenInfo.ChainUnitExp,
+					ChainID:             tokenInfo.ChainID,
+					ChainNickname:       tokenInfo.ChainNickname,
+					ChainNativeCoinName: tokenInfo.ChainNativeCoinName,
+					GasType:             tokenInfo.GasType,
+					Name:                tokenInfo.Name,
+					TransactionType:     sphinxproxy.TransactionType_RegisterCoin,
+					ENV:                 tokenInfo.Net,
+					Unit:                tokenInfo.Unit,
+					PluginWanIP:         config.GetENV().WanIP,
+					PluginPosition:      config.GetENV().Position,
 				}
 				tokensLen++
 				c.sendChannel <- resp

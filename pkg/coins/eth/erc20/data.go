@@ -17,7 +17,8 @@ func init() {
 		erc20tokens[i].ChainUnitExp = eth.ChainUnitExp
 		erc20tokens[i].GasType = v1.GasType_DynamicGas
 		erc20tokens[i].ChainID = "1"
-		erc20tokens[i].ChainNickName = eth.ChainType.String()
+		erc20tokens[i].ChainNickname = eth.ChainType.String()
+		erc20tokens[i].ChainNativeCoinName = eth.ChainNativeCoinName
 
 		erc20tokens[i].TokenType = "erc20"
 		erc20tokens[i].Net = "main"

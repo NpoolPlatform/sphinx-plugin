@@ -20,10 +20,11 @@ var (
 )
 
 const (
-	ChainType       = sphinxplugin.ChainType_Solana
-	ChainNativeUnit = "SOL"
-	ChainAtomicUnit = "lamport"
-	ChainUnitExp    = 9
+	ChainType           = sphinxplugin.ChainType_Solana
+	ChainNativeUnit     = "SOL"
+	ChainAtomicUnit     = "lamport"
+	ChainUnitExp        = 9
+	ChainNativeCoinName = "solana"
 )
 
 var (
@@ -37,7 +38,7 @@ var (
 	SolTransactionFailed = `sol transaction failed`
 	lamportsLow          = `Transfer: insufficient lamports`
 	stopErrMsg           = []string{lamportsLow, SolTransactionFailed}
-	solanaToken          = &coins.TokenInfo{OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: "solana", OfficialContract: "solana", TokenType: coins.Solana}
+	solanaToken          = &coins.TokenInfo{OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Solana}
 )
 
 func init() {
@@ -48,7 +49,8 @@ func init() {
 	solanaToken.ChainUnitExp = ChainUnitExp
 	solanaToken.GasType = v1.GasType_GasUnsupported
 	solanaToken.ChainID = "101"
-	solanaToken.ChainNickName = ChainType.String()
+	solanaToken.ChainNickname = ChainType.String()
+	solanaToken.ChainNativeCoinName = ChainNativeCoinName
 
 	solanaToken.Waight = 100
 	solanaToken.Net = coins.CoinNetMain

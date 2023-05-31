@@ -71,12 +71,12 @@ func checkAndAddChainInfo(token *coins.TokenInfo) *coins.TokenInfo {
 	if !ok {
 		panic(env.ErrEVNChainID)
 	}
-	chainNickName, ok := env.LookupEnv(env.ENVCHAINNICKNAME)
+	chainNickname, ok := env.LookupEnv(env.ENVCHAINNICKNAME)
 	if !ok {
-		panic(env.ErrEVNChainNickName)
+		panic(env.ErrEVNChainNickname)
 	}
 	token.ChainID = chainID
-	token.ChainNickName = chainNickName
+	token.ChainNickname = chainNickname
 	return token
 }
 

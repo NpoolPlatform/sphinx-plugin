@@ -21,10 +21,11 @@ var FILNetMap = map[string]address.Network{
 }
 
 const (
-	ChainType       = sphinxplugin.ChainType_Filecoin
-	ChainNativeUnit = "FIL"
-	ChainAtomicUnit = "attoFIL"
-	ChainUnitExp    = 18
+	ChainType           = sphinxplugin.ChainType_Filecoin
+	ChainNativeUnit     = "FIL"
+	ChainAtomicUnit     = "attoFIL"
+	ChainUnitExp        = 18
+	ChainNativeCoinName = "filecoin"
 )
 
 var (
@@ -32,7 +33,7 @@ var (
 	filNonceLow = `message nonce too low`
 	stopErrMsg  = []string{FilTxFailed, filNonceLow}
 
-	filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 18, Unit: "FIL", Name: "filecoin", OfficialContract: "filecoin", TokenType: coins.Filecoin}
+	filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 18, Unit: "FIL", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Filecoin}
 )
 
 func init() {
@@ -43,7 +44,8 @@ func init() {
 	filecoinToken.ChainUnitExp = ChainUnitExp
 	filecoinToken.GasType = v1.GasType_GasUnsupported
 	filecoinToken.ChainID = "314"
-	filecoinToken.ChainNickName = ChainType.String()
+	filecoinToken.ChainNickname = ChainType.String()
+	filecoinToken.ChainNativeCoinName = ChainNativeCoinName
 
 	filecoinToken.Waight = 100
 	filecoinToken.Net = coins.CoinNetMain

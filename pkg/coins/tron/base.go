@@ -32,10 +32,11 @@ const (
 	GetAccountFailed       = `the tron node get account failed`
 	BuildTransactionFailed = `the tron node build transaction failed`
 
-	ChainType       = sphinxplugin.ChainType_Tron
-	ChainNativeUnit = "TRX"
-	ChainAtomicUnit = "SUN"
-	ChainUnitExp    = 6
+	ChainType           = sphinxplugin.ChainType_Tron
+	ChainNativeUnit     = "TRX"
+	ChainAtomicUnit     = "SUN"
+	ChainUnitExp        = 6
+	ChainNativeCoinName = "tron"
 )
 
 var (
@@ -62,7 +63,7 @@ var (
 	}
 
 	tronTokenList = []*coins.TokenInfo{
-		{OfficialName: "Tron", Decimal: 6, Unit: "TRX", Name: "tron", OfficialContract: "tron", TokenType: coins.Tron, CoinType: sphinxplugin.CoinType_CoinTypetron},
+		{OfficialName: "Tron", Decimal: 6, Unit: "TRX", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Tron, CoinType: sphinxplugin.CoinType_CoinTypetron},
 		{OfficialName: "Tether USD", Decimal: 6, Unit: "USDT", Name: "usdttrc20", OfficialContract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", TokenType: coins.Trc20, CoinType: sphinxplugin.CoinType_CoinTypeusdttrc20},
 	}
 )
@@ -76,7 +77,8 @@ func init() {
 		token.ChainUnitExp = ChainUnitExp
 		token.GasType = v1.GasType_GasUnsupported
 		token.ChainID = "728126428"
-		token.ChainNickName = ChainType.String()
+		token.ChainNickname = ChainType.String()
+		token.ChainNativeCoinName = ChainNativeCoinName
 
 		token.Waight = 100
 		token.Net = coins.CoinNetMain

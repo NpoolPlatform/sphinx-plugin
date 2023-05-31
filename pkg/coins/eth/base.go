@@ -20,26 +20,27 @@ import (
 )
 
 const (
-	GasTooLow       = `intrinsic gas too low`
-	FundsTooLow     = `insufficient funds for gas * price + value`
-	NonceTooLow     = `nonce too low`
-	AmountInvalid   = `invalid amount`
-	TokenTooLow     = `token funds too low`
-	GetInfoFailed   = `get info failed from the eth node`
-	DialTimeout     = 3 * time.Second
-	EthExp          = -18
-	GasTolerance    = 1.25
-	ChainType       = sphinxplugin.ChainType_Ethereum
-	ChainNativeUnit = "Eth"
-	ChainAtomicUnit = "Wei"
-	ChainUnitExp    = 18
+	GasTooLow           = `intrinsic gas too low`
+	FundsTooLow         = `insufficient funds for gas * price + value`
+	NonceTooLow         = `nonce too low`
+	AmountInvalid       = `invalid amount`
+	TokenTooLow         = `token funds too low`
+	GetInfoFailed       = `get info failed from the eth node`
+	DialTimeout         = 3 * time.Second
+	EthExp              = -18
+	GasTolerance        = 1.25
+	ChainType           = sphinxplugin.ChainType_Ethereum
+	ChainNativeUnit     = "Eth"
+	ChainAtomicUnit     = "Wei"
+	ChainUnitExp        = 18
+	ChainNativeCoinName = "ethereum"
 )
 
 var (
 	stopErrMsg = []string{GasTooLow, FundsTooLow, NonceTooLow, AmountInvalid, TokenTooLow}
 
 	ethTokens = []coins.TokenInfo{
-		{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: string(coins.Ethereum), TokenType: coins.Ethereum, OfficialContract: string(coins.Ethereum), CoinType: sphinxplugin.CoinType_CoinTypeethereum},
+		{Waight: 100, OfficialName: "Ethereum", Decimal: 18, Unit: "ETH", Name: ChainNativeCoinName, TokenType: coins.Ethereum, OfficialContract: ChainNativeCoinName, CoinType: sphinxplugin.CoinType_CoinTypeethereum},
 		{Waight: 100, OfficialName: "Tether USD", Decimal: 6, Unit: "USDT", Name: "usdterc20", TokenType: coins.Erc20, OfficialContract: "0xdAC17F958D2ee523a2206206994597C13D831ec7", CoinType: sphinxplugin.CoinType_CoinTypeethereum},
 		// TODO: will change it to erc20 tokentype
 		{Waight: 100, OfficialName: "Coins USD", Decimal: 6, Unit: "USDC", Name: "usdcerc20", TokenType: coins.USDC, OfficialContract: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", CoinType: sphinxplugin.CoinType_CoinTypeusdcerc20},
@@ -55,7 +56,8 @@ func init() {
 		ethTokens[i].ChainUnitExp = ChainUnitExp
 		ethTokens[i].GasType = v1.GasType_DynamicGas
 		ethTokens[i].ChainID = "1"
-		ethTokens[i].ChainNickName = ChainType.String()
+		ethTokens[i].ChainNickname = ChainType.String()
+		ethTokens[i].ChainNativeCoinName = ChainNativeCoinName
 
 		ethTokens[i].Net = coins.CoinNetMain
 		ethTokens[i].Contract = ethTokens[i].OfficialContract
