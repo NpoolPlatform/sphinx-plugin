@@ -75,18 +75,20 @@
 ## 环境变量
 
 | 币种              | 变量名称               | 支持的值       | 说明                                                                          |
-|:------------------|:-----------------------|:---------------|:------------------------------------------------------------------------------|
-| Comm              | ENV_COIN_NET           | main or test   |                                                                               |
-|                   | ENV_COIN_TYPE          |                |                                                                               |
-|                   | ENV_SYNC_INTERVAL      |                | optional,交易状态同步间隔周期(s)                                              |
-|                   | ENV_WAN_IP             |                | plugin的wan-ip                                                                |
-|                   | ENV_POSITION           |                | plugin的位置信息(如NewYork_NO2)                                               |
+| :---------------- | :--------------------- | :------------- | :---------------------------------------------------------------------------- |
+|                   | ENV_CHAIN_ID            |                | 链 ID，在 ENV_COIN_NET 为 main 时无需设置                                     |
+|                   | ENV_CHAIN_NICKNAME     |                | 链名称，在 ENV_COIN_NET 为 main 时无需设置                                    |
 |                   | ENV_COIN_LOCAL_API     |                | 多个地址使用,分割                                                             |
 |                   | ENV_COIN_PUBLIC_API    |                | 多个地址使用,分割                                                             |
-|                   | ENV_WAN_IP             |                | 上报网络IP                                                                    |
+|                   | ENV_COIN_TYPE          |                |                                                                               |
+|                   | ENV_POSITION           |                | plugin 的位置信息(如 NewYork_NO2)                                             |
 |                   | ENV_POSITION           |                | 上报位置信息如:HongKong-05                                                    |
+|                   | ENV_SYNC_INTERVAL      |                | optional,交易状态同步间隔周期(s)                                              |
+|                   | ENV_WAN_IP             |                | plugin 的 wan-ip                                                              |
+|                   | ENV_WAN_IP             |                | 上报网络 IP                                                                   |
+| Comm              | ENV_COIN_NET           | main or test   |                                                                               |
+| Ethereum          | ENV_BUILD_CHAIN_SERVER | host:grpc_port | 用于 eth 的 plugin 在 test 环境下获取测试合约地址                             |
 | SmartContractCoin | ENV_CONTRACT           |                | 合约币的合约地址(对于主网合约地址已硬编码,测试网需要指定为自己部署的合约地址) |
-| Ethereum          | ENV_BUILD_CHAIN_SERVER | host:grpc_port | 用于eth的plugin在test环境下获取测试合约地址                                   |
 
 配置说明
 
@@ -123,27 +125,27 @@
     示例: https://127.0.0.1:8080|token
   ````
 
-| 格式  | 链               | 说明 |
-|-----|------------------|------|
-| 格式1 | sol bsc eth tron smh |      |
-| 格式2 | btc              |      |
-| 格式3 | fil ironfish              |      |
+| 格式   | 链                   | 说明 |
+| ------ | -------------------- | ---- |
+| 格式 1 | sol bsc eth tron smh |      |
+| 格式 2 | btc                  |      |
+| 格式 3 | fil ironfish         |      |
 
 ### 交易上链状态查询默认周期
 以下表格也是所有类型plugin的列表
-|              币种              | 默认值 | 出块时间 |
-|:------------------------------:|:------:|:--------:|
-|            filecoin            |  20s   |   30s    |
-|            bitcoin             |  7min  |  10min   |
-|            ironfish             |  1min  |  1~2min   |
-|            spacemesh             |  0.5min  |  2min   |
-|             solana             |   1s   |   0.4s   |
-| ethereum(eth、23种erc20 tokens) |  12s   |  10~20s  |
-|           usdcerc20            |  12s   |  10~20s  |
-|           binanceusd           |   4s   |    5s    |
-|          binancecoin           |   4s   |    5s    |
-|              tron              |   2s   |    3s    |
-|           usdttrc20            |   2s   |    3s    |
+|               币种                | 默认值 | 出块时间 |
+| :-------------------------------: | :----: | :------: |
+|               tron                |   2s   |    3s    |
+|              solana               |   1s   |   0.4s   |
+|              bitcoin              |  7min  |  10min   |
+|             filecoin              |  20s   |   30s    |
+|             ironfish              |  1min  |  1~2min  |
+|             spacemesh             | 0.5min |   2min   |
+|            binanceusd             |   4s   |    5s    |
+|             usdcerc20             |  12s   |  10~20s  |
+|             usdttrc20             |   2s   |    3s    |
+|            binancecoin            |   4s   |    5s    |
+| ethereum(eth、23 种 erc20 tokens) |  12s   |  10~20s  |
 
 ### wallet-status-check
 
@@ -161,7 +163,7 @@ tron链的币种暂无
 - **注意 SQL 只更新了 filecoin 和 bitcoin 币种，其余可参考 filecoin 和 bitcoin, tfilecoin 和 tbitcoin 上报完成才可以执行**
 
 | 条件    | 升级 SQL                     |
-|:--------|:-----------------------------|
+| :------ | :--------------------------- |
 | mainnet | DO NOTHING                   |
 | testnet | [upgrade](./sql/upgrade.sql) |
 
