@@ -175,8 +175,10 @@ func estimateGas(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	// because eth_cli cannot estimate in test net
 	if tokenInfo.Net == coins.CoinNetTest {
 		gasLimit = 100000
-		var _gasPrice int64 = 2176421631700 //2166.4216317 Gwei
-		var _gasTips int64 = 2176421631     //2.16642163 Gwei
+		//2166.4216317 Gwei
+		var _gasPrice int64 = 2176421631700
+		//2.16642163 Gwei
+		var _gasTips int64 = 2176421631
 		gasPrice = big.NewInt(_gasPrice)
 		gasTips = big.NewInt(_gasTips)
 		err = nil

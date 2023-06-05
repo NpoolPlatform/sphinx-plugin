@@ -112,7 +112,7 @@ func estimateGas(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	client := eth.Client()
 	mockFrom := common.HexToAddress("")
 	mockTo := common.HexToAddress("")
-	var mockValueInt int64 = 0
+	var mockValueInt int64
 	mockValue := big.NewInt(mockValueInt)
 
 	var gasLimit uint64
