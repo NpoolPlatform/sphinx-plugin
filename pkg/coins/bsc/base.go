@@ -19,6 +19,7 @@ const (
 	ChainAtomicUnit     = "Wei"
 	ChainUnitExp        = 18
 	ChainNativeCoinName = "binancecoin"
+	ChainID             = "56"
 )
 
 var (
@@ -54,7 +55,7 @@ func init() {
 		token.ChainAtomicUnit = ChainAtomicUnit
 		token.ChainUnitExp = ChainUnitExp
 		token.GasType = v1.GasType_GasUnsupported
-		token.ChainID = "56"
+		token.ChainID = ChainID
 		token.ChainNickname = ChainType.String()
 		token.ChainNativeCoinName = ChainNativeCoinName
 

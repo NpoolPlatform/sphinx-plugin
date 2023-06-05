@@ -26,6 +26,7 @@ const (
 	ChainAtomicUnit     = "attoFIL"
 	ChainUnitExp        = 18
 	ChainNativeCoinName = "filecoin"
+	ChainID             = "314"
 )
 
 var (
@@ -43,7 +44,7 @@ func init() {
 	filecoinToken.ChainAtomicUnit = ChainAtomicUnit
 	filecoinToken.ChainUnitExp = ChainUnitExp
 	filecoinToken.GasType = v1.GasType_GasUnsupported
-	filecoinToken.ChainID = "314"
+	filecoinToken.ChainID = ChainID
 	filecoinToken.ChainNickname = ChainType.String()
 	filecoinToken.ChainNativeCoinName = ChainNativeCoinName
 

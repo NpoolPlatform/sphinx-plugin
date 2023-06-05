@@ -25,6 +25,7 @@ const (
 	ChainAtomicUnit     = "lamport"
 	ChainUnitExp        = 9
 	ChainNativeCoinName = "solana"
+	ChainID             = "101"
 )
 
 var (
@@ -48,7 +49,7 @@ func init() {
 	solanaToken.ChainAtomicUnit = ChainAtomicUnit
 	solanaToken.ChainUnitExp = ChainUnitExp
 	solanaToken.GasType = v1.GasType_GasUnsupported
-	solanaToken.ChainID = "101"
+	solanaToken.ChainID = ChainID
 	solanaToken.ChainNickname = ChainType.String()
 	solanaToken.ChainNativeCoinName = ChainNativeCoinName
 

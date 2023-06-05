@@ -37,6 +37,7 @@ const (
 	ChainAtomicUnit     = "SUN"
 	ChainUnitExp        = 6
 	ChainNativeCoinName = "tron"
+	ChainID             = "728126428"
 )
 
 var (
@@ -76,7 +77,7 @@ func init() {
 		token.ChainAtomicUnit = ChainAtomicUnit
 		token.ChainUnitExp = ChainUnitExp
 		token.GasType = v1.GasType_GasUnsupported
-		token.ChainID = "728126428"
+		token.ChainID = ChainID
 		token.ChainNickname = ChainType.String()
 		token.ChainNativeCoinName = ChainNativeCoinName
 

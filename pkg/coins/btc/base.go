@@ -25,6 +25,7 @@ const (
 	ChainAtomicUnit     = "Satoshi"
 	ChainUnitExp        = 8
 	ChainNativeCoinName = "bitcoin"
+	ChainID             = "NA"
 )
 
 // BTCNetMap btc net map
@@ -56,7 +57,7 @@ func init() {
 	bitcoinToken.ChainAtomicUnit = ChainAtomicUnit
 	bitcoinToken.ChainUnitExp = ChainUnitExp
 	bitcoinToken.GasType = v1.GasType_GasUnsupported
-	bitcoinToken.ChainID = "1"
+	bitcoinToken.ChainID = ChainID
 	bitcoinToken.ChainNickname = ChainType.String()
 	bitcoinToken.ChainNativeCoinName = ChainNativeCoinName
 
