@@ -143,6 +143,11 @@ func estimateGas(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	var gasPrice *big.Int
 	var gasTips *big.Int
 	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		blockHeight, err = c.BlockNumber(ctx)
+		if err != nil {
+			return true, err
+		}
+
 		to := common.HexToAddress(tokenInfo.Contract)
 		gasLimit, err = c.EstimateGas(ctx, ethereum.CallMsg{
 			From: mockFrom,
@@ -164,14 +169,16 @@ func estimateGas(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 			return true, err
 		}
 
-		blockHeight, err = c.BlockNumber(ctx)
-		if err != nil {
-			return true, err
-		}
-
 		return false, err
 	})
-	if err != nil {
+
+	// because eth_cli cannot estimate in test net
+	if tokenInfo.Net == coins.CoinNetTest {
+		gasLimit = 100000
+		var _gasPrice int64 = 2176421631700 //2166.4216317 Gwei
+		gasPrice = big.NewInt(_gasPrice)
+		err = nil
+	} else if err != nil {
 		return nil, err
 	}
 

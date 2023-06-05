@@ -112,7 +112,7 @@ func estimateGas(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	client := eth.Client()
 	mockFrom := common.HexToAddress("")
 	mockTo := common.HexToAddress("")
-	var mockValueInt int64 = 112233
+	var mockValueInt int64 = 0
 	mockValue := big.NewInt(mockValueInt)
 
 	var gasLimit uint64
@@ -120,6 +120,11 @@ func estimateGas(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 	var gasPrice *big.Int
 	var gasTips *big.Int
 	err = client.WithClient(ctx, func(ctx context.Context, c *ethclient.Client) (bool, error) {
+		blockHeight, err = c.BlockNumber(ctx)
+		if err != nil {
+			return true, err
+		}
+
 		gasLimit, err = c.EstimateGas(ctx, ethereum.CallMsg{
 			From:  mockFrom,
 			To:    &mockTo,
@@ -139,13 +144,9 @@ func estimateGas(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (ou
 			return true, err
 		}
 
-		blockHeight, err = c.BlockNumber(ctx)
-		if err != nil {
-			return true, err
-		}
-
 		return false, err
 	})
+
 	if err != nil {
 		return nil, err
 	}
