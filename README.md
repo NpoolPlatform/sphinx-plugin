@@ -82,10 +82,8 @@
 |                   | ENV_COIN_PUBLIC_API    |                | 多个地址使用,分割                                                             |
 |                   | ENV_COIN_TYPE          |                |                                                                               |
 |                   | ENV_POSITION           |                | plugin 的位置信息(如 NewYork_NO2)                                             |
-|                   | ENV_POSITION           |                | 上报位置信息如:HongKong-05                                                    |
 |                   | ENV_SYNC_INTERVAL      |                | optional,交易状态同步间隔周期(s)                                              |
 |                   | ENV_WAN_IP             |                | plugin 的 wan-ip                                                              |
-|                   | ENV_WAN_IP             |                | 上报网络 IP                                                                   |
 | Comm              | ENV_COIN_NET           | main or test   |                                                                               |
 | Ethereum          | ENV_BUILD_CHAIN_SERVER | host:grpc_port | 用于 eth 的 plugin 在 test 环境下获取测试合约地址                             |
 | SmartContractCoin | ENV_CONTRACT           |                | 合约币的合约地址(对于主网合约地址已硬编码,测试网需要指定为自己部署的合约地址) |
