@@ -25,7 +25,7 @@ const (
 	ChainAtomicUnit     = "Satoshi"
 	ChainUnitExp        = 8
 	ChainNativeCoinName = "bitcoin"
-	ChainID             = "NA"
+	ChainID             = "N/A"
 )
 
 // BTCNetMap btc net map
