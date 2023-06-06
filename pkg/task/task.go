@@ -148,6 +148,8 @@ func (c *pluginClient) register() {
 				if tokenInfo.DisableRegiste {
 					continue
 				}
+				env.CheckAndSetChainInfo(tokenInfo)
+
 				resp := &sphinxproxy.ProxyPluginResponse{
 					CoinType:            tokenInfo.CoinType,
 					ChainType:           tokenInfo.ChainType,

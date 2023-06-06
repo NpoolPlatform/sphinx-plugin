@@ -3,6 +3,8 @@ package env
 import (
 	"errors"
 	"os"
+
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 )
 
 const (
@@ -83,4 +85,20 @@ func GetCoinInfo() (coinInfo *CoinInfo, err error) {
 		return
 	}
 	return
+}
+
+func CheckAndSetChainInfo(token *coins.TokenInfo) {
+	if token.Net == coins.CoinNetMain {
+		return
+	}
+	chainID, ok := LookupEnv(ENVCHAINID)
+	if !ok || chainID == "" {
+		panic(ErrEVNChainID)
+	}
+	chainNickname, ok := LookupEnv(ENVCHAINNICKNAME)
+	if !ok || chainNickname == "" {
+		panic(ErrEVNChainNickname)
+	}
+	token.ChainID = chainID
+	token.ChainNickname = chainNickname
 }
