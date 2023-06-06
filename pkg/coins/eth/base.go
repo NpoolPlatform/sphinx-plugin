@@ -34,6 +34,7 @@ const (
 	ChainAtomicUnit     = "Wei"
 	ChainUnitExp        = 18
 	ChainNativeCoinName = "ethereum"
+	ChainID             = "1"
 )
 
 var (
@@ -55,7 +56,7 @@ func init() {
 		ethTokens[i].ChainAtomicUnit = ChainAtomicUnit
 		ethTokens[i].ChainUnitExp = ChainUnitExp
 		ethTokens[i].GasType = v1.GasType_DynamicGas
-		ethTokens[i].ChainID = "1"
+		ethTokens[i].ChainID = ChainID
 		ethTokens[i].ChainNickname = ChainType.String()
 		ethTokens[i].ChainNativeCoinName = ChainNativeCoinName
 
