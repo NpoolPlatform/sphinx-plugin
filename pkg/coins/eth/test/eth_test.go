@@ -37,11 +37,11 @@ func TestEthAndTokens(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	coinNet, _coinType, err := env.CoinInfo()
+	coinInfo, err := env.GetCoinInfo()
 	assert.Nil(t, err)
-	assert.Equal(t, coinNet, coins.CoinNetTest)
+	assert.Equal(t, coinInfo.NetworkType, coins.CoinNetTest)
 
-	coinType := coins.CoinStr2CoinType(coinNet, _coinType)
+	coinType := coins.CoinStr2CoinType(coinInfo.NetworkType, coinInfo.CoinType)
 	tokens := getter.GetTokenInfos(coinType)
 	assert.NotEqual(t, 0, len(tokens))
 

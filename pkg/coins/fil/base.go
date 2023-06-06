@@ -3,6 +3,7 @@ package fil
 import (
 	"strings"
 
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -19,14 +20,34 @@ var FILNetMap = map[string]address.Network{
 	coins.CoinNetTest: address.Testnet,
 }
 
+const (
+	ChainType           = sphinxplugin.ChainType_Filecoin
+	ChainNativeUnit     = "FIL"
+	ChainAtomicUnit     = "attoFIL"
+	ChainUnitExp        = 18
+	ChainNativeCoinName = "filecoin"
+	ChainID             = "314"
+)
+
 var (
-	FilTxFailed   = `fil tx failed`
-	filNonceLow   = `message nonce too low`
-	stopErrMsg    = []string{FilTxFailed, filNonceLow}
-	filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 18, Unit: "FIL", Name: "filecoin", OfficialContract: "filecoin", TokenType: coins.Filecoin}
+	FilTxFailed = `fil tx failed`
+	filNonceLow = `message nonce too low`
+	stopErrMsg  = []string{FilTxFailed, filNonceLow}
+
+	filecoinToken = &coins.TokenInfo{OfficialName: "Filecoin", Decimal: 18, Unit: "FIL", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Filecoin}
 )
 
 func init() {
+	// set chain info
+	filecoinToken.ChainType = ChainType
+	filecoinToken.ChainNativeUnit = ChainNativeUnit
+	filecoinToken.ChainAtomicUnit = ChainAtomicUnit
+	filecoinToken.ChainUnitExp = ChainUnitExp
+	filecoinToken.GasType = v1.GasType_GasUnsupported
+	filecoinToken.ChainID = ChainID
+	filecoinToken.ChainNickname = ChainType.String()
+	filecoinToken.ChainNativeCoinName = ChainNativeCoinName
+
 	filecoinToken.Waight = 100
 	filecoinToken.Net = coins.CoinNetMain
 	filecoinToken.Contract = filecoinToken.OfficialContract

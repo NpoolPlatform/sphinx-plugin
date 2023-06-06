@@ -7,7 +7,7 @@ require (
 	github.com/NpoolPlatform/build-chain v0.0.0-20230401101811-a8b3769e4473
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220818105452-9457611ae070
 	github.com/NpoolPlatform/libent-cruder v0.0.0-20220801075201-cab5db8b6290
-	github.com/NpoolPlatform/message v0.0.0-20230331105746-d35da1f1c402
+	github.com/NpoolPlatform/message v0.0.0-20230531060256-dedb46122232
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
@@ -23,8 +23,10 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/test-go/testify v1.1.4
 	github.com/urfave/cli/v2 v2.17.2-0.20221006022127-8f469abc00aa
-	google.golang.org/grpc v1.54.0
+	google.golang.org/grpc v1.55.0
 )
+
+replace github.com/NpoolPlatform/message => github.com/NpoolPlatform/message v0.0.0-20230605075344-03a09d2c34b8
 
 require (
 	ariga.io/atlas v0.5.1-0.20220717122844-8593d7eb1a8e // indirect
@@ -253,7 +255,7 @@ require (
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923 // indirect
+	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect

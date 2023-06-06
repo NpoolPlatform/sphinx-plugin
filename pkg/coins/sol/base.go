@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strings"
 
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -18,6 +19,15 @@ var (
 	EmptyWalletS = big.Float{}
 )
 
+const (
+	ChainType           = sphinxplugin.ChainType_Solana
+	ChainNativeUnit     = "SOL"
+	ChainAtomicUnit     = "lamport"
+	ChainUnitExp        = 9
+	ChainNativeCoinName = "solana"
+	ChainID             = "101"
+)
+
 var (
 	// ErrSolBlockNotFound ..
 	ErrSolBlockNotFound = errors.New("not found confirmed block in solana chain")
@@ -29,10 +39,20 @@ var (
 	SolTransactionFailed = `sol transaction failed`
 	lamportsLow          = `Transfer: insufficient lamports`
 	stopErrMsg           = []string{lamportsLow, SolTransactionFailed}
-	solanaToken          = &coins.TokenInfo{OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: "solana", OfficialContract: "solana", TokenType: coins.Solana}
+	solanaToken          = &coins.TokenInfo{OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Solana}
 )
 
 func init() {
+	// set chain info
+	solanaToken.ChainType = ChainType
+	solanaToken.ChainNativeUnit = ChainNativeUnit
+	solanaToken.ChainAtomicUnit = ChainAtomicUnit
+	solanaToken.ChainUnitExp = ChainUnitExp
+	solanaToken.GasType = v1.GasType_GasUnsupported
+	solanaToken.ChainID = ChainID
+	solanaToken.ChainNickname = ChainType.String()
+	solanaToken.ChainNativeCoinName = ChainNativeCoinName
+
 	solanaToken.Waight = 100
 	solanaToken.Net = coins.CoinNetMain
 	solanaToken.Contract = solanaToken.OfficialContract

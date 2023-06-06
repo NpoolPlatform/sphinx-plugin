@@ -133,13 +133,13 @@ func (c *pluginClient) register() {
 			log.Info("register new coin exit")
 			return
 		case <-time.After(registerCoinDuration):
-			coinNetwork, _coinType, err := env.CoinInfo()
+			coinInfo, err := env.GetCoinInfo()
 			if err != nil {
 				log.Errorf("register new coin error: %v", err)
 				continue
 			}
-			coinType := coins.CoinStr2CoinType(coinNetwork, _coinType)
 
+			coinType := coins.CoinStr2CoinType(coinInfo.NetworkType, coinInfo.CoinType)
 			tokenInfos := getter.GetTokenInfos(coinType)
 
 			tokensLen := 0
@@ -149,19 +149,27 @@ func (c *pluginClient) register() {
 					continue
 				}
 				resp := &sphinxproxy.ProxyPluginResponse{
-					CoinType:        tokenInfo.CoinType,
-					Name:            tokenInfo.Name,
-					TransactionType: sphinxproxy.TransactionType_RegisterCoin,
-					ENV:             tokenInfo.Net,
-					Unit:            tokenInfo.Unit,
-					PluginWanIP:     config.GetENV().WanIP,
-					PluginPosition:  config.GetENV().Position,
+					CoinType:            tokenInfo.CoinType,
+					ChainType:           tokenInfo.ChainType,
+					ChainNativeUnit:     tokenInfo.ChainNativeUnit,
+					ChainAtomicUnit:     tokenInfo.ChainAtomicUnit,
+					ChainUnitExp:        tokenInfo.ChainUnitExp,
+					ChainID:             tokenInfo.ChainID,
+					ChainNickname:       tokenInfo.ChainNickname,
+					ChainNativeCoinName: tokenInfo.ChainNativeCoinName,
+					GasType:             tokenInfo.GasType,
+					Name:                tokenInfo.Name,
+					TransactionType:     sphinxproxy.TransactionType_RegisterCoin,
+					ENV:                 tokenInfo.Net,
+					Unit:                tokenInfo.Unit,
+					PluginWanIP:         config.GetENV().WanIP,
+					PluginPosition:      config.GetENV().Position,
 				}
 				tokensLen++
 				c.sendChannel <- resp
 			}
 			if logCount%logInterval == 0 {
-				log.Infof("register new coin: %v for %s network,has %v tokens,registered %v", coinType, coinNetwork, len(tokenInfos), tokensLen)
+				log.Infof("register new coin: %v for %s network,has %v tokens,registered %v", coinType, coinInfo.NetworkType, len(tokenInfos), tokensLen)
 				logCount = 0
 			}
 			logCount++
@@ -225,7 +233,13 @@ func (c *pluginClient) recv() {
 					goto send
 				}
 
-				handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpGetBalance)
+				switch transactionType {
+				case sphinxproxy.TransactionType_Balance:
+					handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpGetBalance)
+				case sphinxproxy.TransactionType_EstimateGas:
+					handler, err = getter.GetTokenHandler(tokenInfo.TokenType, coins_register.OpEstimateGas)
+				}
+
 				if err != nil {
 					log.Errorf("GetCoinPlugin get handler error: %v", err)
 					resp = &sphinxproxy.ProxyPluginResponse{

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -18,6 +19,13 @@ const (
 	DefaultMinConfirms = 6
 	// DefaultMaxConfirms ..
 	DefaultMaxConfirms = 9999999
+
+	ChainType           = sphinxplugin.ChainType_Bitcoin
+	ChainNativeUnit     = "BTC"
+	ChainAtomicUnit     = "Satoshi"
+	ChainUnitExp        = 8
+	ChainNativeCoinName = "bitcoin"
+	ChainID             = "N/A"
 )
 
 // BTCNetMap btc net map
@@ -39,10 +47,20 @@ var (
 		env.ErrAddressInvalid.Error(),
 		env.ErrAmountInvalid.Error(),
 	}
-	bitcoinToken = &coins.TokenInfo{OfficialName: "Bitcoin", Decimal: 8, Unit: "BTC", Name: "bitcoin", OfficialContract: "bitcoin", TokenType: coins.Bitcoin}
+	bitcoinToken = &coins.TokenInfo{OfficialName: "Bitcoin", Decimal: 8, Unit: "BTC", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Bitcoin}
 )
 
 func init() {
+	// set chain info
+	bitcoinToken.ChainType = ChainType
+	bitcoinToken.ChainNativeUnit = ChainNativeUnit
+	bitcoinToken.ChainAtomicUnit = ChainAtomicUnit
+	bitcoinToken.ChainUnitExp = ChainUnitExp
+	bitcoinToken.GasType = v1.GasType_GasUnsupported
+	bitcoinToken.ChainID = ChainID
+	bitcoinToken.ChainNickname = ChainType.String()
+	bitcoinToken.ChainNativeCoinName = ChainNativeCoinName
+
 	bitcoinToken.Waight = 100
 	bitcoinToken.Net = coins.CoinNetMain
 	bitcoinToken.Contract = bitcoinToken.OfficialContract
