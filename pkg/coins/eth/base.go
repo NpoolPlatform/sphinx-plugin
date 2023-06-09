@@ -30,7 +30,7 @@ const (
 	EthExp              = -18
 	GasTolerance        = 1.25
 	ChainType           = sphinxplugin.ChainType_Ethereum
-	ChainNativeUnit     = "Eth"
+	ChainNativeUnit     = "ETH"
 	ChainAtomicUnit     = "Wei"
 	ChainUnitExp        = 18
 	ChainNativeCoinName = "ethereum"
