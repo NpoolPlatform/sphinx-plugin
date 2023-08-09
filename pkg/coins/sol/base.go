@@ -38,7 +38,11 @@ var (
 var (
 	SolTransactionFailed = `sol transaction failed`
 	lamportsLow          = `Transfer: insufficient lamports`
-	stopErrMsg           = []string{lamportsLow, SolTransactionFailed}
+	txFailed             = `Transaction simulation failed`
+	txSignatureWrong     = `Transaction signature verification failure`
+	txSignatureNotMatch  = `There is a mismatch in the length of the transaction signature`
+	txVersionWrong       = `Transaction version (0) is not supported by the requesting client`
+	stopErrMsg           = []string{lamportsLow, SolTransactionFailed, txFailed, txSignatureWrong, txSignatureNotMatch, txVersionWrong}
 	solanaToken          = &coins.TokenInfo{OfficialName: "Solana", Decimal: 9, Unit: "SOL", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Solana}
 )
 
