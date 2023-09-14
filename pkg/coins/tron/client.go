@@ -103,6 +103,8 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 	var (
 		err, apiErr error
 		retry       bool
+		client      *tronclient.GrpcClient
+		ep          string
 	)
 
 	endpointmgr, err := endpoints.NewManager()
@@ -114,7 +116,7 @@ func (tClients *tClients) WithClient(fn func(*tronclient.GrpcClient) (bool, erro
 		if i > 0 {
 			time.Sleep(retriesSleepTime)
 		}
-		client, ep, err := tClients.GetGRPCClient(dialTimeout, endpointmgr)
+		client, ep, err = tClients.GetGRPCClient(dialTimeout, endpointmgr)
 		if err != nil {
 			logger.Sugar().Errorw("WithClient", "Endpoint", ep, "Error", err)
 			continue
