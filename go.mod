@@ -4,10 +4,10 @@ go 1.17
 
 require (
 	github.com/Geapefurit/gotron-sdk v0.0.0-20220724074720-3d7ea3cbd771
-	github.com/NpoolPlatform/build-chain v0.0.0-20230401101811-a8b3769e4473
-	github.com/NpoolPlatform/go-service-framework v0.0.0-20220818105452-9457611ae070
-	github.com/NpoolPlatform/libent-cruder v0.0.0-20220801075201-cab5db8b6290
-	github.com/NpoolPlatform/message v0.0.0-20230605075344-03a09d2c34b8
+	github.com/NpoolPlatform/build-chain v0.0.0-20230914024754-c0b427738553
+	github.com/NpoolPlatform/go-service-framework v0.0.0-20230913101807-3934219c0456
+	github.com/NpoolPlatform/libent-cruder v0.0.0-20230825073905-d23e4d838f99
+	github.com/NpoolPlatform/message v0.0.0-20230914023737-ac5d6d2a3a03
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
@@ -41,12 +41,28 @@ require (
 	github.com/antchfx/xpath v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
-	github.com/aws/aws-sdk-go v1.42.4 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.16.14 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.7 // indirect
+	github.com/aws/aws-sdk-go-v2/config v1.17.5 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.12.18 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.15 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.21 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.15 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.22 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.12 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.16 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.15 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.15 // indirect
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.11.21 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.17 // indirect
+	github.com/aws/smithy-go v1.13.2 // indirect
 	github.com/aybabtme/rgbterm v0.0.0-20170906152045-cc83f3b3ce59 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/coocood/freecache v1.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
@@ -86,7 +102,6 @@ require (
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
@@ -101,8 +116,8 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
-	go.opentelemetry.io/otel v1.6.3 // indirect
-	go.opentelemetry.io/otel/trace v1.6.3 // indirect
+	go.opentelemetry.io/otel v1.8.0 // indirect
+	go.opentelemetry.io/otel/trace v1.8.0 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2 // indirect
 	golang.org/x/term v0.6.0 // indirect
@@ -189,7 +204,6 @@ require (
 	github.com/ipld/go-ipld-selector-text-lite v0.0.1 // indirect
 	github.com/jbenet/goprocess v0.1.4 // indirect
 	github.com/jessevdk/go-flags v1.5.0 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.1 // indirect
 	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
