@@ -43,9 +43,9 @@ type pluginClient struct {
 func Plugin(exitSig chan os.Signal, cleanChan chan struct{}) {
 	for i := 1; i <= maxRetries; i++ {
 		if err:=newClient(exitSig, cleanChan);err!=nil{
-				log.Errorf("failed to connect proxy, err %v, will retry %v times (max retries: %v)",err,i,maxRetries)
-				time.Sleep(retryDuration)
-				continue
+			log.Errorf("failed to connect proxy, err %v, will retry %v times (max retries: %v)", err, i, maxRetries)
+			time.Sleep(retryDuration)
+			continue
 		}
 		return
 	}
@@ -121,8 +121,12 @@ func (c *pluginClient) watch(exitSig chan os.Signal, cleanChan chan struct{}) {
 			<-c.closeBadConn
 			c.closeProxyClient()
 			logger.Sugar().Info("start watch proxy client exit")
+
 			time.Sleep(retryDuration)
-			newClient(exitSig, cleanChan)
+			if err:=newClient(exitSig, cleanChan);err!=nil{
+				log.Errorf("failed to connect proxy, err %v, will exit", err)
+				close(cleanChan)
+			}
 		case <-exitSig:
 			c.closeProxyClient()
 			close(cleanChan)
