@@ -65,7 +65,7 @@ func checkRemove(target string) (conn *grpc.ClientConn, err error) {
 	healthOK := false
 	defer func() {
 		if !healthOK {
-			conn.Close()
+			_conn.(*grpc.ClientConn).Close()
 			conns.Delete(target)
 		}
 	}()
