@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -23,7 +24,8 @@ import (
 
 var (
 	chanBuff             = 1000
-	delayDuration        = time.Second * 2
+	maxRetries           = 3
+	retryDuration        = time.Second * 2
 	registerCoinDuration = time.Second * 5
 	logInterval          = 10
 )
@@ -39,10 +41,19 @@ type pluginClient struct {
 }
 
 func Plugin(exitSig chan os.Signal, cleanChan chan struct{}) {
-	newClient(exitSig, cleanChan)
+	for i := 1; i <= maxRetries; i++ {
+		if err := newClient(exitSig, cleanChan); err != nil {
+			log.Errorf("failed to connect proxy, err %v, will retry %v times (max retries: %v)", err, i, maxRetries)
+			time.Sleep(retryDuration)
+			continue
+		}
+		return
+	}
+	log.Errorf("failed to connect proxy, retries exhausted , exit!")
+	close(cleanChan)
 }
 
-func newClient(exitSig chan os.Signal, cleanChan chan struct{}) {
+func newClient(exitSig chan os.Signal, cleanChan chan struct{}) error {
 	proxyClient := &pluginClient{
 		closeBadConn: make(chan struct{}),
 		exitChan:     make(chan struct{}),
@@ -52,8 +63,7 @@ func newClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 	conn, pc, err := proxyClient.newProxyClient()
 	if err != nil {
 		log.Errorf("create new proxy client error: %v", err)
-		delayNewClient(exitSig, cleanChan)
-		return
+		return fmt.Errorf("create new proxy client error: %v", err)
 	}
 
 	proxyClient.conn, proxyClient.proxyClient = conn, pc
@@ -62,11 +72,7 @@ func newClient(exitSig chan os.Signal, cleanChan chan struct{}) {
 	go proxyClient.register()
 	go proxyClient.send()
 	go proxyClient.recv()
-}
-
-func delayNewClient(exitSig chan os.Signal, cleanChan chan struct{}) {
-	time.Sleep(delayDuration)
-	go newClient(exitSig, cleanChan)
+	return nil
 }
 
 func (c *pluginClient) closeProxyClient() {
@@ -115,7 +121,12 @@ func (c *pluginClient) watch(exitSig chan os.Signal, cleanChan chan struct{}) {
 			<-c.closeBadConn
 			c.closeProxyClient()
 			logger.Sugar().Info("start watch proxy client exit")
-			delayNewClient(exitSig, cleanChan)
+
+			time.Sleep(retryDuration)
+			if err := newClient(exitSig, cleanChan); err != nil {
+				log.Errorf("failed to connect proxy, err %v, will exit", err)
+				close(cleanChan)
+			}
 		case <-exitSig:
 			c.closeProxyClient()
 			close(cleanChan)
