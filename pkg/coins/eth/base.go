@@ -97,12 +97,17 @@ func netHandle(tokenInfos []*coins.TokenInfo) error {
 
 	officialContractMap := make(map[string]*coins.TokenInfo)
 	for _, v := range tokenInfos {
+		if v.TokenType == coins.Ethereum {
+			v.DisableRegiste = false
+			continue
+		}
 		officialContractMap[v.OfficialContract] = v
 	}
 
 	for _, info := range erc20List.Infos {
-		if _, ok := officialContractMap[info.OfficialContract]; ok {
+		if _, ok := officialContractMap[info.OfficialContract]; ok && info.PrivateContract != "" {
 			officialContractMap[info.OfficialContract].DisableRegiste = false
+			officialContractMap[info.OfficialContract].Contract = info.PrivateContract
 		}
 	}
 
