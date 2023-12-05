@@ -14,7 +14,7 @@ import (
 
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
-	proto "github.com/NpoolPlatform/message/npool/build-chain"
+	proto "github.com/NpoolPlatform/message/npool/build-chain/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	npool "github.com/NpoolPlatform/message/npool/sphinxproxy"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"

@@ -9,9 +9,10 @@ import (
 	"time"
 
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
-	build_chain "github.com/NpoolPlatform/build-chain/pkg/coins/eth"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	v1 "github.com/NpoolPlatform/message/npool/basetypes/v1"
+	proto "github.com/NpoolPlatform/message/npool/build-chain/v1"
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
@@ -80,25 +81,33 @@ func netHandle(tokenInfos []*coins.TokenInfo) error {
 		logger.Sugar().Error(bcConnErr)
 		return fmt.Errorf("connect server failed, %v", bcConnErr)
 	}
+	defer bcConn.Close()
+	erc20List, err := bcConn.GetTokenInfos(ctx, &proto.GetTokenInfosRequest{
+		Conds: &proto.Conds{
+			TokenType: &v1.StringVal{
+				Op:    cruder.EQ,
+				Value: string(coins.Erc20),
+			},
+		},
+	})
+	if err != nil {
+		logger.Sugar().Error(err)
+		return fmt.Errorf("failed to get token infos from build-chain, err: %v", err)
+	}
 
-	for _, tokenInfo := range tokenInfos {
-		if tokenInfo.TokenType == coins.Erc20 {
-			go func(token *coins.TokenInfo) {
-				_tokenInfo, err := build_chain.CrawlOne(ctx, bcConn, tokenInfo.OfficialContract, false)
-				if err != nil {
-					logger.Sugar().Error(err)
-					return
-				}
+	officialContractMap := make(map[string]*coins.TokenInfo)
+	for _, v := range tokenInfos {
+		if v.TokenType == coins.Ethereum {
+			v.DisableRegiste = false
+			continue
+		}
+		officialContractMap[v.OfficialContract] = v
+	}
 
-				token.Contract = _tokenInfo.PrivateContract
-				token.DisableRegiste = false
-			}(tokenInfo)
-
-			// prevent to be baned
-			// time.Sleep(coins.SyncTime[tokenInfo.CoinType])
-			time.Sleep(time.Second)
-		} else {
-			tokenInfo.DisableRegiste = false
+	for _, info := range erc20List.Infos {
+		if _, ok := officialContractMap[info.OfficialContract]; ok && info.PrivateContract != "" {
+			officialContractMap[info.OfficialContract].DisableRegiste = false
+			officialContractMap[info.OfficialContract].Contract = info.PrivateContract
 		}
 	}
 
