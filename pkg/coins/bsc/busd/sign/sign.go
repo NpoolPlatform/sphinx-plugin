@@ -36,9 +36,8 @@ func init() {
 	)
 }
 
-const s3KeyPrxfix = "binanceusd/"
-
 func CreateBep20Account(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byte, err error) {
+	s3KeyPrxfix := coins.S3KeyPrxfixMap[token.Name]
 	return bscSign.CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
@@ -48,6 +47,8 @@ func Bep20Msg(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byt
 	if err != nil {
 		return in, err
 	}
+
+	s3KeyPrxfix := coins.S3KeyPrxfixMap[token.Name]
 	pk, err := oss.GetObject(ctx, s3KeyPrxfix+preSignData.From, true)
 	if err != nil {
 		return in, err

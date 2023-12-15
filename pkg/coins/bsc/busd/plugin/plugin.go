@@ -66,7 +66,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, err
 	}
 
-	bl, err := _walletBalance(ctx, wbReq.Address)
+	bl, err := _walletBalance(ctx, wbReq.Address, tokenInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	return out, err
 }
 
-func _walletBalance(ctx context.Context, addr string) (*big.Int, error) {
+func _walletBalance(ctx context.Context, addr string, tokenInfo *coins.TokenInfo) (*big.Int, error) {
 	var ret *big.Int
 	var err error
 	client := bsc.Client()
@@ -101,7 +101,8 @@ func _walletBalance(ctx context.Context, addr string) (*big.Int, error) {
 		if err != nil || chainID == nil {
 			return true, err
 		}
-		ret, err = bep20Balance(ctx, chainID.Int64(), addr, c)
+		contract := bsc.GetContract(chainID.Int64(), tokenInfo)
+		ret, err = bep20Balance(ctx, chainID.Int64(), contract, addr, c)
 		if err != nil || ret == nil {
 			return true, err
 		}
@@ -111,8 +112,7 @@ func _walletBalance(ctx context.Context, addr string) (*big.Int, error) {
 	return ret, err
 }
 
-func bep20Balance(ctx context.Context, chainID int64, addr string, client bind.ContractBackend) (*big.Int, error) {
-	contract := bsc.BUSDContract(chainID)
+func bep20Balance(ctx context.Context, chainID int64, contract string, addr string, client bind.ContractBackend) (*big.Int, error) {
 	if !common.IsHexAddress(contract) {
 		return nil, ErrContractAddrInvalid
 	}
