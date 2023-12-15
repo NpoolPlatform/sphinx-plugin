@@ -120,6 +120,7 @@ var (
 		"usdcerc20":    "usdcerc20/",
 		"tusdcerc20":   "usdcerc20/",
 		"bscusd":       "bscusd/",
+		"tbscusd":      "bscusd/",
 	}
 
 	// default sync time for waitting transaction on chain

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"math/big"
 	"strings"
@@ -39,7 +38,6 @@ func init() {
 
 func CreateBep20Account(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byte, err error) {
 	s3KeyPrxfix := coins.S3KeyPrxfixMap[token.Name]
-	fmt.Println(token.Name)
 	return bscSign.CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
