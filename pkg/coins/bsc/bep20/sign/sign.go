@@ -65,7 +65,7 @@ func Bep20Msg(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byt
 	}
 
 	amount := big.NewFloat(preSignData.Value)
-	amount.Mul(amount, big.NewFloat(math.Pow10(bsc.BEP20ACCURACY)))
+	amount.Mul(amount, big.NewFloat(math.Pow10(token.Decimal)))
 
 	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
 	if !ok {

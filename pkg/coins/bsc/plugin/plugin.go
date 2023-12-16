@@ -86,7 +86,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, errors.New("convert balance string to float64 error")
 	}
 
-	balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
+	balance.Quo(balance, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
 	f, exact := balance.Float64()
 	if exact != big.Exact {
 		log.Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
