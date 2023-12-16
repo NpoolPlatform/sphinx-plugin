@@ -36,14 +36,14 @@ func init() {
 const s3KeyPrxfix = "binancecoin/"
 
 func BscMsg(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
-	return Message(ctx, s3KeyPrxfix, in)
+	return Message(ctx, s3KeyPrxfix, in, tokenInfo)
 }
 
 func CreateBscAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	return CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
-func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err error) {
+func Message(ctx context.Context, s3Store string, in []byte, tokenInfo *coins.TokenInfo) (out []byte, err error) {
 	preSignData := &bsc.PreSignData{}
 	err = json.Unmarshal(in, preSignData)
 	if err != nil {
@@ -60,7 +60,7 @@ func Message(ctx context.Context, s3Store string, in []byte) (out []byte, err er
 	}
 
 	amount := big.NewFloat(preSignData.Value)
-	amount.Mul(amount, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
+	amount.Mul(amount, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
 
 	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
 	if !ok {

@@ -15,7 +15,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
-	busd "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
+	busd "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/bep20/plugin"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,9 +36,8 @@ func init() {
 	)
 }
 
-const s3KeyPrxfix = "binanceusd/"
-
 func CreateBep20Account(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byte, err error) {
+	s3KeyPrxfix := coins.S3KeyPrxfixMap[token.Name]
 	return bscSign.CreateAccount(ctx, s3KeyPrxfix, in)
 }
 
@@ -48,6 +47,8 @@ func Bep20Msg(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byt
 	if err != nil {
 		return in, err
 	}
+
+	s3KeyPrxfix := coins.S3KeyPrxfixMap[token.Name]
 	pk, err := oss.GetObject(ctx, s3KeyPrxfix+preSignData.From, true)
 	if err != nil {
 		return in, err
@@ -64,7 +65,7 @@ func Bep20Msg(ctx context.Context, in []byte, token *coins.TokenInfo) (out []byt
 	}
 
 	amount := big.NewFloat(preSignData.Value)
-	amount.Mul(amount, big.NewFloat(math.Pow10(bsc.BEP20ACCURACY)))
+	amount.Mul(amount, big.NewFloat(math.Pow10(token.Decimal)))
 
 	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), 10)
 	if !ok {

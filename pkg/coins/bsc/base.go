@@ -11,9 +11,6 @@ import (
 )
 
 const (
-	BNBACCURACY   = 18
-	BEP20ACCURACY = 18
-
 	ChainType           = sphinxplugin.ChainType_Binancecoin
 	ChainNativeUnit     = "BNB"
 	ChainAtomicUnit     = "Wei"
@@ -28,10 +25,10 @@ var (
 	nonceToLow  = `nonce too low`
 	stopErrMsg  = []string{gasTooLow, fundsTooLow, nonceToLow}
 
-	BUSDContract = func(chainet int64) string {
+	GetContract = func(chainet int64, token *coins.TokenInfo) string {
 		switch chainet {
 		case 56:
-			return "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
+			return token.OfficialContract
 		default:
 			contract, ok := env.LookupEnv(env.ENVCONTRACT)
 			if !ok {
@@ -42,8 +39,9 @@ var (
 	}
 
 	bscTokenList = []*coins.TokenInfo{
-		{OfficialName: "BSC", Decimal: 18, Unit: "BNB", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Binancecoin, CoinType: sphinxplugin.CoinType_CoinTypebinancecoin},
+		{OfficialName: "BSC", Decimal: ChainUnitExp, Unit: "BNB", Name: ChainNativeCoinName, OfficialContract: ChainNativeCoinName, TokenType: coins.Binancecoin, CoinType: sphinxplugin.CoinType_CoinTypebinancecoin},
 		{OfficialName: "BUSD Token", Decimal: 18, Unit: "BUSD", Name: "binanceusd", OfficialContract: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56", TokenType: coins.Bep20, CoinType: sphinxplugin.CoinType_CoinTypebinanceusd},
+		{OfficialName: "Binance-Peg BSC-USD", Decimal: 18, Unit: "USDT", Name: "bscusd", OfficialContract: "0x55d398326f99059fF775485246999027B3197955", TokenType: coins.Bep20, CoinType: sphinxplugin.CoinType_CoinTypebscusd},
 	}
 )
 

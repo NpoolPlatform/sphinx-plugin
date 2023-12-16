@@ -86,7 +86,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, errors.New("convert balance string to float64 error")
 	}
 
-	balance.Quo(balance, big.NewFloat(math.Pow10(bsc.BNBACCURACY)))
+	balance.Quo(balance, big.NewFloat(math.Pow10(tokenInfo.Decimal)))
 	f, exact := balance.Float64()
 	if exact != big.Exact {
 		log.Warnf("wallet balance transfer warning balance from->to %v-%v", balance.String(), f)
@@ -166,8 +166,11 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 	switch baseInfo.CoinType {
 	case sphinxplugin.CoinType_CoinTypebinancecoin, sphinxplugin.CoinType_CoinTypetbinancecoin:
 		info.GasLimit = 21_000
-	case sphinxplugin.CoinType_CoinTypebinanceusd, sphinxplugin.CoinType_CoinTypetbinanceusd:
-		info.ContractID = bsc.BUSDContract(chainID.Int64())
+	case sphinxplugin.CoinType_CoinTypebinanceusd,
+		sphinxplugin.CoinType_CoinTypetbinanceusd,
+		sphinxplugin.CoinType_CoinTypebscusd,
+		sphinxplugin.CoinType_CoinTypetbscusd:
+		info.ContractID = bsc.GetContract(chainID.Int64(), tokenInfo)
 		info.GasLimit = 300_000
 	}
 

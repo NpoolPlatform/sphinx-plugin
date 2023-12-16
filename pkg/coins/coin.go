@@ -77,6 +77,7 @@ var (
 			"binancecoin": sphinxplugin.CoinType_CoinTypebinancecoin,
 			"binanceusd":  sphinxplugin.CoinType_CoinTypebinanceusd,
 			"usdcerc20":   sphinxplugin.CoinType_CoinTypeusdcerc20,
+			"bscusd":      sphinxplugin.CoinType_CoinTypebscusd,
 		},
 		CoinNetTest: {
 			"filecoin":    sphinxplugin.CoinType_CoinTypetfilecoin,
@@ -90,6 +91,7 @@ var (
 			"binancecoin": sphinxplugin.CoinType_CoinTypetbinancecoin,
 			"binanceusd":  sphinxplugin.CoinType_CoinTypetbinanceusd,
 			"usdcerc20":   sphinxplugin.CoinType_CoinTypetusdcerc20,
+			"bscusd":      sphinxplugin.CoinType_CoinTypetbscusd,
 		},
 	}
 
@@ -117,6 +119,8 @@ var (
 		"tbinanceusd":  "binanceusd/",
 		"usdcerc20":    "usdcerc20/",
 		"tusdcerc20":   "usdcerc20/",
+		"bscusd":       "bscusd/",
+		"tbscusd":      "bscusd/",
 	}
 
 	// default sync time for waitting transaction on chain
@@ -153,6 +157,9 @@ var (
 
 		sphinxplugin.CoinType_CoinTypebinanceusd:  time.Second * 4,
 		sphinxplugin.CoinType_CoinTypetbinanceusd: time.Second * 4,
+
+		sphinxplugin.CoinType_CoinTypebscusd:  time.Second * 4,
+		sphinxplugin.CoinType_CoinTypetbscusd: time.Second * 4,
 	}
 )
 

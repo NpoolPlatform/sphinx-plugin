@@ -36,8 +36,8 @@ import (
 
 	// register handle
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc"
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/plugin"
-	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/busd/sign"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/bep20/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/bep20/sign"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/sign"
 )
