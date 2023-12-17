@@ -142,7 +142,7 @@
 |             ironfish             |  1min  |  1~2min  |
 |            spacemesh             | 0.5min |   2min   |
 |            binanceusd            |   4s   |    5s    |
-|              bscusd              |   4s   |    5s    |
+|              usdtbep20              |   4s   |    5s    |
 |            usdcerc20             |  12s   |  10~20s  |
 |            usdttrc20             |   2s   |    3s    |
 |           binancecoin            |   4s   |    5s    |
