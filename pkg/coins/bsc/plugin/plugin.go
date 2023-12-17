@@ -168,8 +168,8 @@ func PreSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		info.GasLimit = 21_000
 	case sphinxplugin.CoinType_CoinTypebinanceusd,
 		sphinxplugin.CoinType_CoinTypetbinanceusd,
-		sphinxplugin.CoinType_CoinTypebscusd,
-		sphinxplugin.CoinType_CoinTypetbscusd:
+		sphinxplugin.CoinType_CoinTypeusdtbep20,
+		sphinxplugin.CoinType_CoinTypetusdtbep20:
 		info.ContractID = bsc.GetContract(chainID.Int64(), tokenInfo)
 		info.GasLimit = 300_000
 	}
