@@ -47,7 +47,6 @@ fi
 
 mkdir -p $OUTPUT/.${service_name}.tmp
 cp ./cmd/$service_name/Dockerfile $OUTPUT/.${service_name}.tmp
-cp ./cmd/$service_name/*.yaml $OUTPUT/.${service_name}.tmp
 cp $OUTPUT/$PLATFORM/$service_name $OUTPUT/.${service_name}.tmp
 cd $OUTPUT/.${service_name}.tmp
 
