@@ -15,6 +15,7 @@ pipeline {
 
     stage('Prepare') {
       steps {
+        sh 'rm -rf ./output/*'
         sh 'make deps'
       }
     }
@@ -64,7 +65,7 @@ pipeline {
       }
       steps {
         sh 'make verify-build'
-        sh 'DEVELOPMENT=development DOCKER_REGISTRY=$DOCKER_REGISTRY make sphinx-plugin-image'
+        sh 'DOCKER_REGISTRY=$DOCKER_REGISTRY make sphinx-plugin-image'
       }
     }
 
@@ -78,11 +79,13 @@ pipeline {
           revlist=`git rev-list --tags --max-count=1`
           rc=$?
           set -e
-          if [ 0 -eq $rc ]; then
+          if [ 0 -eq $rc -a x"$revlist" != x ]; then
             tag=`git describe --tags $revlist`
+
             major=`echo $tag | awk -F '.' '{ print $1 }'`
             minor=`echo $tag | awk -F '.' '{ print $2 }'`
             patch=`echo $tag | awk -F '.' '{ print $3 }'`
+
             case $TAG_FOR in
               testing)
                 patch=$(( $patch + $patch % 2 + 1 ))
@@ -93,6 +96,7 @@ pipeline {
                 git checkout $tag
                 ;;
             esac
+
             tag=$major.$minor.$patch
           else
             tag=0.1.1
@@ -116,13 +120,16 @@ pipeline {
           revlist=`git rev-list --tags --max-count=1`
           rc=$?
           set -e
-          if [ 0 -eq $rc ]; then
+          if [ 0 -eq $rc -a x"$revlist" != x ]; then
             tag=`git describe --tags $revlist`
+
             major=`echo $tag | awk -F '.' '{ print $1 }'`
             minor=`echo $tag | awk -F '.' '{ print $2 }'`
             patch=`echo $tag | awk -F '.' '{ print $3 }'`
+
             minor=$(( $minor + 1 ))
             patch=1
+
             tag=$major.$minor.$patch
           else
             tag=0.1.1
@@ -146,14 +153,17 @@ pipeline {
           revlist=`git rev-list --tags --max-count=1`
           rc=$?
           set -e
-          if [ 0 -eq $rc ]; then
+          if [ 0 -eq $rc -a x"$revlist" != x ]; then
             tag=`git describe --tags $revlist`
+
             major=`echo $tag | awk -F '.' '{ print $1 }'`
             minor=`echo $tag | awk -F '.' '{ print $2 }'`
             patch=`echo $tag | awk -F '.' '{ print $3 }'`
+
             major=$(( $major + 1 ))
             minor=0
             patch=1
+
             tag=$major.$minor.$patch
           else
             tag=0.1.1
@@ -173,13 +183,18 @@ pipeline {
       }
       steps {
         sh(returnStdout: true, script: '''
+          set +e
           revlist=`git rev-list --tags --max-count=1`
-          tag=`git describe --tags $revlist`
-          git reset --hard
-          git checkout $tag
+          rc=$?
+          set -e
+          if [ 0 -eq $rc -a x"$revlist" != x ]; then
+            tag=`git describe --tags $revlist`
+            git reset --hard
+            git checkout $tag
+          fi
         '''.stripIndent())
         sh 'make verify-build'
-        sh 'DEVELOPMENT=other DOCKER_REGISTRY=$DOCKER_REGISTRY make sphinx-plugin-image'
+        sh 'DOCKER_REGISTRY=$DOCKER_REGISTRY make generate-docker-images'
       }
     }
 
@@ -188,8 +203,18 @@ pipeline {
         expression { RELEASE_TARGET == 'true' }
       }
       steps {
-        sh 'TAG=latest DOCKER_REGISTRY=$DOCKER_REGISTRY make sphinx-plugin-release'
-        sh(returnStdout: true, script: '''
+        sh(returnStdout: false, script: '''
+          branch=latest
+          if [ "x$BRANCH_NAME" != "xmaster" ]; then
+            branch=`echo $BRANCH_NAME | awk -F '/' '{ print $2 }'`
+          fi
+          set +e
+          docker images | grep sphinx-plugin | grep $branch
+          rc=$?
+          set -e
+          if [ 0 -eq $rc ]; then
+            DOCKER_REGISTRY=$DOCKER_REGISTRY make release-docker-images
+          fi
           images=`docker images | grep entropypool | grep sphinx-plugin | grep none | awk '{ print $3 }'`
           for image in $images; do
             docker rmi $image -f
@@ -204,15 +229,20 @@ pipeline {
       }
       steps {
         sh(returnStdout: false, script: '''
-          revlist=`git rev-list --tags --max-count=1`
-          tag=`git describe --tags $revlist`
-
           set +e
-          docker images | grep sphinx-plugin | grep $tag
+          revlist=`git rev-list --tags --max-count=1`
           rc=$?
           set -e
-          if [ 0 -eq $rc ]; then
-            TAG=$tag DOCKER_REGISTRY=$DOCKER_REGISTRY make sphinx-plugin-release
+
+          if [ 0 -eq $rc -a x"$revlist" != x ]; then
+            tag=`git tag --sort=-v:refname | grep [1\\|3\\|5\\|7\\|9]$ | head -n1`
+            set +e
+            docker images | grep sphinx-plugin | grep $tag
+            rc=$?
+            set -e
+            if [ 0 -eq $rc ]; then
+              DOCKER_REGISTRY=$DOCKER_REGISTRY make release-docker-images
+            fi
           fi
         '''.stripIndent())
       }
@@ -224,22 +254,20 @@ pipeline {
       }
       steps {
         sh(returnStdout: false, script: '''
-          revlist=`git rev-list --tags --max-count=1`
-          tag=`git describe --tags $revlist`
-
-          major=`echo $tag | awk -F '.' '{ print $1 }'`
-          minor=`echo $tag | awk -F '.' '{ print $2 }'`
-          patch=`echo $tag | awk -F '.' '{ print $3 }'`
-
-          patch=$(( $patch - $patch % 2 ))
-          tag=$major.$minor.$patch
-
           set +e
-          docker images | grep sphinx-plugin | grep $tag
+          taglist=`git rev-list --tags`
           rc=$?
           set -e
-          if [ 0 -eq $rc ]; then
-            TAG=$tag DOCKER_REGISTRY=$DOCKER_REGISTRY make sphinx-plugin-release
+
+          if [ 0 -eq $rc -a x"$taglist" != x ]; then
+            tag=`git tag --sort=-v:refname | grep [0\\|2\\|4\\|6\\|8]$ | head -n1`
+            set +e
+            docker images | grep sphinx-plugin | grep $tag
+            rc=$?
+            set -e
+            if [ 0 -eq $rc ]; then
+              DOCKER_REGISTRY=$DOCKER_REGISTRY make release-docker-images
+            fi
           fi
         '''.stripIndent())
       }
