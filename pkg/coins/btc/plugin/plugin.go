@@ -151,7 +151,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		amount = info.Value
 	)
 
-	_addr, err := btcutil.DecodeAddress(info.From, btc.BTCNetMap[info.ENV])
+	fromAddr, err := btcutil.DecodeAddress(from, btc.BTCNetMap[info.ENV])
 	if err != nil {
 		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
 	}
@@ -163,7 +163,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		listUnspentResult, err = cli.ListUnspentMinMaxAddresses(
 			btc.DefaultMinConfirms,
 			btc.DefaultMaxConfirms,
-			[]btcutil.Address{_addr},
+			[]btcutil.Address{fromAddr},
 		)
 		if err != nil || listUnspentResult == nil {
 			return true, err
@@ -214,11 +214,6 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 			btc.BTCGas,
 		)
 		return nil, env.ErrInsufficientBalance
-	}
-
-	fromAddr, err := btcutil.DecodeAddress(from, btc.BTCNetMap[info.ENV])
-	if err != nil {
-		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
 	fromScript, err := txscript.PayToAddrScript(fromAddr)

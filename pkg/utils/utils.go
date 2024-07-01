@@ -22,7 +22,7 @@ func ToCoinType(coinType string) (sphinxplugin.CoinType, error) {
 	return sphinxplugin.CoinType(_coinType), nil
 }
 
-//nolint because CoinType not define in this package
+// nolint because CoinType not define in this package
 func ToCoinName(coinType sphinxplugin.CoinType) string {
 	coinName := strings.TrimPrefix(coinType.String(), coinTypePrefix)
 	return coinName
