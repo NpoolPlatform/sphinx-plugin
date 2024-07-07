@@ -9,13 +9,13 @@ import (
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc/depc/rpcclient"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
@@ -103,7 +103,7 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, err
 	}
 
-	accountAmount := .0
+	accountAmount := float64(0)
 	for _, sp := range unspents {
 		if sp.Address == info.Address {
 			// TODO: bug not accuracy, use bigint

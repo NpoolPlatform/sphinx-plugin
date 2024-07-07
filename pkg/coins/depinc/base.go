@@ -14,7 +14,8 @@ import (
 
 const (
 	// DEPCGas 0.00028DEPC
-	DEPCGas = 0.00028
+	// the minimum value is
+	DEPCGas = 0.00000280
 	// DefaultMinConfirms ..
 	DefaultMinConfirms = 6
 	// DefaultMaxConfirms ..

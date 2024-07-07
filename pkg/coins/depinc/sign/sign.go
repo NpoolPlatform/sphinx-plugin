@@ -1,23 +1,16 @@
 package sign
 
 import (
-	"bytes"
 	"context"
-	"encoding/hex"
 	"encoding/json"
-	"fmt"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/oss"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc/depc"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
 )
 
 func init() {
@@ -42,39 +35,12 @@ func createAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, err
 	}
 
-	secret, err := btcec.NewPrivateKey(btcec.S256())
+	account, err := depc.New(depinc.DEPCNetMap[info.ENV])
 	if err != nil {
 		return nil, err
 	}
 
-	if !coins.CheckSupportNet(info.ENV) {
-		return nil, env.ErrEVNCoinNetValue
-	}
-
-	wif, err := btcutil.NewWIF(secret, depinc.DEPCNetMap[info.ENV], true)
-	if err != nil {
-		return nil, err
-	}
-
-	addressPubKey, err := btcutil.NewAddressPubKey(
-		wif.PrivKey.PubKey().SerializeCompressed(),
-		depinc.DEPCNetMap[info.ENV],
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	pkscript, err := PayToPubKeyScript(addressPubKey.ScriptAddress())
-	if err != nil {
-		return nil, err
-	}
-
-	pksh, err := btcutil.NewAddressScriptHash(pkscript, depinc.DEPCNetMap[info.ENV])
-	if err != nil {
-		return nil, err
-	}
-
-	addr := pksh.EncodeAddress()
+	addr := account.PayAddressStr
 
 	_out := ct.NewAccountResponse{
 		Address: addr,
@@ -85,7 +51,7 @@ func createAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, err
 	}
 
-	err = oss.PutObject(ctx, s3KeyPrxfix+addr, []byte(wif.String()), true)
+	err = oss.PutObject(ctx, s3KeyPrxfix+addr, []byte(account.WIF.String()), true)
 	return out, err
 }
 
@@ -102,10 +68,9 @@ func signTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []b
 	}
 
 	var (
-		from       = info.From
-		fromScript = info.PayToAddrScript
-		amounts    = info.Amounts
-		msgTx      = info.MsgTx
+		from    = info.From
+		amounts = info.Amounts
+		msgTx   = info.MsgTx
 	)
 
 	wifStr, err := oss.GetObject(ctx, s3KeyPrxfix+from, true)
@@ -113,97 +78,31 @@ func signTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []b
 		return nil, err
 	}
 
-	fmt.Println("wifStr", string(wifStr))
-
-	wif, err := btcutil.DecodeWIF(string(wifStr))
-	if err != nil {
-		return nil, err
-	}
-
-	addressPubKey, err := btcutil.NewAddressPubKey(
-		wif.PrivKey.PubKey().SerializeCompressed(),
-		depinc.DEPCNetMap[info.ENV],
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	pkscript, err := PayToPubKeyScript(addressPubKey.ScriptAddress())
+	account, err := depc.NewFromWIFString(string(wifStr))
 	if err != nil {
 		return nil, err
 	}
 
 	for txIdx := range msgTx.TxIn {
-		sig, err := SignatureScript(
+		sig, err := depc.WitnessSignature(
 			msgTx,
-			txIdx,
-			pkscript,
-			txscript.SigHashAll,
-			wif.PrivKey,
-			depinc.DEPCNetMap[info.ENV],
-		)
-		if err != nil {
-			return nil, err
-		}
-		msgTx.TxIn[txIdx].SignatureScript = sig
-
-		// validate signature
-		flags := txscript.StandardVerifyFlags
-		vm, err := txscript.NewEngine(
-			fromScript,
-			msgTx,
-			txIdx,
-			flags,
-			nil,
 			txscript.NewTxSigHashes(msgTx),
+			txIdx,
 			int64(amounts[txIdx]),
-		)
+			txscript.SigHashAll,
+			account.PrivKey,
+			true)
+		if err != nil {
+			return nil, err
+		}
+		msgTx.TxIn[txIdx].Witness = sig
+
+		sigScript, err := txscript.NewScriptBuilder().AddData(account.RedeemScript).Script()
 		if err != nil {
 			return nil, err
 		}
 
-		if err := vm.Execute(); err != nil {
-			return nil, err
-		}
+		msgTx.TxIn[txIdx].SignatureScript = sigScript
 	}
-
-	fmt.Println("tx hex string:", getRawTxString(msgTx))
-
 	return json.Marshal(msgTx)
-}
-
-func SignatureScript(tx *wire.MsgTx, idx int, subscript []byte, hashType txscript.SigHashType, privKey *btcec.PrivateKey, chainParams *chaincfg.Params) ([]byte, error) {
-	sig, err := txscript.RawTxInSignature(tx, idx, subscript, hashType, privKey)
-	if err != nil {
-		return nil, err
-	}
-
-	addressPubKey, err := btcutil.NewAddressPubKey(
-		privKey.PubKey().SerializeCompressed(),
-		chainParams,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	pkscript, err := PayToPubKeyScript(addressPubKey.ScriptAddress())
-	if err != nil {
-		return nil, err
-	}
-
-	return txscript.NewScriptBuilder().AddOp(txscript.OP_0).AddData(sig).AddData(pkscript).Script()
-}
-
-func getRawTxString(tx *wire.MsgTx) string {
-	txHex := ""
-	if tx != nil {
-		// Serialize the transaction and convert to hex string.
-		buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))
-		if err := tx.Serialize(buf); err != nil {
-			return ""
-		}
-		txHex = hex.EncodeToString(buf.Bytes())
-	}
-
-	return txHex
 }

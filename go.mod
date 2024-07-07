@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/Geapefurit/gotron-sdk v0.0.0-20220724074720-3d7ea3cbd771
 	github.com/NpoolPlatform/build-chain v0.0.0-20231211023318-0c7698792ed7
-	github.com/NpoolPlatform/go-service-framework v0.0.0-20230930023319-e48074d9472e
+	github.com/NpoolPlatform/go-service-framework v0.0.0-20240510075442-89278cb5cf47
 	github.com/NpoolPlatform/libent-cruder v0.0.0-20231008051607-f64457cf6ab6
 	github.com/NpoolPlatform/message v0.0.0-20240702022057-7333f5625282
 	github.com/btcsuite/btcd v0.22.0-beta
@@ -92,7 +92,6 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
-	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opentelemetry.io/otel v1.8.0 // indirect
 	go.opentelemetry.io/otel/trace v1.8.0 // indirect
@@ -109,9 +108,9 @@ require (
 	github.com/Shonminh/apollo-client v0.4.0 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/akavel/rsrc v0.8.0 // indirect
-	github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f // indirect
-	github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd // indirect
-	github.com/btcsuite/websocket v0.0.0-20150119174127-31079b680792 // indirect
+	github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f
+	github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd
+	github.com/btcsuite/websocket v0.0.0-20150119174127-31079b680792
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/crackcomm/go-gitignore v0.0.0-20170627025303-887ab5e44cc3 // indirect
 	github.com/daaku/go.zipexe v1.0.0 // indirect

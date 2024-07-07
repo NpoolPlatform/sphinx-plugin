@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc/depc/rpcclient"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/endpoints"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/utils"
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/rpcclient"
 )
 
 const (
