@@ -22,9 +22,9 @@ const (
 	DefaultMaxConfirms = 9999999
 
 	ChainType           = sphinxplugin.ChainType_Depinc
-	ChainNativeUnit     = "DEPC"
+	ChainNativeUnit     = "DePC"
 	ChainOfficialName   = "Depinc"
-	ChainAtomicUnit     = "Depinc"
+	ChainAtomicUnit     = "Satoshi (sat)"
 	ChainUnitExp        = 8
 	ChainNativeCoinName = "depinc"
 	ChainID             = "N/A"

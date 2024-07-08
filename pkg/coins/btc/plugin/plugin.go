@@ -73,10 +73,6 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	if _err != nil {
 		return nil, _err
 	}
-	// create new address not auto import to wallet
-	if err != nil {
-		return nil, err
-	}
 
 	v, ok := env.LookupEnv(env.ENVCOINNET)
 	if !ok {

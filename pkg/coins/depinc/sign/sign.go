@@ -41,7 +41,6 @@ func createAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	}
 
 	addr := account.PayAddressStr
-
 	_out := ct.NewAccountResponse{
 		Address: addr,
 	}
@@ -53,11 +52,6 @@ func createAccount(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 
 	err = oss.PutObject(ctx, s3KeyPrxfix+addr, []byte(account.WIF.String()), true)
 	return out, err
-}
-
-func PayToPubKeyScript(serializedPubKey []byte) ([]byte, error) {
-	return txscript.NewScriptBuilder().AddOp(txscript.OP_1).AddData(serializedPubKey).AddOp(txscript.OP_1).
-		AddOp(txscript.OP_CHECKMULTISIG).Script()
 }
 
 // signTx ..
@@ -101,7 +95,6 @@ func signTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []b
 		if err != nil {
 			return nil, err
 		}
-
 		msgTx.TxIn[txIdx].SignatureScript = sigScript
 	}
 	return json.Marshal(msgTx)

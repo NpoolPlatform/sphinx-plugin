@@ -62,22 +62,6 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, err
 	}
 
-	client := depinc.Client()
-	_err := client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
-		err = cli.ImportAddressRescan(info.Address, "", false)
-		if err != nil {
-			return true, err
-		}
-		return false, err
-	})
-	if _err != nil {
-		return nil, _err
-	}
-	// create new address not auto import to wallet
-	if err != nil {
-		return nil, err
-	}
-
 	v, ok := env.LookupEnv(env.ENVCOINNET)
 	if !ok {
 		return nil, env.ErrEVNCoinNet
@@ -87,6 +71,18 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 	}
 
 	_addr, err := btcutil.DecodeAddress(info.Address, depinc.DEPCNetMap[v])
+	if err != nil {
+		return nil, err
+	}
+
+	client := depinc.Client()
+	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
+		err := cli.ImportAddressRescan(info.Address, "", false)
+		if err != nil {
+			return true, err
+		}
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -174,10 +170,10 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		return nil, err
 	}
 
-	// 构建新的交易
+	// new transaction
 	msgTx := wire.NewMsgTx(wire.TxVersion)
 
-	// TODO 优化选择合适的 UTXO 减少交易费
+	// TODO: optimizing the utxos selected
 	enoughUTXOAmount := float64(0)
 	// sign and check need this info
 	// btcutil.Amount is alias of int64
@@ -188,16 +184,16 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		if err != nil {
 			return nil, err
 		}
-		// 构建输入
-		iAmount, err := btcutil.NewAmount(txIn.Amount)
+		// get in amount
+		inAmount, err := btcutil.NewAmount(txIn.Amount)
 		if err != nil {
 			return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid.Error(), err)
 		}
 
-		inputAccount = append(inputAccount, iAmount)
+		inputAccount = append(inputAccount, inAmount)
 		msgTx.AddTxIn(wire.NewTxIn(wire.NewOutPoint(txHash, txIn.Vout), nil, nil))
 
-		// 足够的金额
+		// util sufficient funds are available
 		enoughUTXOAmount += txIn.Amount
 		if enoughUTXOAmount >= amount+depinc.DEPCGas {
 			amountflag = true
@@ -221,8 +217,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
-	// 构建输出和找零
-	// DEPC 的最小精度是1e-8
+	// cal change amount
 	changeAmount, err := btcutil.NewAmount(enoughUTXOAmount - amount - depinc.DEPCGas)
 	if err != nil {
 		return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
@@ -242,12 +237,12 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
-	tAccount, err := btcutil.NewAmount(amount)
+	outAmount, err := btcutil.NewAmount(amount)
 	if err != nil {
 		return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
 	}
 
-	msgTx.AddTxOut(wire.NewTxOut(int64(tAccount), toScript))
+	msgTx.AddTxOut(wire.NewTxOut(int64(outAmount), toScript))
 
 	_out := depinc.SignMsgTx{
 		BaseInfo:        info,

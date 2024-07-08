@@ -21,10 +21,7 @@ const sigHashMask = 0x1f
 // template. The passed transaction must contain all the inputs and outputs as
 // dictated by the passed hashType. The signature generated observes the new
 // transaction digest algorithm defined within BIP0143.
-func WitnessSignature(tx *wire.MsgTx, sigHashes *txscript.TxSigHashes, idx int, amt int64,
-	hashType txscript.SigHashType, privKey *btcec.PrivateKey,
-	compress bool) (wire.TxWitness, error) {
-
+func WitnessSignature(tx *wire.MsgTx, sigHashes *txscript.TxSigHashes, idx int, amt int64, hashType txscript.SigHashType, privKey *btcec.PrivateKey, compress bool) (wire.TxWitness, error) {
 	pk := (*btcec.PublicKey)(&privKey.PublicKey)
 	var pkData []byte
 	if compress {
@@ -45,10 +42,7 @@ func WitnessSignature(tx *wire.MsgTx, sigHashes *txscript.TxSigHashes, idx int, 
 	return wire.TxWitness{sig, pkData}, nil
 }
 
-func RawTxInWitnessSignature(tx *wire.MsgTx, sigHashes *txscript.TxSigHashes, idx int,
-	amt int64, pkHash []byte, hashType txscript.SigHashType,
-	key *btcec.PrivateKey) ([]byte, error) {
-
+func RawTxInWitnessSignature(tx *wire.MsgTx, sigHashes *txscript.TxSigHashes, idx int, amt int64, pkHash []byte, hashType txscript.SigHashType, key *btcec.PrivateKey) ([]byte, error) {
 	hash, err := calcWitnessSignatureHash(pkHash, sigHashes, hashType, tx,
 		idx, amt)
 	if err != nil {
@@ -62,11 +56,9 @@ func RawTxInWitnessSignature(tx *wire.MsgTx, sigHashes *txscript.TxSigHashes, id
 	return append(signature.Serialize(), byte(hashType)), nil
 }
 
-func calcWitnessSignatureHash(pubkeyHash []byte, sigHashes *txscript.TxSigHashes,
-	hashType txscript.SigHashType, tx *wire.MsgTx, idx int, amt int64) ([]byte, error) {
-
-	// As a sanity check, ensure the passed input index for the transaction
-	// is valid.
+// reference DePINC/depinc > src/script/interpreter.cpp > SignatureHash function
+func calcWitnessSignatureHash(pubkeyHash []byte, sigHashes *txscript.TxSigHashes, hashType txscript.SigHashType, tx *wire.MsgTx, idx int, amt int64) ([]byte, error) {
+	// As a sanity check, ensure the passed input index for the transaction is valid.
 	if idx > len(tx.TxIn)-1 {
 		return nil, fmt.Errorf("idx %d but %d txins", idx, len(tx.TxIn))
 	}
@@ -138,7 +130,10 @@ func calcWitnessSignatureHash(pubkeyHash []byte, sigHashes *txscript.TxSigHashes
 		sigHash.Write(sigHashes.HashOutputs[:])
 	} else if hashType&sigHashMask == txscript.SigHashSingle && idx < len(tx.TxOut) {
 		var b bytes.Buffer
-		wire.WriteTxOut(&b, 0, 0, tx.TxOut[idx])
+		err := wire.WriteTxOut(&b, 0, 0, tx.TxOut[idx])
+		if err != nil {
+			return nil, err
+		}
 		sigHash.Write(chainhash.DoubleHashB(b.Bytes()))
 	} else {
 		sigHash.Write(zeroHash[:])

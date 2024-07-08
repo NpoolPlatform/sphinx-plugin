@@ -34,11 +34,12 @@ func New(net *chaincfg.Params) (*DepincAccount, error) {
 }
 
 func NewFromWIFString(wifStr string) (*DepincAccount, error) {
-	wif, err := btcutil.DecodeWIF(string(wifStr))
+	wif, err := btcutil.DecodeWIF(wifStr)
 	if err != nil {
 		return nil, wlog.WrapError(err)
 	}
 
+	// parse network ID from privateKey
 	decoded := base58.Decode(wifStr)
 	netID := decoded[0]
 
@@ -62,18 +63,25 @@ func NewFromWIFString(wifStr string) (*DepincAccount, error) {
 
 func initDepincAccount(wif *btcutil.WIF, net *chaincfg.Params) (*DepincAccount, error) {
 	da := &DepincAccount{WIF: wif, netParams: net}
+	// compressed pub key
 	compressedPubKey := da.PrivKey.PubKey().SerializeCompressed()
+
+	// pub key hash
 	pkHash := btcutil.Hash160(compressedPubKey)
+
+	// redeemScript
 	redeemScript, err := txscript.NewScriptBuilder().AddOp(txscript.OP_0).AddData(pkHash).Script()
 	if err != nil {
 		return nil, wlog.WrapError(err)
 	}
 
+	// redeemScript hash
 	pkhsHash, err := btcutil.NewAddressScriptHash(redeemScript, net)
 	if err != nil {
 		return nil, wlog.WrapError(err)
 	}
 
+	// script pub key,locking script
 	scriptPubKey, err := txscript.PayToAddrScript(pkhsHash)
 	if err != nil {
 		return nil, wlog.WrapError(err)
