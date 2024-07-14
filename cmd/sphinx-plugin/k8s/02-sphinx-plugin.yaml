@@ -21,7 +21,11 @@ spec:
         imagePullPolicy: Always
         volumeMounts:
           - name: service-config
-            mountPath: /etc/SphinxPlugin
+            mountPath: /opt/sphinx-plugin/
+        volumeMounts:
+          - name: host-config
+            mountPath: /tmp/hosts
+            subPath: proxy-host
         env:
         - name: ENV_ENVIRONMENT_TARGET
           valueFrom:
@@ -97,7 +101,7 @@ spec:
             configMapKeyRef:
               name: sphinx-plugin-environment
               key: environment.wan_ip
-        command: ["run"]
+        command: ["/bin/sh", "-c", "cat /tmp/hosts >> /etc/hosts && /usr/local/bin/sphinx-plugin run"]
       volumes:
         - name: service-config
           configMap:
@@ -105,3 +109,6 @@ spec:
             items:
               - key: service-conf
                 path: SphinxPlugin.viper.yaml
+        - name: host-config
+          configMap:
+            name: pluginproxyconfig
