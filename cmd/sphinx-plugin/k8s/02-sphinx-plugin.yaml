@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sphinx-plugin
+  namespace: kube-system
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sphinx-plugin
+  template:
+    metadata:
+      labels:
+        app: sphinx-plugin
+    spec:
+      containers:
+      - name: sphinx-plugin
+        image: uhub.service.ucloud.cn/entropypool/sphinx-plugin:latest
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: service-config
+            mountPath: /etc/SphinxPlugin
+        env:
+        - name: ENV_ENVIRONMENT_TARGET
+          valueFrom:
+            configMapKeyRef:
+              name: system-environment
+              key: environment.target
+        - name: ENV_CONSUL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: system-environment
+              key: environment.consul_host
+        - name: ENV_CONSUL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: system-environment
+              key: environment.consul_port
+        - name: ENV_CLUSTER_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: ENV_COIN_API
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.coin_api
+        - name: ENV_COIN_LOCAL_API
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.coin_local_api
+        - name: ENV_COIN_PUBLIC_API
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.coin_public_api
+        - name: ENV_COIN_JSONRPC_LOCAL_API
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.coin_jsonrpc_local_api
+        - name: ENV_COIN_JSONRPC_PUBLIC_API
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.coin_jsonrpc_public_api
+        - name: ENV_COIN_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.coin_type
+        - name: ENV_COIN_NET
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.coin_net
+        - name: ENV_PROXY
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.proxy
+        - name: ENV_SYNC_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.sync_interval
+        - name: ENV_POSITION
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.position
+        - name: ENV_WAN_IP
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-environment
+              key: environment.wan_ip
+        command: ["run"]
+      volumes:
+        - name: service-config
+          configMap:
+            name: sphinx-plugin-config
+            items:
+              - key: service-conf
+                path: SphinxPlugin.viper.yaml

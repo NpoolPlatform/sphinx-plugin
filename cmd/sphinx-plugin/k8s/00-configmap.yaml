@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sphinx-plugin-environment
+  namespace: kube-system
+data:
+  environment
+  - coin_api: ""
+  - coin_local_api: ""
+  - coin_public_api: ""
+  - coin_jsonrpc_public_api: ""
+  - coin_jsonrpc_public_api: ""
+  - coin_type: ""
+  - coin_net: ""
+  - proxy: ""
+  - sync_interval: ""
+  - position: ""
+  - wan_ip: ""
