@@ -1,18 +1,18 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: chain-middleware-config
+  name: sphinx-plugin-config
   namespace: kube-system
 data:
   service-conf: |
     config:
-      hostname: "chain-middleware.npool.top"
+      hostname: "sphinx-plugin.npool.top"
       http_port: 50570
       grpc_port: 50571
       healthz_port: 50572
       prometheus_port: 50573
       appid: "89089012783789789719823798127398"
-      serviceid: "bd09cb7c-5ceb-11ed-a2b0-fb139cea1292"
+      serviceid: "d37704de-41b8-11ef-9fbc-6e330bf3aa50"
       logdir: "./"
       log_level: "warning"
       apolloAccessKey: "0147fb70b815403790e8634b899fac07"

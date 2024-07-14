@@ -4,7 +4,7 @@ metadata:
   name: sphinx-plugin-environment
   namespace: kube-system
 data:
-  environment
+  environment:
   - coin_api: ""
   - coin_local_api: ""
   - coin_public_api: ""
