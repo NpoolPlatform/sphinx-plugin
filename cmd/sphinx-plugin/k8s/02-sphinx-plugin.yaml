@@ -24,7 +24,7 @@ spec:
             mountPath: /opt/sphinx-plugin/
           - name: host-config
             mountPath: /tmp/hosts
-            subPath: proxy-host
+            subPath: .pluginproxyconfig
         env:
         - name: ENV_ENVIRONMENT_TARGET
           valueFrom:
@@ -45,11 +45,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: ENV_COIN_API
-          valueFrom:
-            configMapKeyRef:
-              name: sphinx-plugin-environment
-              key: environment.coin_api
         - name: ENV_COIN_LOCAL_API
           valueFrom:
             configMapKeyRef:
