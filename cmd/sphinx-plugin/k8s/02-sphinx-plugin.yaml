@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: sphinx-plugin
-        image: uhub.service.ucloud.cn/entropypool/sphinx-plugin:support-depinc
+        image: uhub.service.ucloud.cn/entropypool/sphinx-plugin:latest
         imagePullPolicy: Always
         volumeMounts:
           - name: service-config
