@@ -16,7 +16,7 @@ import (
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
-	"github.com/ethereum/go-ethereum"
+	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"

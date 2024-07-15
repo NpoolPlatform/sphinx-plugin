@@ -3,7 +3,6 @@ package sign
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -111,13 +110,8 @@ func CreateAccount(ctx context.Context, s3Store string, in []byte) (out []byte, 
 	hex.Encode(privateKeyBytesHex, privateKeyBytes)
 
 	// privateKey.PublicKey
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return nil, errors.New("create account error casting public key to ECDSA")
-	}
-
-	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex() // Hex String
+	publicKeyECDSA := privateKey.PublicKey
+	address := crypto.PubkeyToAddress(publicKeyECDSA).Hex() // Hex String
 	err = oss.PutObject(ctx, s3Store+address, privateKeyBytesHex, true)
 	if err != nil {
 		return nil, err
