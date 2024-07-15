@@ -4,6 +4,8 @@ run:
   deadline: 5m
   build-tags:
     - codeanalysis
+  skip-dirs:
+    - pkg/coins/depinc/depc/rpcclient
 issues:
   exclude-rules:
     # counterfeiter fakes are usually named 'fake_<something>.go'

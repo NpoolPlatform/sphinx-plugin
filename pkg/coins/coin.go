@@ -32,6 +32,8 @@ const (
 
 	Binancecoin TokenType = "binancecoin"
 	Bep20       TokenType = "bep20"
+
+	Depinc TokenType = "depinc"
 )
 
 type TokenInfo struct {
@@ -78,6 +80,7 @@ var (
 			"binanceusd":  sphinxplugin.CoinType_CoinTypebinanceusd,
 			"usdcerc20":   sphinxplugin.CoinType_CoinTypeusdcerc20,
 			"usdtbep20":   sphinxplugin.CoinType_CoinTypeusdtbep20,
+			"depinc":      sphinxplugin.CoinType_CoinTypedepinc,
 		},
 		CoinNetTest: {
 			"filecoin":    sphinxplugin.CoinType_CoinTypetfilecoin,
@@ -92,10 +95,12 @@ var (
 			"binanceusd":  sphinxplugin.CoinType_CoinTypetbinanceusd,
 			"usdcerc20":   sphinxplugin.CoinType_CoinTypetusdcerc20,
 			"usdtbep20":   sphinxplugin.CoinType_CoinTypetusdtbep20,
+			"depinc":      sphinxplugin.CoinType_CoinTypetdepinc,
 		},
 	}
 
 	// in order to compatible
+	// TODO:will be rebuild for s3keyprefix
 	S3KeyPrxfixMap = map[string]string{
 		"filecoin":     "filecoin/",
 		"tfilecoin":    "filecoin/",
@@ -121,6 +126,8 @@ var (
 		"tusdcerc20":   "usdcerc20/",
 		"usdtbep20":    "usdtbep20/",
 		"tusdtbep20":   "usdtbep20/",
+		"depinc":       "depinc/",
+		"tdepinc":      "depinc/",
 	}
 
 	// default sync time for waitting transaction on chain
@@ -160,6 +167,9 @@ var (
 
 		sphinxplugin.CoinType_CoinTypeusdtbep20:  time.Second * 4,
 		sphinxplugin.CoinType_CoinTypetusdtbep20: time.Second * 4,
+
+		sphinxplugin.CoinType_CoinTypedepinc:  time.Minute * 1,
+		sphinxplugin.CoinType_CoinTypetdepinc: time.Minute * 1,
 	}
 )
 

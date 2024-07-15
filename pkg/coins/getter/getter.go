@@ -40,6 +40,11 @@ import (
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/bep20/sign"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/plugin"
 	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/bsc/sign"
+
+	// register handle
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc/plugin"
+	_ "github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc/sign"
 )
 
 func GetTokenInfo(name string) *coins.TokenInfo {

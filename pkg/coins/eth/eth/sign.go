@@ -3,10 +3,8 @@ package eth
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/eth"
@@ -96,18 +94,14 @@ func CreateAccount(ctx context.Context, s3Store string, in []byte) (out []byte, 
 	hex.Encode(privateKeyBytesHex, privateKeyBytes)
 
 	// privateKey.PublicKey
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return nil, errors.New("create account error casting public key to ECDSA")
-	}
+	publicKeyECDSA := privateKey.PublicKey
 
 	// crypto.PubkeyToAddress
 	// publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
 	// hash := sha3.NewKeccak256()
 	// hash.Write(publicKeyBytes[1:])
 	// hexutil.Encode(hash.Sum(nil)[12:])
-	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex() // Hex String
+	address := crypto.PubkeyToAddress(publicKeyECDSA).Hex() // Hex String
 	err = oss.PutObject(ctx, s3Store+address, privateKeyBytesHex, true)
 	if err != nil {
 		return nil, err

@@ -12,7 +12,6 @@ import (
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 )
 
@@ -88,7 +87,6 @@ func signTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []b
 		amounts    = info.Amounts
 		msgTx      = info.MsgTx
 		txIns      = msgTx.TxIn
-		txOuts     = msgTx.TxOut
 	)
 
 	wifStr, err := oss.GetObject(ctx, s3KeyPrxfix+from, true)
@@ -135,25 +133,5 @@ func signTx(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []b
 			return nil, err
 		}
 	}
-
-	for _, txIn := range txIns {
-		txIns = append(txIns, &wire.TxIn{
-			PreviousOutPoint: wire.OutPoint{
-				Hash:  txIn.PreviousOutPoint.Hash,
-				Index: txIn.PreviousOutPoint.Index,
-			},
-			SignatureScript: txIn.SignatureScript,
-			Witness:         txIn.Witness,
-			Sequence:        txIn.Sequence,
-		})
-	}
-
-	for _, txOut := range txOuts {
-		txOuts = append(txOuts, &wire.TxOut{
-			Value:    txOut.Value,
-			PkScript: txOut.PkScript,
-		})
-	}
-
 	return json.Marshal(msgTx)
 }

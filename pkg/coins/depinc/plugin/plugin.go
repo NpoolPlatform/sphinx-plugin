@@ -8,14 +8,14 @@ import (
 
 	"github.com/NpoolPlatform/message/npool/sphinxplugin"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins"
-	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/btc"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc"
+	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/depinc/depc/rpcclient"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/coins/register"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/env"
 	"github.com/NpoolPlatform/sphinx-plugin/pkg/log"
 	ct "github.com/NpoolPlatform/sphinx-plugin/pkg/types"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
@@ -24,32 +24,32 @@ import (
 // here register plugin func
 func init() {
 	register.RegisteTokenHandler(
-		coins.Bitcoin,
+		coins.Depinc,
 		register.OpGetBalance,
 		walletBalance,
 	)
 	register.RegisteTokenHandler(
-		coins.Bitcoin,
+		coins.Depinc,
 		register.OpPreSign,
 		preSign,
 	)
 	register.RegisteTokenHandler(
-		coins.Bitcoin,
+		coins.Depinc,
 		register.OpBroadcast,
 		broadcast,
 	)
 	register.RegisteTokenHandler(
-		coins.Bitcoin,
+		coins.Depinc,
 		register.OpSyncTx,
 		syncTx,
 	)
 
-	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypebitcoin, btc.TxFailErr)
+	err := register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypedepinc, depinc.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
 
-	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetbitcoin, btc.TxFailErr)
+	err = register.RegisteAbortFuncErr(sphinxplugin.CoinType_CoinTypetdepinc, depinc.TxFailErr)
 	if err != nil {
 		panic(err)
 	}
@@ -62,18 +62,6 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, err
 	}
 
-	client := btc.Client()
-	_err := client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
-		err = cli.ImportAddressRescan(info.Address, "", false)
-		if err != nil {
-			return true, err
-		}
-		return false, err
-	})
-	if _err != nil {
-		return nil, _err
-	}
-
 	v, ok := env.LookupEnv(env.ENVCOINNET)
 	if !ok {
 		return nil, env.ErrEVNCoinNet
@@ -82,14 +70,26 @@ func walletBalance(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (
 		return nil, env.ErrEVNCoinNetValue
 	}
 
-	_addr, err := btcutil.DecodeAddress(info.Address, btc.BTCNetMap[v])
+	_addr, err := btcutil.DecodeAddress(info.Address, depinc.DEPCNetMap[v])
+	if err != nil {
+		return nil, err
+	}
+
+	client := depinc.Client()
+	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
+		err := cli.ImportAddressRescan(info.Address, "", false)
+		if err != nil {
+			return true, err
+		}
+		return false, err
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	var unspents []btcjson.ListUnspentResult
 	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
-		unspents, err = cli.ListUnspentMinMaxAddresses(btc.DefaultMinConfirms, btc.DefaultMaxConfirms, []btcutil.Address{_addr})
+		unspents, err = cli.ListUnspentMinMaxAddresses(depinc.DefaultMinConfirms, depinc.DefaultMaxConfirms, []btcutil.Address{_addr})
 		if err != nil || unspents == nil {
 			return true, err
 		}
@@ -147,18 +147,18 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		amount = info.Value
 	)
 
-	fromAddr, err := btcutil.DecodeAddress(from, btc.BTCNetMap[info.ENV])
+	fromAddr, err := btcutil.DecodeAddress(from, depinc.DEPCNetMap[info.ENV])
 	if err != nil {
 		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid.Error(), err)
 	}
 
-	client := btc.Client()
+	client := depinc.Client()
 
 	var listUnspentResult []btcjson.ListUnspentResult
 	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
 		listUnspentResult, err = cli.ListUnspentMinMaxAddresses(
-			btc.DefaultMinConfirms,
-			btc.DefaultMaxConfirms,
+			depinc.DefaultMinConfirms,
+			depinc.DefaultMaxConfirms,
 			[]btcutil.Address{fromAddr},
 		)
 		if err != nil || listUnspentResult == nil {
@@ -170,10 +170,10 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		return nil, err
 	}
 
-	// 构建新的交易
+	// new transaction
 	msgTx := wire.NewMsgTx(wire.TxVersion)
 
-	// TODO 优化选择合适的 UTXO 减少交易费
+	// TODO: optimizing the utxos selected
 	enoughUTXOAmount := float64(0)
 	// sign and check need this info
 	// btcutil.Amount is alias of int64
@@ -184,18 +184,18 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		if err != nil {
 			return nil, err
 		}
-		// 构建输入
-		iAmount, err := btcutil.NewAmount(txIn.Amount)
+		// get in amount
+		inAmount, err := btcutil.NewAmount(txIn.Amount)
 		if err != nil {
 			return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid.Error(), err)
 		}
 
-		inputAccount = append(inputAccount, iAmount)
+		inputAccount = append(inputAccount, inAmount)
 		msgTx.AddTxIn(wire.NewTxIn(wire.NewOutPoint(txHash, txIn.Vout), nil, nil))
 
-		// 足够的金额
+		// util sufficient funds are available
 		enoughUTXOAmount += txIn.Amount
-		if enoughUTXOAmount >= amount+btc.BTCGas {
+		if enoughUTXOAmount >= amount+depinc.DEPCGas {
 			amountflag = true
 			break
 		}
@@ -207,7 +207,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 			"insufficient balance: total: %v, transfer: %v, gas: %v",
 			enoughUTXOAmount,
 			amount,
-			btc.BTCGas,
+			depinc.DEPCGas,
 		)
 		return nil, env.ErrInsufficientBalance
 	}
@@ -217,9 +217,8 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
-	// 构建输出和找零
-	// BTC 的最小精度是1e-8
-	changeAmount, err := btcutil.NewAmount(enoughUTXOAmount - amount - btc.BTCGas)
+	// cal change amount
+	changeAmount, err := btcutil.NewAmount(enoughUTXOAmount - amount - depinc.DEPCGas)
 	if err != nil {
 		return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
 	}
@@ -228,7 +227,7 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		msgTx.AddTxOut(wire.NewTxOut(int64(changeAmount), fromScript))
 	}
 
-	toAddr, err := btcutil.DecodeAddress(to, btc.BTCNetMap[info.ENV])
+	toAddr, err := btcutil.DecodeAddress(to, depinc.DEPCNetMap[info.ENV])
 	if err != nil {
 		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
@@ -238,14 +237,14 @@ func preSign(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) ([]byte
 		return nil, fmt.Errorf("%v,%v", env.ErrAddressInvalid, err)
 	}
 
-	tAccount, err := btcutil.NewAmount(amount)
+	outAmount, err := btcutil.NewAmount(amount)
 	if err != nil {
 		return nil, fmt.Errorf("%v,%v", env.ErrAmountInvalid, err)
 	}
 
-	msgTx.AddTxOut(wire.NewTxOut(int64(tAccount), toScript))
+	msgTx.AddTxOut(wire.NewTxOut(int64(outAmount), toScript))
 
-	_out := btc.SignMsgTx{
+	_out := depinc.SignMsgTx{
 		BaseInfo:        info,
 		PayToAddrScript: fromScript,
 		Amounts:         inputAccount,
@@ -262,7 +261,7 @@ func broadcast(ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out 
 		return nil, err
 	}
 
-	client := btc.Client()
+	client := depinc.Client()
 	var _hash *chainhash.Hash
 	err = client.WithClient(ctx, func(cli *rpcclient.Client) (bool, error) {
 		_hash, err = cli.SendRawTransaction(info, false)
@@ -295,7 +294,7 @@ func syncTx(_ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, err
 	}
 
-	client := btc.Client()
+	client := depinc.Client()
 	var transactionResult *btcjson.GetTransactionResult
 	err = client.WithClient(_ctx, func(cli *rpcclient.Client) (bool, error) {
 		transactionResult, err = cli.GetTransaction(txHash)
@@ -308,8 +307,8 @@ func syncTx(_ctx context.Context, in []byte, tokenInfo *coins.TokenInfo) (out []
 		return nil, err
 	}
 
-	if transactionResult.Confirmations < btc.DefaultMinConfirms {
-		return nil, btc.ErrWaitMessageOnChainMinConfirms
+	if transactionResult.Confirmations < depinc.DefaultMinConfirms {
+		return nil, depinc.ErrWaitMessageOnChainMinConfirms
 	}
 
 	sResp := &ct.SyncResponse{ExitCode: 0}
