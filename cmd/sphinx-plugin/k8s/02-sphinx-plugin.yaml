@@ -22,7 +22,6 @@ spec:
         volumeMounts:
           - name: service-config
             mountPath: /opt/sphinx-plugin/
-        volumeMounts:
           - name: host-config
             mountPath: /tmp/hosts
             subPath: proxy-host
