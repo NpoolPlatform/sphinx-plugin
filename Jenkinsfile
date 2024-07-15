@@ -296,8 +296,8 @@ pipeline {
           export ENV_POSITION=$ENV_POSITION
           export ENV_WAN_IP=$ENV_WAN_IP
           envsubst < cmd/sphinx-plugin/k8s/00-configmap.yaml | kubectl apply -f -
-          echo $PROXY_HOST_CONFIG > .pluginproxyconfig
-          kubectl create configmap pluginproxyconfig --from-file=.pluginproxyconfig -n kube-system
+          export PROXY_HOST_CONFIG=$PROXY_HOST_CONFIG
+          envsubst < cmd/sphinx-plugin/k8s/proxy-host-config.yaml | kubectl apply -f -
           make deploy-to-k8s-cluster
         '''.stripIndent())
       }
@@ -334,8 +334,8 @@ pipeline {
           export ENV_POSITION=$ENV_POSITION
           export ENV_WAN_IP=$ENV_WAN_IP
           envsubst < cmd/sphinx-plugin/k8s/00-configmap.yaml | kubectl apply -f -
-          echo $PROXY_HOST_CONFIG > .pluginproxyconfig
-          kubectl create configmap pluginproxyconfig --from-file=.pluginproxyconfig -n kube-system
+          export PROXY_HOST_CONFIG=$PROXY_HOST_CONFIG
+          envsubst < cmd/sphinx-plugin/k8s/proxy-host-config.yaml | kubectl apply -f -
           make deploy-to-k8s-cluster
         '''.stripIndent())
       }
@@ -371,8 +371,8 @@ pipeline {
           export ENV_POSITION=$ENV_POSITION
           export ENV_WAN_IP=$ENV_WAN_IP
           envsubst < cmd/sphinx-plugin/k8s/00-configmap.yaml | kubectl apply -f -
-          echo $PROXY_HOST_CONFIG > .pluginproxyconfig
-          kubectl create configmap pluginproxyconfig --from-file=.pluginproxyconfig -n kube-system
+          export PROXY_HOST_CONFIG=$PROXY_HOST_CONFIG
+          envsubst < cmd/sphinx-plugin/k8s/proxy-host-config.yaml | kubectl apply -f -
           make deploy-to-k8s-cluster
         '''.stripIndent())
       }
