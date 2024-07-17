@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: sphinx-plugin-environment
+  name: sphinx-plugin-coin-environment
   namespace: kube-system
 data:
   environment.coin_local_api: "$ENV_COIN_LOCAL_API"

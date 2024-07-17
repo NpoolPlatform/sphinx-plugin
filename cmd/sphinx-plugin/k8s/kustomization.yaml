@@ -1,3 +1,2 @@
 resources:
-  - 01-sphinx-plugin.viper.yaml
-  - 02-sphinx-plugin.yaml
+  - 01-sphinx-plugin.yaml
