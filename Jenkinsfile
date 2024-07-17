@@ -283,8 +283,8 @@ pipeline {
           if [ "x$BRANCH_NAME" != "xmaster" ]; then
             branch=`echo $BRANCH_NAME | awk -F '/' '{ print $2 }'`
           fi
-          sed -i "s/sphinx-plugin:latest/sphinx-plugin:$branch/g" cmd/sphinx-plugin/k8s/02-sphinx-plugin.yaml
-          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" cmd/sphinx-plugin/k8s/02-sphinx-plugin.yaml
+          sed -i "s/sphinx-plugin:latest/sphinx-plugin:$branch/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
+          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
           export ENV_COIN_LOCAL_API=$ENV_COIN_LOCAL_API
           export ENV_COIN_PUBLIC_API=$ENV_COIN_PUBLIC_API
           export ENV_COIN_JSONRPC_LOCAL_API=$ENV_COIN_JSONRPC_LOCAL_API
@@ -322,9 +322,9 @@ pipeline {
 
           git reset --hard
           git checkout $tag
-          sed -i "s/sphinx-plugin:latest/sphinx-plugin:$tag/g" cmd/sphinx-plugin/k8s/02-sphinx-plugin.yaml
-          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" cmd/sphinx-plugin/k8s/02-sphinx-plugin.yaml
-          sed -i "s/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g" cmd/sphinx-plugin/k8s/02-sphinx-plugin.yaml
+          sed -i "s/sphinx-plugin:latest/sphinx-plugin:$tag/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
+          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
+          sed -i "s/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
           export ENV_COIN_LOCAL_API=$ENV_COIN_LOCAL_API
           export ENV_COIN_PUBLIC_API=$ENV_COIN_PUBLIC_API
           export ENV_COIN_JSONRPC_LOCAL_API=$ENV_COIN_JSONRPC_LOCAL_API
@@ -361,9 +361,9 @@ pipeline {
           tag=`git tag --sort=-v:refname | grep [0\\|2\\|4\\|6\\|8]$ | head -n1`
           git reset --hard
           git checkout $tag
-          sed -i "s/sphinx-plugin:latest/sphinx-plugin:$tag/g" cmd/sphinx-plugin/k8s/02-sphinx-plugin.yaml
-          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" cmd/sphinx-plugin/k8s/02-sphinx-plugin.yaml
-          sed -i "s/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g" cmd/sphinx-plugin/k8s/02-sphinx-plugin.yaml
+          sed -i "s/sphinx-plugin:latest/sphinx-plugin:$tag/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
+          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
+          sed -i "s/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
           export ENV_COIN_LOCAL_API=$ENV_COIN_LOCAL_API
           export ENV_COIN_PUBLIC_API=$ENV_COIN_PUBLIC_API
           export ENV_COIN_JSONRPC_LOCAL_API=$ENV_COIN_JSONRPC_LOCAL_API
