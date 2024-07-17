@@ -20,8 +20,6 @@ spec:
         image: uhub.service.ucloud.cn/entropypool/sphinx-plugin:latest
         imagePullPolicy: Always
         volumeMounts:
-          - name: service-config
-            mountPath: /opt/sphinx-plugin/
           - name: host-config
             mountPath: /tmp/hosts
             subPath: .pluginproxyconfig
@@ -97,12 +95,6 @@ spec:
               key: environment.wan_ip
         command: ["/bin/sh", "-c", "cat /tmp/hosts >> /etc/hosts && /usr/local/bin/sphinx-plugin run"]
       volumes:
-        - name: service-config
-          configMap:
-            name: sphinx-plugin-config
-            items:
-              - key: service-conf
-                path: SphinxPlugin.viper.yaml
         - name: host-config
           configMap:
             name: pluginproxyconfig
