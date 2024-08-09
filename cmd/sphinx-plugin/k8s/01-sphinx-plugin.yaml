@@ -103,6 +103,11 @@ spec:
             configMapKeyRef:
               name: sphinx-plugin-coin-environment
               key: environment.chain_id
+        - name: ENV_CHAIN_NICKNAME
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-coin-environment
+              key: environment.nickname
         command: ["/bin/sh", "-c", "cat /tmp/hosts >> /etc/hosts && /usr/local/bin/sphinx-plugin run"]
       volumes:
         - name: host-config
