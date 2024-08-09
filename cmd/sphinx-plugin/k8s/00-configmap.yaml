@@ -15,3 +15,4 @@ data:
   environment.position: "$ENV_POSITION"
   environment.wan_ip: "$ENV_WAN_IP"
   environment.contract: "$ENV_CONTRACT"
+  environment.chain_id: "$ENV_CHAIN_ID"
