@@ -14,3 +14,4 @@ data:
   environment.sync_interval: "$ENV_SYNC_INTERVAL"
   environment.position: "$ENV_POSITION"
   environment.wan_ip: "$ENV_WAN_IP"
+  environment.contract: "$ENV_CONTRACT"

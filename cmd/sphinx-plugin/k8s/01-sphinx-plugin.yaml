@@ -93,6 +93,11 @@ spec:
             configMapKeyRef:
               name: sphinx-plugin-coin-environment
               key: environment.wan_ip
+        - name: ENV_CONTRACT
+          valueFrom:
+            configMapKeyRef:
+              name: sphinx-plugin-coin-environment
+              key: environment.contract
         command: ["/bin/sh", "-c", "cat /tmp/hosts >> /etc/hosts && /usr/local/bin/sphinx-plugin run"]
       volumes:
         - name: host-config
