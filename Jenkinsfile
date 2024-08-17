@@ -295,8 +295,11 @@ pipeline {
           export ENV_SYNC_INTERVAL=$ENV_SYNC_INTERVAL
           export ENV_POSITION=$ENV_POSITION
           export ENV_WAN_IP=$ENV_WAN_IP
-          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}/g" cmd/sphinx-plugin/k8s/00-configmap.yaml
-          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
+          export ENV_CONTRACT=$ENV_CONTRACT
+          export ENV_CHAIN_ID=$ENV_CHAIN_ID
+          export ENV_CHAIN_NICKNAME=$ENV_CHAIN_NICKNAME
+          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}-${ENV_COIN_NET}/g" cmd/sphinx-plugin/k8s/00-configmap.yaml
+          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}-${ENV_COIN_NET}/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
           envsubst < cmd/sphinx-plugin/k8s/00-configmap.yaml | kubectl apply -f -
           export PROXY_HOST_CONFIG=$PROXY_HOST_CONFIG
           envsubst < cmd/sphinx-plugin/k8s/proxy-host-config.yaml | kubectl apply -f -
@@ -335,8 +338,11 @@ pipeline {
           export ENV_SYNC_INTERVAL=$ENV_SYNC_INTERVAL
           export ENV_POSITION=$ENV_POSITION
           export ENV_WAN_IP=$ENV_WAN_IP
-          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}/g" cmd/sphinx-plugin/k8s/00-configmap.yaml
-          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
+          export ENV_CONTRACT=$ENV_CONTRACT
+          export ENV_CHAIN_ID=$ENV_CHAIN_ID
+          export ENV_CHAIN_NICKNAME=$ENV_CHAIN_NICKNAME
+          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}-${ENV_COIN_NET}/g" cmd/sphinx-plugin/k8s/00-configmap.yaml
+          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}-${ENV_COIN_NET}/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
           envsubst < cmd/sphinx-plugin/k8s/00-configmap.yaml | kubectl apply -f -
           export PROXY_HOST_CONFIG=$PROXY_HOST_CONFIG
           envsubst < cmd/sphinx-plugin/k8s/proxy-host-config.yaml | kubectl apply -f -
@@ -374,8 +380,11 @@ pipeline {
           export ENV_SYNC_INTERVAL=$ENV_SYNC_INTERVAL
           export ENV_POSITION=$ENV_POSITION
           export ENV_WAN_IP=$ENV_WAN_IP
-          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}/g" cmd/sphinx-plugin/k8s/00-configmap.yaml
-          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
+          export ENV_CONTRACT=$ENV_CONTRACT
+          export ENV_CHAIN_ID=$ENV_CHAIN_ID
+          export ENV_CHAIN_NICKNAME=$ENV_CHAIN_NICKNAME
+          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}-${ENV_COIN_NET}/g" cmd/sphinx-plugin/k8s/00-configmap.yaml
+          sed -i "s/sphinx-plugin-coin/sphinx-plugin-${ENV_COIN_TYPE}-${ENV_COIN_NET}/g" cmd/sphinx-plugin/k8s/01-sphinx-plugin.yaml
           envsubst < cmd/sphinx-plugin/k8s/00-configmap.yaml | kubectl apply -f -
           export PROXY_HOST_CONFIG=$PROXY_HOST_CONFIG
           envsubst < cmd/sphinx-plugin/k8s/proxy-host-config.yaml | kubectl apply -f -
