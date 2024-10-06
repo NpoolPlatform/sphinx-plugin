@@ -198,7 +198,7 @@ pipeline {
       }
     }
 
-    stage('Release docker image for development') {
+    stage('Release docker image') {
       when {
         expression { RELEASE_TARGET == 'true' }
       }
@@ -223,55 +223,6 @@ pipeline {
       }
     }
 
-    stage('Release docker image for testing') {
-      when {
-        expression { RELEASE_TARGET == 'true' }
-      }
-      steps {
-        sh(returnStdout: false, script: '''
-          set +e
-          revlist=`git rev-list --tags --max-count=1`
-          rc=$?
-          set -e
-
-          if [ 0 -eq $rc -a x"$revlist" != x ]; then
-            tag=`git tag --sort=-v:refname | grep [1\\|3\\|5\\|7\\|9]$ | head -n1`
-            set +e
-            docker images | grep sphinx-plugin | grep $tag
-            rc=$?
-            set -e
-            if [ 0 -eq $rc ]; then
-              DOCKER_REGISTRY=$DOCKER_REGISTRY make release-docker-images
-            fi
-          fi
-        '''.stripIndent())
-      }
-    }
-
-    stage('Release docker image for production') {
-      when {
-        expression { RELEASE_TARGET == 'true' }
-      }
-      steps {
-        sh(returnStdout: false, script: '''
-          set +e
-          taglist=`git rev-list --tags`
-          rc=$?
-          set -e
-
-          if [ 0 -eq $rc -a x"$taglist" != x ]; then
-            tag=`git tag --sort=-v:refname | grep [0\\|2\\|4\\|6\\|8]$ | head -n1`
-            set +e
-            docker images | grep sphinx-plugin | grep $tag
-            rc=$?
-            set -e
-            if [ 0 -eq $rc ]; then
-              DOCKER_REGISTRY=$DOCKER_REGISTRY make release-docker-images
-            fi
-          fi
-        '''.stripIndent())
-      }
-    }
     stage('Deploy for development') {
       when {
         expression { DEPLOY_TARGET == 'true' }
