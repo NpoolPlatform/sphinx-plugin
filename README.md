@@ -125,11 +125,11 @@
     示例: https://127.0.0.1:8080|token
   ````
 
-| 格式   | 链                   | 说明 |
-|------|----------------------|------|
-| 格式 1 | sol bsc eth tron smh |      |
-| 格式 2 | btc                  |      |
-| 格式 3 | fil ironfish         |      |
+| 格式   | 链                        | 说明 |
+|------|---------------------------|------|
+| 格式 1 | sol bsc eth tron smh chia |      |
+| 格式 2 | btc                       |      |
+| 格式 3 | fil ironfish              |      |
 
 ### 交易上链状态查询默认周期
 以下表格也是所有类型plugin的列表
@@ -142,11 +142,12 @@
 |             ironfish             |  1min  |  1~2min  |
 |            spacemesh             | 0.5min |   2min   |
 |            binanceusd            |   4s   |    5s    |
-|              usdtbep20              |   4s   |    5s    |
+|            usdtbep20             |   4s   |    5s    |
 |            usdcerc20             |  12s   |  10~20s  |
 |            usdttrc20             |   2s   |    3s    |
 |           binancecoin            |   4s   |    5s    |
 | ethereum(eth、23 种 erc20 tokens) |  12s   |  10~20s  |
+|               chia               |  30s   |   30s    |
 
 ### wallet-status-check
 
