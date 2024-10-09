@@ -34,6 +34,7 @@ const (
 	Bep20       TokenType = "bep20"
 
 	Depinc TokenType = "depinc"
+	Chia   TokenType = "chia"
 )
 
 type TokenInfo struct {
@@ -81,6 +82,7 @@ var (
 			"usdcerc20":   sphinxplugin.CoinType_CoinTypeusdcerc20,
 			"usdtbep20":   sphinxplugin.CoinType_CoinTypeusdtbep20,
 			"depinc":      sphinxplugin.CoinType_CoinTypedepinc,
+			"chia":        sphinxplugin.CoinType_CoinTypechia,
 		},
 		CoinNetTest: {
 			"filecoin":    sphinxplugin.CoinType_CoinTypetfilecoin,
@@ -96,6 +98,7 @@ var (
 			"usdcerc20":   sphinxplugin.CoinType_CoinTypetusdcerc20,
 			"usdtbep20":   sphinxplugin.CoinType_CoinTypetusdtbep20,
 			"depinc":      sphinxplugin.CoinType_CoinTypetdepinc,
+			"chia":        sphinxplugin.CoinType_CoinTypetchia,
 		},
 	}
 
@@ -128,6 +131,8 @@ var (
 		"tusdtbep20":   "usdtbep20/",
 		"depinc":       "depinc/",
 		"tdepinc":      "depinc/",
+		"chia":         "chia/",
+		"tchia":        "tchia/",
 	}
 
 	// default sync time for waitting transaction on chain
@@ -170,6 +175,9 @@ var (
 
 		sphinxplugin.CoinType_CoinTypedepinc:  time.Minute * 1,
 		sphinxplugin.CoinType_CoinTypetdepinc: time.Minute * 1,
+
+		sphinxplugin.CoinType_CoinTypechia:  time.Second * 30,
+		sphinxplugin.CoinType_CoinTypetchia: time.Second * 30,
 	}
 )
 
