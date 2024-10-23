@@ -11,9 +11,9 @@
 交易流程：
 
 - 交易签名前准备
+  - 链上估计gasPrice
   - 检查 Gas + Value < Balance
   - 从链上From账户上下文（如Nonce、最近块儿高度等），此外个别币种还需要先获取From的ViewKey
-  - 链上估计gasPrice
 - 交易签名
   - 获取私钥信息，签名
   - 构造已签名待上链交易

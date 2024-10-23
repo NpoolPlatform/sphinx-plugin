@@ -132,7 +132,7 @@ var (
 		"depinc":       "depinc/",
 		"tdepinc":      "depinc/",
 		"chia":         "chia/",
-		"tchia":        "tchia/",
+		"tchia":        "chia/",
 	}
 
 	// default sync time for waitting transaction on chain
